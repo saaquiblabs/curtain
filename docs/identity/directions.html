@@ -1,0 +1,783 @@
+<title>Curtain Identity Directions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Hanken+Grotesk:wght@400..700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&family=Manrope:wght@400..700&family=Limelight&family=Inter+Tight:wght@400..700&display=swap">
+<style>
+/* Layout: a quiet, neutral catalogue page. Each direction gets one band: header, two real-size desks
+   (macOS Light / macOS Dark) with the menu open, then its spec sheet. The page stays grey so the
+   three worlds carry the colour. */
+:root {
+  --bg: #eceef1;
+  --surface: #ffffff;
+  --fg: #15171c;
+  --muted: #5b616d;
+  --faint: #8a909b;
+  --line: #d6d9df;
+  --chip: #f4f5f7;
+  --focus: #2f6fed;
+  --f-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --surface: #1a1c21; --fg: #eceef1; --muted: #a0a6b1; --faint: #737985;
+    --line: #2b2e35; --chip: #22252b; --focus: #7aa5ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #1a1c21; --fg: #eceef1; --muted: #a0a6b1; --faint: #737985;
+  --line: #2b2e35; --chip: #22252b; --focus: #7aa5ff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- Intro ---------- */
+.intro { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(28px, 4.4vw, 40px); line-height: 1.1; margin: 0; letter-spacing: -.015em; text-wrap: balance; font-weight: 650; }
+.lead { margin: 0; max-width: 64ch; color: var(--muted); font-size: 16px; }
+.lead b { color: var(--fg); font-weight: 600; }
+.index { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.index a {
+  display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 12px; text-decoration: none;
+  background: var(--surface); border: 1px solid var(--line); min-width: 0;
+}
+.index a:hover { border-color: var(--faint); }
+.index .ix-name { font-size: 20px; line-height: 1.15; }
+.index .ix-sub { font-size: 13px; color: var(--muted); }
+.ix-chips { display: flex; gap: 4px; }
+.ix-chips i { width: 18px; height: 18px; border-radius: 5px; display: block; box-shadow: inset 0 0 0 1px rgba(127,127,127,.25); }
+@media (max-width: 640px) { .index { grid-template-columns: 1fr; } }
+
+/* ---------- Direction band ---------- */
+.dir { display: flex; flex-direction: column; gap: 22px; scroll-margin-top: 24px; }
+.dir-head { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 28px; }
+.dir-head h2 { margin: 0; font-size: clamp(32px, 5vw, 44px); line-height: 1.05; font-weight: 500; text-wrap: balance; }
+.dir-head .tag { margin: 0; font-size: 16px; color: var(--fg); max-width: 62ch; }
+.dir-head .mode { margin: 0; font-size: 14px; color: var(--muted); max-width: 62ch; }
+.dir-velvet h2 { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-variation-settings: "opsz" 120; }
+.dir-linen h2 { font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; }
+.dir-midnight h2 { font-family: "Limelight", "Didot", serif; letter-spacing: .04em; }
+
+.tools { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--muted); }
+.btn {
+  font: 500 13px var(--f-ui); color: var(--fg); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
+.btn:hover { border-color: var(--faint); }
+.check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--fg); }
+.check input { accent-color: var(--fg); width: 15px; height: 15px; margin: 0; }
+
+.desks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .desks { grid-template-columns: minmax(0, 1fr); } }
+.desk-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.desk-label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.desk-scroll { overflow-x: auto; border-radius: 14px; }
+.desk {
+  position: relative; width: 100%; min-width: 412px; padding: 34px 20px 28px; border-radius: 14px;
+  display: flex; justify-content: center; align-items: flex-start; overflow: hidden;
+}
+.desk.ap-light { background: radial-gradient(120% 90% at 20% 0%, #e9eef5 0%, #c9d3e1 55%, #b7c3d4 100%); }
+.desk.ap-dark { background: radial-gradient(120% 90% at 20% 0%, #2a3040 0%, #161a24 55%, #0d1017 100%); }
+.menubar {
+  position: absolute; inset: 0 0 auto 0; height: 24px; display: flex; align-items: center; justify-content: flex-end;
+  gap: 14px; padding: 0 14px; font: 500 13px var(--f-ui);
+}
+.ap-light .menubar { background: rgba(255,255,255,.55); color: #111; }
+.ap-dark .menubar { background: rgba(20,22,28,.6); color: #f2f2f2; }
+.menubar svg { width: 18px; height: 18px; display: block; }
+.menubar .mb-glyph { padding: 1px 4px; border-radius: 4px; }
+.ap-light .menubar .mb-glyph { background: rgba(0,0,0,.1); }
+.ap-dark .menubar .mb-glyph { background: rgba(255,255,255,.16); }
+
+/* ---------- Spec sheet ---------- */
+.spec { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .spec { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card.wide { grid-column: 1 / -1; }
+.card h3 { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.card p, .card ul { margin: 0; font-size: 14px; }
+.card ul { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.card li::marker { color: var(--faint); }
+.ms { font-family: var(--f-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 10px; }
+.sw { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sw i { display: block; height: 44px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(127,127,127,.25); }
+.sw b { font-size: 13px; font-weight: 600; }
+.sw span { font-size: 12px; color: var(--muted); line-height: 1.35; }
+.sw code { font-family: var(--f-mono); font-size: 11.5px; color: var(--faint); }
+
+.type-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 12px; align-items: baseline; padding-block: 6px; border-bottom: 1px dashed var(--line); }
+.type-row:last-child { border-bottom: 0; }
+.type-row .role { font-size: 12px; color: var(--muted); }
+.type-row .sample { overflow-wrap: anywhere; }
+.type-row .meta { grid-column: 2; font-size: 12px; color: var(--faint); }
+
+.states { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 520px) { .states { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.state { background: var(--chip); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.state small { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.state b { font-size: 17px; font-weight: 600; }
+.state span { font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+.sketches { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; }
+@media (max-width: 640px) { .sketches { grid-template-columns: minmax(0, 1fr); } }
+.sketch { position: relative; border: 1.5px dashed var(--faint); border-radius: 10px; padding: 30px 14px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
+.sketch::before {
+  content: "SKETCH, not final"; position: absolute; top: 8px; left: 10px; font: 600 10px var(--f-ui); letter-spacing: .1em;
+  color: var(--muted); background: var(--chip); padding: 2px 6px; border-radius: 4px;
+}
+.sketch .cap { font-size: 12px; color: var(--muted); text-align: center; }
+.wm { width: 100%; border-radius: 8px; padding: 22px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.wm .credit { font: 500 11px var(--f-ui); letter-spacing: .04em; opacity: .7; }
+.glyphs { display: flex; flex-direction: column; gap: 10px; width: 100%; align-items: center; }
+.glyph-big { display: flex; gap: 18px; }
+.glyph-big svg { width: 72px; height: 72px; }
+.glyph-big figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+.mb-strip { display: flex; gap: 0; border-radius: 6px; overflow: hidden; width: 100%; max-width: 260px; }
+.mb-strip div { flex: 1; height: 24px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.mb-strip div:first-child { background: #e8ebf0; color: #111; }
+.mb-strip div:last-child { background: #1d2029; color: #f2f2f2; }
+.mb-strip svg { width: 18px; height: 18px; }
+
+.pick { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+.pick h2 { margin: 0; font-size: 24px; font-weight: 650; }
+.pick p { margin: 0; color: var(--muted); max-width: 64ch; }
+footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
+
+/* ======================================================================
+   THE MENU MOCK. Structure, copy and sizes follow Sources/UI.swift:
+   372pt panel, 16pt padding, 14pt gaps, rows with 12pt padding, 26pt slider.
+   Each direction × appearance sets the --m-* tokens below.
+   ====================================================================== */
+.mock {
+  --m-panel: #fff; --m-tex: none; --m-edge: rgba(0,0,0,.1); --m-shadow: 0 18px 50px rgba(0,0,0,.25);
+  --m-ink: #111; --m-ink2: #555; --m-ink3: #888; --m-accent: #333;
+  --m-row: rgba(0,0,0,.05); --m-row-edge: transparent; --m-row-hover: rgba(0,0,0,.07);
+  --m-track: rgba(0,0,0,.08); --m-fill: #333; --m-fill-ink: #fff; --m-pct: #555; --m-pct-on-fill: #fff;
+  --m-pill: rgba(0,0,0,.06); --m-pill-ink: #111; --m-pill-edge: transparent; --m-pill-hover: rgba(0,0,0,.1);
+  --m-pro: #333; --m-pro-ink: #fff; --m-pro-hover: #222;
+  --m-sw-off: rgba(0,0,0,.12); --m-sw-on: #333; --m-knob: #fff; --m-sw-glow: none;
+  --m-veil: rgba(0,0,0,.08); --m-link: #2f6fed;
+  --f-word: var(--f-ui); --f-title: var(--f-ui); --f-body: var(--f-ui);
+  --r-panel: 14px; --r-row: 12px; --r-pill: 999px; --r-track: 999px;
+
+  position: relative; z-index: 1; width: 372px; flex: none; padding: 16px; display: flex; flex-direction: column; gap: 14px;
+  background-color: var(--m-panel); background-image: var(--m-tex); border-radius: var(--r-panel);
+  box-shadow: inset 0 0 0 1px var(--m-edge), var(--m-shadow);
+  color: var(--m-ink); font-family: var(--f-body); font-size: 13px; line-height: 1.25;
+  -webkit-font-smoothing: antialiased; user-select: none; text-align: left;
+}
+.mock svg { display: block; flex: none; }
+.m-head { display: flex; align-items: center; gap: 8px; }
+.m-head .m-glyph { width: 18px; height: 18px; color: var(--m-accent); }
+.m-word { font-family: var(--f-word); font-size: 15px; font-weight: 600; }
+.m-sum { margin-left: auto; font-size: 10.5px; color: var(--m-ink2); font-variant-numeric: tabular-nums; }
+.m-rows { display: flex; flex-direction: column; gap: 10px; }
+.m-row {
+  position: relative; overflow: hidden; padding: 12px; border-radius: var(--r-row); display: flex; flex-direction: column; gap: 10px;
+  background: var(--m-row); box-shadow: inset 0 0 0 1px var(--m-row-edge); transition: background-color .15s ease;
+}
+.m-row:hover { background: var(--m-row-hover); }
+.m-row > *:not(.m-veil) { position: relative; z-index: 1; }
+.m-top { display: flex; align-items: center; gap: 8px; }
+.m-ico { width: 18px; display: flex; justify-content: center; color: var(--m-ink2); }
+.m-ico svg { width: 16px; height: 16px; }
+.m-names { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.m-name { font-family: var(--f-title); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-hint { font-size: 10px; color: var(--m-ink3); }
+.m-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: var(--r-pill); cursor: pointer;
+  font: 600 11px var(--f-body); color: var(--m-pill-ink); background: var(--m-pill); border: 0;
+  box-shadow: inset 0 0 0 1px var(--m-pill-edge); white-space: nowrap; flex: none;
+  transition: background-color .12s ease, transform .12s ease, opacity .12s ease, color .12s ease;
+}
+.m-pill svg { width: 11px; height: 11px; }
+.m-pill:hover { background: var(--m-pill-hover); }
+.m-pill:active { transform: scale(.94); opacity: .8; }
+.m-pill.pro { background: var(--m-pro); color: var(--m-pro-ink); box-shadow: none; }
+.m-pill.pro:hover { background: var(--m-pro-hover); }
+.m-stage { display: grid; }
+.m-stage > * { grid-area: 1 / 1; transition: opacity .16s ease; }
+.m-offmsg { min-height: 26px; display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--m-ink2); opacity: 0; pointer-events: none; }
+.m-row.off .m-offmsg { opacity: 1; pointer-events: auto; }
+.m-row.off .m-slider { opacity: 0; pointer-events: none; }
+
+.m-slider { position: relative; height: 26px; border-radius: var(--r-track); background: var(--m-track); cursor: pointer; touch-action: none; overflow: hidden; }
+.m-fill { position: absolute; inset: 0 auto 0 0; border-radius: var(--r-track); background: var(--m-fill); min-width: 26px; }
+.m-slider.jump .m-fill, .m-slider.jump .m-thumb { transition: width .12s ease-out, left .12s ease-out; }
+.m-thumb { display: none; }
+.m-slider-ui { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; pointer-events: none; }
+.m-sun { width: 12px; height: 12px; color: var(--m-fill-ink); }
+.m-pct { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--m-pct); transition: color .12s ease; }
+.m-slider.high .m-pct { color: var(--m-pct-on-fill); }
+
+.m-notice { display: flex; gap: 6px; font-size: 10.5px; color: var(--m-ink2); align-items: flex-start; }
+.m-notice svg { width: 12px; height: 12px; margin-top: 1px; }
+.m-div { height: 1px; background: var(--m-row-edge); }
+.m-switches { display: flex; flex-direction: column; gap: 10px; }
+.m-sw-row { display: flex; align-items: center; gap: 12px; }
+.m-sw-text { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.m-sw-title { font-size: 13px; }
+.m-sw-detail { font-size: 10.5px; color: var(--m-ink2); }
+.m-switch {
+  position: relative; width: 32px; height: 18px; border-radius: 9px; border: 0; padding: 0; cursor: pointer; flex: none;
+  background: var(--m-sw-off); transition: background-color .16s ease, box-shadow .16s ease;
+}
+.m-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--m-knob); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .16s cubic-bezier(.3,.7,.2,1);
+}
+.m-switch[aria-checked="true"] { background: var(--m-sw-on); box-shadow: var(--m-sw-glow); }
+.m-switch[aria-checked="true"]::after { transform: translateX(14px); }
+.m-switch:hover::after { box-shadow: 0 1px 4px rgba(0,0,0,.45); }
+.m-link { display: inline-flex; gap: 6px; align-items: center; font-size: 10.5px; color: var(--m-link); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.m-link:hover { text-decoration: underline; }
+.m-link svg { width: 12px; height: 12px; }
+.m-foot { display: flex; align-items: center; font-size: 10.5px; color: var(--m-ink2); }
+.m-quit { margin-left: auto; font: inherit; color: inherit; background: none; border: 0; padding: 2px 4px; border-radius: 4px; cursor: pointer; }
+.m-quit:hover { color: var(--m-ink); background: var(--m-pill); }
+.m-veil { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ---------------- Velvet & Brass ---------------- */
+.d-velvet {
+  --f-word: "Fraunces", Georgia, serif; --f-title: "Hanken Grotesk", var(--f-ui); --f-body: "Hanken Grotesk", var(--f-ui);
+  --r-panel: 14px; --r-row: 10px; --r-pill: 7px; --r-track: 6px;
+  --brass: linear-gradient(90deg, #8c5e1c 0%, #c79a48 45%, #e6c983 70%, #b8893b 100%);
+}
+.d-velvet.ap-light {
+  --m-panel: #f5ece6;
+  --m-tex: repeating-linear-gradient(90deg, rgba(110,31,43,.035) 0 6px, rgba(255,255,255,.25) 6px 7px, transparent 7px 14px);
+  --m-edge: rgba(168,122,46,.45); --m-shadow: 0 20px 44px rgba(58,15,23,.28), 0 2px 6px rgba(58,15,23,.12);
+  --m-ink: #2e1218; --m-ink2: #77555b; --m-ink3: #a08487; --m-accent: #6e1f2b;
+  --m-row: rgba(110,31,43,.055); --m-row-edge: rgba(168,122,46,.32); --m-row-hover: rgba(110,31,43,.085);
+  --m-track: rgba(110,31,43,.1); --m-fill: var(--brass); --m-fill-ink: #3a220a; --m-pct: #77555b; --m-pct-on-fill: #3a220a;
+  --m-pill: transparent; --m-pill-ink: #6e1f2b; --m-pill-edge: rgba(168,122,46,.7); --m-pill-hover: rgba(184,137,59,.14);
+  --m-pro: #6e1f2b; --m-pro-ink: #f2d9a2; --m-pro-hover: #5a1621;
+  --m-sw-off: rgba(110,31,43,.16); --m-sw-on: #6e1f2b; --m-knob: radial-gradient(circle at 35% 30%, #f6e2a8, #c79a48 60%, #8c5e1c);
+  --m-veil: repeating-linear-gradient(90deg, rgba(110,31,43,.16) 0 7px, rgba(110,31,43,.07) 7px 14px);
+  --m-link: #6e1f2b;
+}
+.d-velvet.ap-dark {
+  --m-panel: #2a0c13;
+  --m-tex: radial-gradient(120% 50% at 50% -10%, rgba(216,178,106,.12), transparent 60%),
+           repeating-linear-gradient(90deg, rgba(0,0,0,.22) 0 6px, rgba(255,255,255,.025) 6px 8px, transparent 8px 14px);
+  --m-edge: rgba(216,178,106,.35); --m-shadow: 0 22px 50px rgba(0,0,0,.55);
+  --m-ink: #f4e6d4; --m-ink2: #c8aaa1; --m-ink3: #93736a; --m-accent: #d8b26a;
+  --m-row: rgba(0,0,0,.24); --m-row-edge: rgba(216,178,106,.24); --m-row-hover: rgba(0,0,0,.32);
+  --m-track: rgba(255,255,255,.08); --m-fill: var(--brass); --m-fill-ink: #3a220a; --m-pct: #c8aaa1; --m-pct-on-fill: #3a220a;
+  --m-pill: transparent; --m-pill-ink: #ead3a0; --m-pill-edge: rgba(216,178,106,.55); --m-pill-hover: rgba(216,178,106,.14);
+  --m-pro: #d8b26a; --m-pro-ink: #2a0c13; --m-pro-hover: #e6c983;
+  --m-sw-off: rgba(255,255,255,.12); --m-sw-on: #8e2a3a; --m-knob: radial-gradient(circle at 35% 30%, #f6e2a8, #c79a48 60%, #8c5e1c);
+  --m-veil: repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 7px, rgba(110,31,43,.35) 7px 14px);
+  --m-link: #e6c983;
+}
+.d-velvet .m-word { font-style: italic; font-size: 17px; font-variation-settings: "opsz" 72; letter-spacing: -.005em; }
+.d-velvet .m-div { height: 2px; background: var(--brass); border-radius: 1px; position: relative; margin-inline: 4px; opacity: .85; }
+.d-velvet .m-div::before, .d-velvet .m-div::after {
+  content: ""; position: absolute; top: -2px; width: 6px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6e2a8, #b8893b 70%);
+}
+.d-velvet .m-div::before { left: -4px; } .d-velvet .m-div::after { right: -4px; }
+.d-velvet .m-thumb {
+  display: block; position: absolute; top: 4px; width: 18px; height: 18px; margin-left: -22px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff1c9, #c79a48 55%, #7a4f14); box-shadow: 0 1px 3px rgba(58,15,23,.45);
+  transition: transform .12s ease;
+}
+.d-velvet .m-slider:hover .m-thumb { transform: scale(1.12); }
+.d-velvet .m-fill { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.15); }
+.d-velvet .m-switch::after { background: var(--m-knob); }
+.d-velvet .m-veil { background: var(--m-veil); transform-origin: top; transform: scaleY(0); transition: transform .2s cubic-bezier(.2,.8,.2,1); }
+.d-velvet .m-row.off .m-veil { transform: scaleY(1); }
+.d-velvet.opening { animation: velvet-open .18s cubic-bezier(.2,.8,.2,1); transform-origin: top right; }
+@keyframes velvet-open { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+
+/* ---------------- Linen & Dusk ---------------- */
+.d-linen {
+  --f-word: "Newsreader", Georgia, serif; --f-title: "Manrope", var(--f-ui); --f-body: "Manrope", var(--f-ui);
+  --r-panel: 18px; --r-row: 14px; --r-pill: 999px; --r-track: 999px;
+  -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3);
+}
+.d-linen.ap-light {
+  --m-panel: rgba(250,250,247,.86);
+  --m-tex: repeating-linear-gradient(0deg, rgba(60,70,90,.028) 0 1px, transparent 1px 3px),
+           repeating-linear-gradient(90deg, rgba(60,70,90,.022) 0 1px, transparent 1px 3px);
+  --m-edge: rgba(255,255,255,.9); --m-shadow: 0 16px 40px rgba(40,52,80,.18), 0 0 0 1px rgba(42,47,59,.08);
+  --m-ink: #2a2f3b; --m-ink2: #687084; --m-ink3: #9aa0ae; --m-accent: #5d6fa6;
+  --m-row: rgba(255,255,255,.66); --m-row-edge: rgba(42,47,59,.08); --m-row-hover: rgba(255,255,255,.9);
+  --m-track: rgba(42,47,59,.07);
+  --m-fill: linear-gradient(90deg, rgba(93,111,166,.32), rgba(93,111,166,.58)), repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 2px, transparent 2px 9px);
+  --m-fill-ink: #3e4d7e; --m-pct: #687084; --m-pct-on-fill: #2f3c66;
+  --m-pill: transparent; --m-pill-ink: #2a2f3b; --m-pill-edge: rgba(42,47,59,.18); --m-pill-hover: rgba(93,111,166,.1);
+  --m-pro: #5d6fa6; --m-pro-ink: #fff; --m-pro-hover: #4e5f93;
+  --m-sw-off: rgba(42,47,59,.12); --m-sw-on: #5d6fa6; --m-knob: #fff;
+  --m-veil: linear-gradient(90deg, rgba(201,211,234,.75), rgba(201,211,234,.35));
+  --m-link: #4e5f93;
+}
+.d-linen.ap-dark {
+  --m-panel: rgba(36,41,58,.88);
+  --m-tex: repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px),
+           repeating-linear-gradient(90deg, rgba(255,255,255,.016) 0 1px, transparent 1px 3px);
+  --m-edge: rgba(255,255,255,.1); --m-shadow: 0 18px 44px rgba(0,0,0,.45);
+  --m-ink: #e9eaf0; --m-ink2: #a9aec2; --m-ink3: #767c93; --m-accent: #e8b98f;
+  --m-row: rgba(255,255,255,.05); --m-row-edge: rgba(255,255,255,.08); --m-row-hover: rgba(255,255,255,.08);
+  --m-track: rgba(255,255,255,.07);
+  --m-fill: linear-gradient(90deg, rgba(232,185,143,.3), rgba(232,185,143,.62)), repeating-linear-gradient(90deg, rgba(255,255,255,.12) 0 2px, transparent 2px 9px);
+  --m-fill-ink: #fbe3cb; --m-pct: #a9aec2; --m-pct-on-fill: #fff3e6;
+  --m-pill: transparent; --m-pill-ink: #e9eaf0; --m-pill-edge: rgba(255,255,255,.2); --m-pill-hover: rgba(232,185,143,.12);
+  --m-pro: #e8b98f; --m-pro-ink: #24293a; --m-pro-hover: #f0c9a6;
+  --m-sw-off: rgba(255,255,255,.14); --m-sw-on: #e8b98f; --m-knob: #fff;
+  --m-veil: linear-gradient(90deg, rgba(20,24,38,.7), rgba(20,24,38,.3));
+  --m-link: #f0c9a6;
+}
+.d-linen .m-word { font-style: italic; font-weight: 400; font-size: 18px; letter-spacing: .005em; }
+.d-linen .m-name { font-weight: 600; }
+.d-linen .m-pill { font-weight: 600; }
+.d-linen .m-div { height: 1px; background: repeating-linear-gradient(90deg, var(--m-ink3) 0 3px, transparent 3px 7px); opacity: .55; }
+.d-linen .m-switch { box-shadow: inset 0 0 0 1px var(--m-row-edge); }
+.d-linen .m-fill { border-right: 1px solid rgba(255,255,255,.55); }
+.d-linen .m-veil { background: var(--m-veil); transform: translateX(-101%); transition: transform .22s cubic-bezier(.3,.7,.2,1); }
+.d-linen .m-veil::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 11px); }
+.d-linen .m-row.off .m-veil { transform: translateX(0); }
+.d-linen.opening { animation: linen-open .2s ease-out; }
+@keyframes linen-open { from { opacity: 0; transform: translateY(-6px); filter: blur(4px); } }
+
+/* ---------------- Midnight Theatre (always dark) ---------------- */
+.d-midnight {
+  --f-word: "Limelight", "Didot", serif; --f-title: "Inter Tight", var(--f-ui); --f-body: "Inter Tight", var(--f-ui);
+  --r-panel: 10px; --r-row: 6px; --r-pill: 4px; --r-track: 3px;
+  --m-panel: #0e0c12;
+  --m-tex: radial-gradient(110% 55% at 50% -12%, rgba(255,214,150,.13), transparent 62%);
+  --m-edge: rgba(255,255,255,.07); --m-shadow: 0 24px 60px rgba(0,0,0,.6);
+  --m-ink: #f5eedf; --m-ink2: #a69c8e; --m-ink3: #6e665d; --m-accent: #ffb547;
+  --m-row: #17141c; --m-row-edge: rgba(255,255,255,.06); --m-row-hover: #1d1923;
+  --m-track: #221e28; --m-fill: linear-gradient(90deg, rgba(255,181,71,.14), rgba(255,181,71,.55) 70%, #ffc76a);
+  --m-fill-ink: #ffe3b0; --m-pct: #a69c8e; --m-pct-on-fill: #1a1206;
+  --m-pill: transparent; --m-pill-ink: #f5eedf; --m-pill-edge: rgba(245,238,223,.2); --m-pill-hover: rgba(255,181,71,.12);
+  --m-pro: #b3172f; --m-pro-ink: #fff4dc; --m-pro-hover: #c91d37;
+  --m-sw-off: #2a2530; --m-sw-on: #ffb547; --m-knob: #fff4dc; --m-sw-glow: 0 0 10px rgba(255,181,71,.45);
+  --m-link: #ffc76a;
+}
+.d-midnight.ap-light { --m-edge: rgba(255,255,255,.2); --m-shadow: 0 24px 50px rgba(20,16,30,.45), 0 0 0 1px rgba(0,0,0,.35); }
+.d-midnight .m-word { font-weight: 400; font-size: 16px; letter-spacing: .06em; color: var(--m-ink); }
+.d-midnight .m-name { font-weight: 600; letter-spacing: .005em; }
+.d-midnight .m-pill { text-transform: uppercase; letter-spacing: .07em; font-size: 10px; padding: 5px 9px; }
+.d-midnight .m-pill.pro { box-shadow: 0 0 14px rgba(179,23,47,.45); }
+.d-midnight .m-div { height: 5px; background: radial-gradient(circle, rgba(255,181,71,.6) 1.1px, transparent 1.9px) 0 0 / 11px 5px repeat-x; }
+.d-midnight .m-fill { box-shadow: 0 0 16px rgba(255,181,71,.35); }
+.d-midnight .m-fill::after { content: ""; position: absolute; right: 0; top: 3px; bottom: 3px; width: 2px; border-radius: 1px; background: #fff4dc; box-shadow: 0 0 8px #ffc76a; }
+.d-midnight .m-slider:hover .m-fill { box-shadow: 0 0 22px rgba(255,181,71,.5); }
+.d-midnight .m-veil::before, .d-midnight .m-veil::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 50.5%;
+  background: repeating-linear-gradient(90deg, rgba(179,23,47,.34) 0 6px, rgba(110,10,25,.34) 6px 12px);
+  transition: transform .23s cubic-bezier(.5,0,.2,1);
+}
+.d-midnight .m-veil::before { left: 0; transform: translateX(-101%); }
+.d-midnight .m-veil::after { right: 0; transform: translateX(101%); }
+.d-midnight .m-row.off .m-veil::before, .d-midnight .m-row.off .m-veil::after { transform: translateX(0); }
+.ghost { display: none; }
+.d-midnight .ghost { display: block; width: 6px; height: 6px; border-radius: 50%; background: #ffd58a; box-shadow: 0 0 6px 2px rgba(255,200,110,.6); flex: none; }
+.d-midnight.opening { animation: midnight-open .24s cubic-bezier(.5,0,.2,1); }
+@keyframes midnight-open { from { clip-path: inset(0 50% 0 50% round 10px); opacity: .4; } to { clip-path: inset(0 0 0 0 round 10px); opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mock, .mock *, .mock *::before, .mock *::after { transition-duration: 1ms !important; animation: none !important; }
+}
+
+/* A native-looking context menu for right-click → Unplug */
+.ctx {
+  position: fixed; z-index: 50; padding: 5px; border-radius: 7px; font: 13px var(--f-ui); white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,.3), 0 0 0 .5px rgba(0,0,0,.3);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+}
+.ctx.ap-light { background: rgba(246,246,246,.94); color: #111; }
+.ctx.ap-dark { background: rgba(44,44,46,.94); color: #f2f2f2; }
+.ctx button { display: block; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 3px 10px; border-radius: 4px; cursor: default; }
+.ctx button:hover, .ctx button:focus-visible { background: #0a64d8; color: #fff; outline: none; }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <div class="eyebrow">Curtain · identity, step 2 · issue #3</div>
+    <h1>Three worlds Curtain could live in</h1>
+    <p class="lead">Each direction re-skins <b>today's menu</b>: same rows, same words, same 372 pt width, shown at real size. Drag a slider, hover the buttons, turn a screen off and on, flip the switches. Right-click <b>Turn off</b> on L27h-4A to unplug it. All three keep one idea: a <b>sheer</b> curtain is a dimmed screen, a <b>blackout</b> curtain is a screen that's off.</p>
+    <nav class="index" aria-label="Directions">
+      <a href="#velvet"><span class="ix-chips"><i style="background:#6e1f2b"></i><i style="background:#b8893b"></i><i style="background:#f5ece6"></i><i style="background:#2a0c13"></i></span><span class="ix-name" style="font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600">Velvet &amp; Brass</span><span class="ix-sub">Rich and warm. Follows macOS.</span></a>
+      <a href="#linen"><span class="ix-chips"><i style="background:#fafaf7"></i><i style="background:#5d6fa6"></i><i style="background:#24293a"></i><i style="background:#e8b98f"></i></span><span class="ix-name" style="font-family:Newsreader,Georgia,serif;font-style:italic">Linen &amp; Dusk</span><span class="ix-sub">Light and airy. Follows macOS.</span></a>
+      <a href="#midnight"><span class="ix-chips"><i style="background:#0e0c12"></i><i style="background:#b3172f"></i><i style="background:#ffb547"></i><i style="background:#fff4dc"></i></span><span class="ix-name" style="font-family:Limelight,Didot,serif;letter-spacing:.04em">Midnight Theatre</span><span class="ix-sub">Dark and dramatic. Always dark.</span></a>
+    </nav>
+  </header>
+
+  <div id="dirs"></div>
+
+  <section class="pick">
+    <h2>Which one is Curtain?</h2>
+    <p>Tell Claude your pick, plus anything you'd change ("Velvet, but less red", "Midnight's slider in Linen"). It gets recorded on issue #3, and the chosen direction goes into the real app as 0.3.0.</p>
+  </section>
+  <footer class="credit">Curtain · A Saaquib Labs tool · Fonts from Google Fonts, all under the SIL Open Font License</footer>
+</div>
+
+<script>
+(() => {
+  // ---------- Icons (stand-ins for the SF Symbols the real menu uses) ----------
+  const I = {
+    power: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 1.8v6"/><path d="M4.4 4a5.3 5.3 0 1 0 7.2 0"/></svg>',
+    sun: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="2.8"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1.6v1M8 13.4v1M1.6 8h1M13.4 8h1M3.5 3.5l.7.7M11.8 11.8l.7.7M3.5 12.5l.7-.7M11.8 4.2l.7-.7"/></g></svg>',
+    laptop: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="7" rx="1"/><path d="M1.3 12.6h13.4"/></svg>',
+    display: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="1.8" y="2.3" width="12.4" height="8.6" rx="1"/><path d="M5.8 13.7h4.4M8 11v2.7"/></svg>',
+    excl: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.3"/><path d="M8 4.6v4.2"/><circle cx="8" cy="11.3" r=".5" fill="currentColor"/></svg>',
+    hand: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 8.4V3.6a1 1 0 0 1 2 0v4M7.6 7.4V2.6a1 1 0 0 1 2 0v4.8M9.6 7.4V3.6a1 1 0 0 1 2 0v5.3c0 3-1.7 5.1-4.2 5.1-1.6 0-2.6-.8-3.5-2.2L2.3 9.4a1 1 0 0 1 1.6-1.1l1.7 1.7"/></svg>',
+  };
+
+  // ---------- Glyph sketches: header mark + menu bar template, open and closed ----------
+  const GLYPH = {
+    velvet: {
+      open: '<svg viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="2.3" width="16" height="1.4" rx=".7"/><circle cx="1.3" cy="3" r="1.3"/><circle cx="16.7" cy="3" r="1.3"/><path d="M2.6 4.4h4.6c0 3.4-1.6 5.6-2.6 6.4l1 5.4H2.6z"/><path d="M15.4 4.4h-4.6c0 3.4 1.6 5.6 2.6 6.4l-1 5.4h3z"/></svg>',
+      closed: '<svg viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="2.3" width="16" height="1.4" rx=".7"/><circle cx="1.3" cy="3" r="1.3"/><circle cx="16.7" cy="3" r="1.3"/><rect x="2.6" y="4.4" width="2.7" height="11.8" rx=".5"/><rect x="5.8" y="4.4" width="2.9" height="11.8" rx=".5"/><rect x="9.3" y="4.4" width="2.9" height="11.8" rx=".5"/><rect x="12.7" y="4.4" width="2.7" height="11.8" rx=".5"/></svg>',
+    },
+    linen: {
+      open: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M1.5 2.8h15"/><path d="M3 3.2v12.6h4.2C6 12.6 7.4 9 6.4 3.2z" fill="currentColor" fill-opacity=".28"/><path d="M4.6 3.4c.8 3.8-.4 8 .6 12.2"/><rect x="9.5" y="6.5" width="6" height="7" rx="1" stroke-opacity=".5"/></svg>',
+      closed: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M1.5 2.8h15"/><path d="M2.5 3.2h13v12.6h-13z" fill="currentColor" fill-opacity=".5" stroke="none"/><path d="M4.4 3.4c.9 3.8-.5 8 .5 12.2M8 3.4c.9 3.8-.5 8 .5 12.2M11.6 3.4c.9 3.8-.5 8 .5 12.2"/></svg>',
+    },
+    midnight: {
+      open: '<svg viewBox="0 0 18 18" fill="currentColor"><path d="M1.6 17V6.4Q9 -.6 16.4 6.4V17h-1.4V6.9Q9 1.4 3 6.9V17z"/><path d="M3 6.9Q5 5.1 7.4 4.5C6.8 8.6 4.8 11 3 12z"/><path d="M15 6.9Q13 5.1 10.6 4.5c.6 4.1 2.6 6.5 4.4 7.5z"/><circle cx="9" cy="13.4" r="1.7"/></svg>',
+      closed: '<svg viewBox="0 0 18 18" fill="currentColor"><path d="M1.6 17V6.4Q9 -.6 16.4 6.4V17h-1.4V6.9Q9 1.4 3 6.9V17z"/><path d="M3.2 7.1Q5.6 4.3 8.6 3.6V17H3.2z"/><path d="M14.8 7.1Q12.4 4.3 9.4 3.6V17h5.4z"/></svg>',
+    },
+  };
+
+  // ---------- The three directions: everything the spec sheet shows ----------
+  const DIRS = [
+    {
+      key: 'velvet', name: 'Velvet & Brass',
+      tag: 'A theatre box at the opera. Deep velvet drapes on a brass rod: sheer lets a little light through, drawn velvet shuts it out.',
+      mode: 'Follows macOS. Rose-plaster panel with oxblood and brass by day; deep velvet with lit brass at night.',
+      palette: [
+        ['Velvet', '#6e1f2b', 'Turn on, switches, light-mode marks'],
+        ['Deep velvet', '#2a0c13', 'Dark panel'],
+        ['Brass', '#b8893b', 'Rod dividers, slider, button edges'],
+        ['Lit brass', '#d8b26a', 'Dark-mode marks and Turn on'],
+        ['Plaster', '#f5ece6', 'Light panel'],
+        ['Lining', '#2e1218', 'Text in light mode'],
+      ],
+      type: [
+        ['Wordmark', 'Fraunces Italic 600', 'Curtain', 'font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:28px;font-variation-settings:"opsz" 72'],
+        ['Screen names', 'Hanken Grotesk 600 · 13 pt', 'Built-in Retina Display', 'font-family:"Hanken Grotesk";font-weight:600;font-size:13px'],
+        ['Body, captions', 'Hanken Grotesk 400 · 10.5–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:"Hanken Grotesk";font-size:12px'],
+        ['Numbers', 'Hanken Grotesk, tabular figures', '0% 11% 45% 72% 100%', 'font-family:"Hanken Grotesk";font-weight:600;font-size:14px;font-variant-numeric:tabular-nums'],
+      ],
+      fontNote: 'Both OFL. Fraunces only for the wordmark; small text stays in a crisp grotesk.',
+      shapes: ['Brass-edged plaque buttons, 7 pt corners; Turn on is solid velvet', 'Slider: a brass bar, 6 pt corners, with a round finial knob at its end', 'Switches: velvet track, polished brass knob', 'Dividers are a brass curtain rod with a finial at each end'],
+      surface: 'Solid panel with a faint vertical pleat in the cloth. Dark mode adds a warm glow from the top, like a box light. No system glass.',
+      motif: 'The rod and the pleats. Turning a screen off drops a velvet drape down over its row.',
+      motion: [['Menu opens', 'fades and settles from just above', '180 ms'], ['Turn off', 'velvet drape falls from the top', '200 ms'], ['Turn on', 'drape lifts back up', '200 ms'], ['Slider', 'knob grows a touch on hover; clicks glide', '120 ms'], ['Switch', 'brass knob slides', '160 ms']],
+      states: [['On', 'Open', 'Drapes tied back'], ['Dimmed', 'Sheer', 'Light through cloth'], ['Off', 'Drawn', 'Velvet closed'], ['Unplugged', 'Taken down', 'The drape is off its rod']],
+      wordmark: '<div class="wm" style="background:#f5ece6;color:#6e1f2b"><svg viewBox="0 0 220 16" width="200" height="14" aria-hidden="true"><defs><linearGradient id="vb" x1="0" x2="1"><stop offset="0" stop-color="#8c5e1c"/><stop offset=".5" stop-color="#e6c983"/><stop offset="1" stop-color="#8c5e1c"/></linearGradient></defs><rect x="8" y="6" width="204" height="3" rx="1.5" fill="url(#vb)"/><circle cx="7" cy="7.5" r="5" fill="url(#vb)"/><circle cx="213" cy="7.5" r="5" fill="url(#vb)"/></svg><div style="font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:46px;line-height:1;font-variation-settings:\'opsz\' 144">Curtain</div><div class="credit" style="color:#77555b">A Saaquib Labs tool</div></div>',
+    },
+    {
+      key: 'linen', name: 'Linen & Dusk',
+      tag: 'Morning light through a linen sheer, then dusk. Sheer is the fabric you can see through; closed is the panel pulled all the way across.',
+      mode: 'Follows macOS. Frosted linen with dusk blue by day; a soft twilight blue with an afterglow accent at night. Never pure black.',
+      palette: [
+        ['Linen', '#fafaf7', 'Light panel (frosted, 86%)'],
+        ['Dusk blue', '#5d6fa6', 'Turn on, switches, slider (light)'],
+        ['Sheer', '#c9d3ea', 'Off veil, slider tint'],
+        ['Twilight', '#24293a', 'Dark panel (frosted, 88%)'],
+        ['Afterglow', '#e8b98f', 'Marks and Turn on in dark mode'],
+        ['Ink', '#2a2f3b', 'Text in light mode'],
+      ],
+      type: [
+        ['Wordmark', 'Newsreader Italic 400', 'Curtain', 'font-family:Newsreader,Georgia,serif;font-style:italic;font-size:30px'],
+        ['Screen names', 'Manrope 600 · 13 pt', 'Built-in Retina Display', 'font-family:Manrope;font-weight:600;font-size:13px'],
+        ['Body, captions', 'Manrope 400 · 10.5–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:Manrope;font-size:12px'],
+        ['Numbers', 'Manrope, tabular figures', '0% 11% 45% 72% 100%', 'font-family:Manrope;font-weight:600;font-size:14px;font-variant-numeric:tabular-nums'],
+      ],
+      fontNote: 'Both OFL. Manrope\'s open shapes stay readable at 10.5 pt; Newsreader only for the wordmark.',
+      shapes: ['Ghost pill buttons with a thin outline; Turn on is a solid pill', 'Slider: a translucent sheer fill with a faint weave, round ends', 'Switches: outlined track, white knob', 'Dividers are a stitched dashed thread'],
+      surface: 'Frosted glass with a very fine linen weave, slightly see-through. Larger, softer corners (18 pt panel).',
+      motif: 'The sheer. Turning a screen off draws a sheer panel across its row from the left.',
+      motion: [['Menu opens', 'fades in from soft focus, drifting down 6 pt', '200 ms'], ['Turn off', 'sheer slides across from the left', '220 ms'], ['Turn on', 'sheer slides back', '220 ms'], ['Slider', 'clicks glide; edge stays soft', '120 ms'], ['Switch', 'knob slides', '160 ms']],
+      states: [['On', 'Clear', 'Nothing across the window'], ['Dimmed', 'Sheer', 'Linen across, light through'], ['Off', 'Closed', 'Pulled fully across'], ['Unplugged', 'Folded away', 'Put away for now']],
+      wordmark: '<div class="wm" style="background:#fafaf7;color:#2a2f3b"><div style="font-family:Newsreader,Georgia,serif;font-style:italic;font-weight:300;font-size:50px;line-height:1">curtain</div><svg viewBox="0 0 200 12" width="180" height="11" aria-hidden="true"><path d="M2 6 C 22 0, 42 12, 62 6 S 102 0, 122 6 S 162 12, 198 5" fill="none" stroke="#5d6fa6" stroke-width="1.4" stroke-linecap="round" opacity=".7"/></svg><div class="credit" style="color:#687084">A Saaquib Labs tool</div></div>',
+    },
+    {
+      key: 'midnight', name: 'Midnight Theatre',
+      tag: 'The stage before curtain-up. House-red drapes, footlights, one spotlight. Half-light is a dimmed stage; when a screen goes dark the drapes close and a ghost light stays on.',
+      mode: 'Always dark. The stage looks the same whatever macOS is set to; on a light desktop it only gets a brighter rim so it doesn\'t look like a hole.',
+      palette: [
+        ['Stage', '#0e0c12', 'Panel, both appearances'],
+        ['Wings', '#17141c', 'Screen rows'],
+        ['House red', '#b3172f', 'Turn on, the closing drapes'],
+        ['Footlight', '#ffb547', 'Slider beam, switches, header mark'],
+        ['Spotlight', '#fff4dc', 'Text, slider edge, knobs'],
+        ['Gaffer', '#6e665d', 'Quiet text'],
+      ],
+      type: [
+        ['Wordmark', 'Limelight', 'Curtain', 'font-family:Limelight,Didot,serif;font-size:28px;letter-spacing:.06em'],
+        ['Screen names', 'Inter Tight 600 · 13 pt', 'Built-in Retina Display', 'font-family:"Inter Tight";font-weight:600;font-size:13px'],
+        ['Body, captions', 'Inter Tight 400 · 10.5–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:"Inter Tight";font-size:12px'],
+        ['Numbers', 'Inter Tight, tabular figures', '0% 11% 45% 72% 100%', 'font-family:"Inter Tight";font-weight:600;font-size:14px;font-variant-numeric:tabular-nums'],
+      ],
+      fontNote: 'Both OFL. Limelight is an Art Deco marquee face, used only for the wordmark. Buttons are set in small caps-style capitals.',
+      shapes: ['Ticket-stub buttons, 4 pt corners, capitals; Turn on is house red with a glow', 'Slider: a spotlight beam that brightens toward a lit edge', 'Switches: footlight amber when on, with a soft glow', 'Dividers are a row of footlights'],
+      surface: 'Solid near-black stage with a warm spotlight falling from the top edge. Tighter corners (10 pt panel).',
+      motif: 'The proscenium and the ghost light. Turning a screen off closes red drapes from both sides, and a small ghost light glows by the message.',
+      motion: [['Menu opens', 'curtain parts from the centre outward', '240 ms'], ['Turn off', 'drapes close from both sides', '230 ms'], ['Turn on', 'drapes open', '230 ms'], ['Slider', 'beam glows brighter on hover', '120 ms'], ['Switch', 'knob slides, footlight comes up', '160 ms']],
+      states: [['On', 'Lit', 'Stage lights up'], ['Dimmed', 'Half-light', 'Lights down low'], ['Off', 'Dark', 'Curtain down'], ['Unplugged', 'Struck', 'The set is taken away']],
+      wordmark: '<div class="wm" style="background:#0e0c12;color:#f5eedf;background-image:radial-gradient(90% 70% at 50% 0%,rgba(255,214,150,.18),transparent 70%)"><div style="height:6px;width:220px;background:radial-gradient(circle,#ffc76a 1.6px,transparent 2.4px) 0 0/12px 6px repeat-x"></div><div style="font-family:Limelight,Didot,serif;font-size:44px;line-height:1.1;letter-spacing:.08em">CURTAIN</div><div style="height:6px;width:220px;background:radial-gradient(circle,#ffc76a 1.6px,transparent 2.4px) 0 0/12px 6px repeat-x"></div><div class="credit" style="color:#a69c8e">A Saaquib Labs tool</div></div>',
+    },
+  ];
+
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  // ---------- Mock state, mirroring Screens/Keys (only what the menu shows) ----------
+  function newState() {
+    return {
+      screens: [
+        { id: 'mb', name: 'Built-in Retina Display', builtin: true, control: 'apple', b: 0.72, blackedOut: false, curtained: false },
+        { id: 'len', name: 'L27h-4A', builtin: false, control: 'ddc', b: 0.45, blackedOut: false, curtained: false },
+      ],
+      followMac: false, brightnessKeys: true, openAtLogin: false, needsPermission: false, notice: null,
+    };
+  }
+  const isOff = s => s.blackedOut || s.curtained;
+  const minimum = s => (s.control === 'software' ? 0.15 : 0);
+
+  // ---------- Build one menu mock ----------
+  function buildMock(dir, ap, desk) {
+    const st = newState();
+    const el = document.createElement('div');
+    el.className = `mock d-${dir.key} ap-${ap}`;
+    el.setAttribute('role', 'group');
+    el.setAttribute('aria-label', `${dir.name} menu, macOS ${ap}`);
+    el.innerHTML = `
+      <div class="m-head"><span class="m-glyph"></span><span class="m-word">Curtain</span><span class="m-sum"></span></div>
+      <div class="m-rows">${st.screens.map(s => `
+        <div class="m-row" data-id="${s.id}">
+          <div class="m-veil"></div>
+          <div class="m-top">
+            <span class="m-ico">${s.builtin ? I.laptop : I.display}</span>
+            <span class="m-names"><span class="m-name">${esc(s.name)}</span><span class="m-hint" hidden title="This monitor doesn't accept brightness commands, so Curtain darkens the picture instead.">dimmed in software</span></span>
+            <button class="m-pill" type="button">${I.power}<span></span></button>
+          </div>
+          <div class="m-stage">
+            <div class="m-slider" role="slider" tabindex="0" aria-label="Brightness, ${esc(s.name)}" aria-valuemin="0" aria-valuemax="100">
+              <div class="m-fill"></div><div class="m-thumb"></div>
+              <div class="m-slider-ui"><span class="m-sun">${I.sun}</span><span class="m-pct"></span></div>
+            </div>
+            <div class="m-offmsg"><span class="ghost"></span><span class="m-offtext"></span></div>
+          </div>
+        </div>`).join('')}
+      </div>
+      <div class="m-notice" hidden>${I.excl}<span></span></div>
+      <div class="m-div"></div>
+      <div class="m-switches">
+        ${swRow('followMac', 'Follow the Mac', "Monitors match your MacBook's brightness")}
+        ${swRow('brightnessKeys', 'Brightness keys', 'Change the screen under the pointer')}
+        <button class="m-link" type="button" hidden>${I.hand}<span>Allow Accessibility so the keys reach your monitor</span></button>
+        ${swRow('openAtLogin', 'Open at login', null)}
+      </div>
+      <div class="m-div"></div>
+      <div class="m-foot"><span>⌃⌥⌘C&nbsp;&nbsp;turns other screens off / on</span><button class="m-quit" type="button" title="Quit (does nothing on this page)">Quit</button></div>`;
+
+    function swRow(key, title, detail) {
+      return `<div class="m-sw-row"><span class="m-sw-text"><span class="m-sw-title">${title}</span>${detail ? `<span class="m-sw-detail">${esc(detail)}</span>` : ''}</span><button class="m-switch" type="button" role="switch" data-key="${key}" aria-label="${title}"></button></div>`;
+    }
+
+    const q = s => el.querySelector(s);
+    const otherName = scr => (st.screens.find(o => o.id !== scr.id && !isOff(o)) || { name: 'your other screen' }).name;
+
+    function update() {
+      const offCount = st.screens.filter(isOff).length, total = st.screens.length;
+      q('.m-sum').textContent = offCount === 0 ? `${total} screen${total === 1 ? '' : 's'} on` : `${offCount} of ${total} off`;
+      const glyph = GLYPH[dir.key][offCount ? 'closed' : 'open'];
+      q('.m-glyph').innerHTML = glyph;
+      desk.querySelector('.mb-glyph').innerHTML = glyph;
+      for (const s of st.screens) {
+        const row = el.querySelector(`.m-row[data-id="${s.id}"]`);
+        row.classList.toggle('off', isOff(s));
+        row.querySelector('.m-hint').hidden = !(s.control === 'software' && !isOff(s));
+        const pill = row.querySelector('.m-pill');
+        pill.classList.toggle('pro', isOff(s));
+        pill.querySelector('span').textContent = isOff(s) ? 'Turn on' : 'Turn off';
+        pill.title = isOff(s) ? `Turn ${s.name} back on`
+          : `Turn ${s.name} black instantly. Windows stay on it.` + (s.builtin ? '' : ' Right-click to unplug it instead.');
+        row.querySelector('.m-offtext').textContent = s.curtained
+          ? `Unplugged. Its windows moved to ${otherName(s)}.` : 'Off. Its windows are still there, hidden.';
+        row.querySelector('.ghost').hidden = false;
+        paintSlider(s);
+      }
+      const n = q('.m-notice');
+      n.hidden = !st.notice;
+      n.querySelector('span').textContent = st.notice || '';
+      q('.m-link').hidden = !st.needsPermission;
+      el.querySelectorAll('.m-switch').forEach(b => b.setAttribute('aria-checked', String(!!st[b.dataset.key])));
+    }
+
+    function paintSlider(s) {
+      const sl = el.querySelector(`.m-row[data-id="${s.id}"] .m-slider`);
+      const f = clamp(s.b, 0, 1), pct = Math.round(f * 100);
+      sl.querySelector('.m-fill').style.width = `${f * 100}%`;
+      sl.querySelector('.m-thumb').style.left = `max(26px, ${f * 100}%)`;
+      sl.querySelector('.m-pct').textContent = `${pct}%`;
+      sl.classList.toggle('high', f > 0.85);
+      sl.setAttribute('aria-valuenow', pct);
+      sl.setAttribute('aria-valuetext', `${pct} percent`);
+    }
+
+    function setBrightness(s, v) {
+      s.b = clamp(v, minimum(s), 1);
+      if (st.followMac && s.builtin) st.screens.forEach(o => { if (!o.builtin && !isOff(o)) o.b = clamp(s.b, minimum(o), 1); });
+      st.screens.forEach(paintSlider);
+    }
+
+    function setQuickOff(s, off) {
+      st.notice = null;
+      if (off && st.screens.filter(o => !isOff(o)).length <= 1) {
+        st.notice = 'One screen has to stay on. Turn another screen on first.';
+        return update();
+      }
+      s.blackedOut = off;
+      update();
+    }
+    function setCurtain(s, closed) {
+      st.notice = null;
+      if (closed && st.screens.filter(o => !isOff(o)).length <= 1) {
+        st.notice = 'One screen has to stay on. Turn another screen on first.';
+        return update();
+      }
+      s.curtained = closed; s.blackedOut = false;
+      update();
+    }
+
+    // Wire rows
+    for (const s of st.screens) {
+      const row = el.querySelector(`.m-row[data-id="${s.id}"]`);
+      const pill = row.querySelector('.m-pill');
+      pill.addEventListener('click', () => {
+        if (isOff(s)) { s.curtained ? setCurtain(s, false) : setQuickOff(s, false); }
+        else setQuickOff(s, true);
+      });
+      pill.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        if (s.builtin || isOff(s)) return;
+        openCtx(e.clientX, e.clientY, ap, `Unplug: move its windows to ${otherName(s)} (every screen goes black for a few seconds)`, () => setCurtain(s, true));
+      });
+      const sl = row.querySelector('.m-slider');
+      const fromX = x => { const r = sl.getBoundingClientRect(); return (x - r.left) / r.width; };
+      sl.addEventListener('pointerdown', e => {
+        sl.setPointerCapture(e.pointerId);
+        sl.classList.add('jump'); setBrightness(s, fromX(e.clientX));
+        setTimeout(() => sl.classList.remove('jump'), 130);
+      });
+      sl.addEventListener('pointermove', e => { if (sl.hasPointerCapture(e.pointerId)) { sl.classList.remove('jump'); setBrightness(s, fromX(e.clientX)); } });
+      sl.addEventListener('keydown', e => {
+        const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+        if (d) { e.preventDefault(); setBrightness(s, s.b + d * 0.0625); }
+      });
+    }
+    el.querySelectorAll('.m-switch').forEach(b => b.addEventListener('click', () => {
+      st[b.dataset.key] = !st[b.dataset.key];
+      if (b.dataset.key === 'followMac' && st.followMac) setBrightness(st.screens[0], st.screens[0].b);
+      update();
+    }));
+    q('.m-link').addEventListener('click', () => { st.needsPermission = false; update(); });
+    q('.m-quit').addEventListener('click', e => { e.currentTarget.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 180 }); });
+
+    update();
+    return {
+      el,
+      setRare(on) {
+        const len = st.screens[1];
+        len.control = on ? 'software' : 'ddc';
+        if (on) len.b = Math.max(len.b, 0.4);
+        st.needsPermission = on;
+        st.notice = on ? `${len.name} ignores brightness commands, so Curtain dims it in software instead.` : null;
+        update();
+      },
+      replay() { el.classList.remove('opening'); void el.offsetWidth; el.classList.add('opening'); },
+    };
+  }
+
+  // ---------- Context menu ----------
+  const ctx = document.createElement('div');
+  ctx.className = 'ctx'; ctx.hidden = true; ctx.setAttribute('role', 'menu');
+  document.body.appendChild(ctx);
+  function openCtx(x, y, ap, label, act) {
+    ctx.className = `ctx ap-${ap}`;
+    ctx.innerHTML = `<button type="button" role="menuitem">${esc(label)}</button>`;
+    ctx.hidden = false;
+    const w = ctx.offsetWidth, h = ctx.offsetHeight;
+    ctx.style.left = `${clamp(x, 8, innerWidth - w - 8)}px`;
+    ctx.style.top = `${clamp(y, 8, innerHeight - h - 8)}px`;
+    const btn = ctx.querySelector('button');
+    btn.addEventListener('click', () => { ctx.hidden = true; act(); });
+    btn.focus();
+  }
+  document.addEventListener('pointerdown', e => { if (!ctx.contains(e.target)) ctx.hidden = true; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') ctx.hidden = true; });
+  addEventListener('scroll', () => { ctx.hidden = true; }, { passive: true });
+
+  // ---------- Build the page ----------
+  const root = document.getElementById('dirs');
+  root.style.cssText = 'display:flex;flex-direction:column;gap:64px';
+  for (const d of DIRS) {
+    const sec = document.createElement('section');
+    sec.className = `dir dir-${d.key}`; sec.id = d.key;
+    sec.innerHTML = `
+      <div class="dir-head"><h2>${esc(d.name)}</h2><p class="tag">${esc(d.tag)}</p><p class="mode">${esc(d.mode)}</p></div>
+      <div class="tools">
+        <button class="btn" type="button" data-act="replay">Replay the menu opening</button>
+        <label class="check"><input type="checkbox" id="rare-${d.key}"> Show rarer states</label>
+        <span>(software dimming, a notice, the Accessibility link)</span>
+      </div>
+      <div class="desks">
+        ${['light', 'dark'].map(ap => `
+          <div class="desk-col">
+            <div class="desk-label"><span>macOS ${ap === 'light' ? 'Light' : 'Dark'}</span><span>real size</span></div>
+            <div class="desk-scroll"><div class="desk ap-${ap}" data-ap="${ap}">
+              <div class="menubar"><span class="mb-glyph" title="Menu bar glyph (sketch)"></span><span>Sat 21 Nov&nbsp;&nbsp;17:20</span></div>
+            </div></div>
+          </div>`).join('')}
+      </div>
+      <div class="spec">
+        <div class="card wide"><h3>Palette</h3><div class="swatches">${d.palette.map(([n, h, r]) => `<div class="sw"><i style="background:${h}"></i><b>${n}</b><span>${r}</span><code>${h}</code></div>`).join('')}</div></div>
+        <div class="card wide"><h3>Type</h3><div>${d.type.map(([role, font, sample, css]) => `<div class="type-row"><span class="role">${role}</span><span class="sample" style='${css}'>${esc(sample)}</span><span class="meta">${font}</span></div>`).join('')}</div><p style="font-size:13px;color:var(--muted)">${esc(d.fontNote)}</p></div>
+        <div class="card"><h3>Control shapes</h3><ul>${d.shapes.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>
+        <div class="card"><h3>Surface and motif</h3><p>${esc(d.surface)}</p><p>${esc(d.motif)}</p></div>
+        <div class="card wide"><h3>Motion · all under 250 ms, off with Reduce Motion</h3><ul>${d.motion.map(([w, h, ms]) => `<li><b>${w}</b>: ${h} <span class="ms">${ms}</span></li>`).join('')}</ul></div>
+        <div class="card wide"><h3>Proposed state names</h3><div class="states">${d.states.map(([k, n, s]) => `<div class="state"><small>${k}</small><b>${n}</b><span>${s}</span></div>`).join('')}</div></div>
+        <div class="card wide"><h3>Wordmark and menu bar glyph</h3>
+          <div class="sketches">
+            <div class="sketch">${d.wordmark}<span class="cap">Wordmark, with the small maker credit</span></div>
+            <div class="sketch"><div class="glyphs">
+              <div class="glyph-big"><figure>${GLYPH[d.key].open}<figcaption>All screens on</figcaption></figure><figure>${GLYPH[d.key].closed}<figcaption>A screen is off</figcaption></figure></div>
+              <div class="mb-strip"><div>${GLYPH[d.key].open}${GLYPH[d.key].closed}</div><div>${GLYPH[d.key].open}${GLYPH[d.key].closed}</div></div>
+              <span class="cap">Menu bar glyph, one colour, at real size on light and dark menu bars</span>
+            </div></div>
+          </div>
+        </div>
+      </div>`;
+    root.appendChild(sec);
+    const mocks = [...sec.querySelectorAll('.desk')].map(desk => {
+      const m = buildMock(d, desk.dataset.ap, desk);
+      desk.appendChild(m.el);
+      return m;
+    });
+    sec.querySelector('[data-act="replay"]').addEventListener('click', () => mocks.forEach(m => m.replay()));
+    sec.querySelector(`#rare-${d.key}`).addEventListener('change', e => mocks.forEach(m => m.setRare(e.target.checked)));
+    // The big glyph figures use the direction's mark colour.
+    sec.querySelectorAll('.glyph-big svg').forEach(svg => { svg.style.color = d.key === 'velvet' ? '#b8893b' : d.key === 'linen' ? '#5d6fa6' : '#ffb547'; });
+  }
+})();
+</script>
