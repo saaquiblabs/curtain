@@ -34,8 +34,9 @@ enum Theme {
   /// The panel's tint over the frosted glass.
   static let panel = dynamic(rgb(linen, 0.86), rgb(twilight, 0.88),
                              contrastLight: rgb(linen, 0.97), contrastDark: rgb(twilight, 0.97))
-  /// The fine weave in the panel's cloth.
-  static let weave = dynamic(rgb(0x3C465A, 0.028), rgb(0xFFFFFF, 0.022))
+  /// The fine weave in the panel's cloth: its horizontal and vertical threads.
+  static let weaveAcross = dynamic(rgb(0x3C465A, 0.028), rgb(0xFFFFFF, 0.022))
+  static let weaveDown = dynamic(rgb(0x3C465A, 0.022), rgb(0xFFFFFF, 0.016))
   /// The panel's inner edge.
   static let panelEdge = dynamic(rgb(0xFFFFFF, 0.9), rgb(0xFFFFFF, 0.1), contrastLight: rgb(ink, 0.4), contrastDark: rgb(0xFFFFFF, 0.4))
 
@@ -43,7 +44,8 @@ enum Theme {
   static let text = dynamic(rgb(ink), rgb(0xE9EAF0), contrastLight: rgb(0x14171E), contrastDark: rgb(0xFFFFFF))
   static let textSecondary = dynamic(rgb(0x687084), rgb(0xA9AEC2), contrastLight: rgb(0x3E4454), contrastDark: rgb(0xD4D7E2))
   static let textFaint = dynamic(rgb(0x9AA0AE), rgb(0x767C93), contrastLight: rgb(0x555B6B), contrastDark: rgb(0xB4B9CA))
-  /// The header's curtain mark.
+  /// The identity's mark colour: dusk blue by day, afterglow at night. The header's curtain,
+  /// Turn on and switches that are on all use it.
   static let accent = dynamic(rgb(duskBlue), rgb(afterglow), contrastLight: rgb(duskBlueDeep))
 
   /// A screen's row.
@@ -51,13 +53,13 @@ enum Theme {
   static let rowHover = dynamic(rgb(0xFFFFFF, 0.9), rgb(0xFFFFFF, 0.08))
   static let rowEdge = dynamic(rgb(ink, 0.08), rgb(0xFFFFFF, 0.08), contrastLight: rgb(ink, 0.35), contrastDark: rgb(0xFFFFFF, 0.35))
 
-  /// Ghost pill (Turn off): outline only, filled faintly on hover.
+  /// Ghost pill (Turn off): no fill, an outline, filled faintly on hover.
   static let pill = Color.clear
   static let pillText = text
   static let pillEdge = dynamic(rgb(ink, 0.18), rgb(0xFFFFFF, 0.2), contrastLight: rgb(ink, 0.6), contrastDark: rgb(0xFFFFFF, 0.6))
   static let pillHover = dynamic(rgb(duskBlue, 0.1), rgb(afterglow, 0.12))
   /// Solid pill (Turn on).
-  static let solidPill = dynamic(rgb(duskBlue), rgb(afterglow), contrastLight: rgb(duskBlueDeep))
+  static let solidPill = accent
   static let solidPillHover = dynamic(rgb(duskBlueDeep), rgb(afterglowLight))
   static let solidPillText = dynamic(rgb(0xFFFFFF), rgb(twilight))
 
@@ -74,10 +76,11 @@ enum Theme {
 
   /// Switches: outlined track, white knob.
   static let switchOff = dynamic(rgb(ink, 0.12), rgb(0xFFFFFF, 0.14))
-  static let switchOn = dynamic(rgb(duskBlue), rgb(afterglow), contrastLight: rgb(duskBlueDeep))
+  static let switchOn = accent
   static let switchEdge = rowEdge
   static let knob = Color(nsColor: rgb(0xFFFFFF))
   static let knobShadow = Color(nsColor: rgb(0x000000, 0.3))
+  static let knobShadowHover = Color(nsColor: rgb(0x000000, 0.45))
 
   /// The sheer drawn across a row that's off: a fading gradient with a few threads.
   static let veil = [dynamic(rgb(sheer, 0.75), rgb(0x141826, 0.7)),
@@ -119,6 +122,8 @@ enum Theme {
     static let weaveStep: CGFloat = 3       // panel weave: a 1 pt thread every 3 pt, both ways
     static let fillWeaveStep: CGFloat = 9   // slider fill: a 2 pt thread every 9 pt
     static let veilThreadStep: CGFloat = 11 // veil: a 1 pt thread every 11 pt
+    static let knobShadow: CGFloat = 1, knobShadowHover: CGFloat = 2
+    static let percentOnFillAbove = 0.85      // the percentage sits on the fill above this
     static let stitch: [CGFloat] = [3, 4]   // divider: 3 pt stitch, 4 pt gap
   }
 
@@ -135,7 +140,10 @@ enum Theme {
     static let sliderJump = 0.08
     static let toggle = Animation.timingCurve(0.3, 0.7, 0.2, 1, duration: 0.16)
     static let press = Animation.easeOut(duration: 0.12)
+    static let pressScale: CGFloat = 0.94 // pills shrink a touch while pressed (not with Reduce Motion)
+    static let pressOpacity = 0.8
     static let hover = Animation.easeOut(duration: 0.12)
+    static let rowHover = Animation.easeOut(duration: 0.15)
     static let swap = Animation.easeOut(duration: 0.16)
     /// With Reduce Motion: a plain fade, no movement.
     static let reduced = Animation.easeOut(duration: 0.12)

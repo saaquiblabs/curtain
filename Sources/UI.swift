@@ -1,5 +1,6 @@
 // The menu bar popover: one row per screen, three switches, nothing else.
-// Its whole look comes from Theme (Linen & Dusk); nothing here picks a colour, font or timing.
+// Its whole look comes from Theme (Linen & Dusk): colours, fonts, shapes, surface and timings.
+// Layout (spacing, padding) still lives here; `make theme-check` guards the rest.
 
 import SwiftUI
 
@@ -74,8 +75,8 @@ struct MenuSurface: View {
     let shape = RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
     ZStack {
       shape.fill(Theme.panel)
-      Threads(step: Theme.Size.weaveStep, width: 1, axis: .horizontal).fill(Theme.weave)
-      Threads(step: Theme.Size.weaveStep, width: 1, axis: .vertical).fill(Theme.weave)
+      Threads(step: Theme.Size.weaveStep, width: 1, axis: .horizontal).fill(Theme.weaveAcross)
+      Threads(step: Theme.Size.weaveStep, width: 1, axis: .vertical).fill(Theme.weaveDown)
     }
     .clipShape(shape)
     .overlay(shape.strokeBorder(Theme.panelEdge, lineWidth: 1))
@@ -136,7 +137,7 @@ struct StitchedThread: View {
 
 /// Whether the pointer is over a view. (No `@State` with the command line tools: see STATUS.)
 final class Hover: ObservableObject {
-  @Published var isOn = false
+  @Published var isHovered = false
 }
 
 struct ScreenRow: View {
@@ -192,14 +193,14 @@ struct ScreenRow: View {
     .padding(12)
     .background(
       ZStack {
-        shape.fill(hover.isOn ? Theme.rowHover : Theme.row)
+        shape.fill(hover.isHovered ? Theme.rowHover : Theme.row)
         Sheer(drawn: screen.isOff, reduceMotion: reduceMotion)
       }
       .clipShape(shape)
     )
     .overlay(shape.strokeBorder(Theme.rowEdge, lineWidth: 1))
-    .onHover { hover.isOn = $0 }
-    .animation(Theme.Motion.hover, value: hover.isOn)
+    .onHover { hover.isHovered = $0 }
+    .animation(Theme.Motion.rowHover, value: hover.isHovered)
     .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.swap, value: screen.isOff)
   }
 
@@ -262,19 +263,20 @@ struct PillStyle: ButtonStyle {
     var pressed: Bool
     var prominent: Bool
     @StateObject private var hover = Hover()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
       label
         .foregroundStyle(prominent ? Theme.solidPillText : Theme.pillText)
-        .background(Capsule().fill(prominent ? (hover.isOn ? Theme.solidPillHover : Theme.solidPill)
-                                             : (hover.isOn ? Theme.pillHover : Theme.pill)))
-        .overlay(CapsuleOutline(color: prominent ? Theme.pill : Theme.pillEdge))
+        .background(Capsule().fill(prominent ? (hover.isHovered ? Theme.solidPillHover : Theme.solidPill)
+                                             : (hover.isHovered ? Theme.pillHover : Theme.pill)))
+        .overlay { if !prominent { CapsuleOutline(color: Theme.pillEdge) } }
         .contentShape(Capsule())
-        .onHover { hover.isOn = $0 }
-        .scaleEffect(pressed ? 0.94 : 1)
-        .opacity(pressed ? 0.8 : 1)
+        .onHover { hover.isHovered = $0 }
+        .scaleEffect(pressed && !reduceMotion ? Theme.Motion.pressScale : 1)
+        .opacity(pressed ? Theme.Motion.pressOpacity : 1)
         .animation(Theme.Motion.press, value: pressed)
-        .animation(Theme.Motion.hover, value: hover.isOn)
+        .animation(Theme.Motion.hover, value: hover.isHovered)
     }
   }
 }
@@ -307,7 +309,7 @@ struct BrightnessSlider: View {
           Spacer()
           Text("\(Int((fraction * 100).rounded()))%")
             .font(Theme.Font.numeric)
-            .foregroundStyle(fraction > 0.85 ? Theme.percentOnFill : Theme.percent)
+            .foregroundStyle(fraction > Theme.Size.percentOnFillAbove ? Theme.percentOnFill : Theme.percent)
         }
         .font(Theme.Font.button)
         .padding(.horizontal, 8)
@@ -315,7 +317,8 @@ struct BrightnessSlider: View {
       .contentShape(Capsule())
       .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
         let target = max(minimum, min(1, drag.location.x / geo.size.width))
-        if abs(target - value) > Theme.Motion.sliderJump && !reduceMotion {
+        // Only the first touch glides (a click away from the edge); dragging follows the pointer.
+        if drag.translation == .zero && abs(target - value) > Theme.Motion.sliderJump && !reduceMotion {
           withAnimation(Theme.Motion.slider) { value = target }
         } else {
           value = target
@@ -363,16 +366,17 @@ struct OutlinedSwitch: View {
         CapsuleOutline(color: Theme.switchEdge)
         Circle().fill(Theme.knob)
           .frame(width: Theme.Size.knob, height: Theme.Size.knob)
-          .shadow(color: Theme.knobShadow, radius: hover.isOn ? 2 : 1, y: 1)
+          .shadow(color: hover.isHovered ? Theme.knobShadowHover : Theme.knobShadow,
+                  radius: hover.isHovered ? Theme.Size.knobShadowHover : Theme.Size.knobShadow, y: 1)
           .padding(2)
       }
       .frame(width: Theme.Size.switchWidth, height: Theme.Size.switchHeight)
       .contentShape(Capsule())
     }
     .buttonStyle(.plain)
-    .onHover { hover.isOn = $0 }
+    .onHover { hover.isHovered = $0 }
     .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.toggle, value: isOn)
-    .animation(Theme.Motion.hover, value: hover.isOn)
+    .animation(Theme.Motion.hover, value: hover.isHovered)
     .accessibilityRepresentation { Toggle(title, isOn: $isOn) }
   }
 }
@@ -388,13 +392,13 @@ struct LinkButton: View {
     Button(action: action) {
       HStack(spacing: 6) {
         Image(systemName: systemImage)
-        Text(title).underline(hover.isOn)
+        Text(title).underline(hover.isHovered)
       }
       .font(Theme.Font.caption).foregroundStyle(Theme.link)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .onHover { hover.isOn = $0 }
+    .onHover { hover.isHovered = $0 }
   }
 }
 
@@ -405,10 +409,10 @@ struct QuitButton: View {
   var body: some View {
     Button("Quit") { NSApp.terminate(nil) } // applicationWillTerminate puts every screen back on
       .buttonStyle(.plain)
-      .foregroundStyle(hover.isOn ? Theme.text : Theme.textSecondary)
+      .foregroundStyle(hover.isHovered ? Theme.text : Theme.textSecondary)
       .padding(.horizontal, 4).padding(.vertical, 2)
-      .onHover { hover.isOn = $0 }
-      .animation(Theme.Motion.hover, value: hover.isOn)
+      .onHover { hover.isHovered = $0 }
+      .animation(Theme.Motion.hover, value: hover.isHovered)
       .keyboardShortcut("q")
   }
 }

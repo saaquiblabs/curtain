@@ -9,7 +9,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   Follow the Mac, one shortcut (⌃⌥⌘C). Nothing else unless the owner asks.
 - The owner is visual: every control must show what a click will do before it's clicked
   (labelled buttons, hover hints, the screen's state written in its row). Premium, its own
-  identity, not Lost Buttons' tangerine/navy (used as a placeholder so far).
+  identity: Linen & Dusk (owner's pick on #3), built into the menu in #4. Every colour, font
+  role, radius, surface and timing lives in `Sources/Theme.swift`; `make theme-check` fails if a
+  view picks its own. Custom fonts (Newsreader, Manrope) come in #5; release 0.3.0 in #6.
 - Small steps, one release each, each with a CHANGELOG entry.
 
 ## Decisions made (candidates for ADRs)
@@ -52,7 +54,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
   on, dimmed in software, off, unplugged, Accessibility notice) into `build/renders/`, touching no
   display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
-  initialisers build fake ones. Switches render in their inactive (grey) look offscreen.
+  initialisers build fake ones. Offscreen capture draws stray ticks on stroked capsules, so
+  capsule outlines are filled rings (`CapsuleOutline`). It can't draw Increase Contrast (macOS
+  won't give an offscreen window those appearances): check that on a real Mac.
 - Testing behaviour: drive `Screens.shared` from a scratch `main.swift` compiled with every source except
   `main.swift`. Test Turn off on the MacBook screen (no blink on the Lenovo the owner reads on).
   Only test Unplug with the owner's OK: both screens go black.
