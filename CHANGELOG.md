@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **A monitor Curtain dims in software says so while it's dimmed**: "Dimmed by Curtain until it
+  quits" (its tooltip: back to full brightness on quit), so a brighter screen after quitting is no
+  surprise. It shows only below 100%, and the row keeps its height at 100%; screens whose own brightness changes (MacBook, DDC monitors) keep it after quit
+  and never show it. Replaces the "dimmed in software" caption, which showed even at 100%.
 - **Fix: the brightness keys stopped reaching Curtain after every rebuild**, so F1/F2 changed
   the MacBook even with the pointer on a monitor, and Apple's indicator showed the MacBook's
   brightness instead of the monitor's. macOS tied the Accessibility permission to each build's

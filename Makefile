@@ -63,3 +63,5 @@ test:
 	build/test-menu-refuge
 	$(SWIFTC) $(FLAGS) Sources/BrightnessEcho.swift Tests/brightness-echo/main.swift -o build/test-brightness-echo
 	build/test-brightness-echo
+	$(SWIFTC) $(FLAGS) Sources/QuitNote.swift Tests/quit-note/main.swift -o build/test-quit-note
+	build/test-quit-note

@@ -191,8 +191,14 @@ struct ScreenRow: View {
         VStack(alignment: .leading, spacing: 1) {
           Text(screen.name).font(Theme.Font.title).lineLimit(1)
           if screen.control == .software && !screen.isOff {
-            Text("dimmed in software").font(Theme.Font.caption).foregroundStyle(Theme.textFaint)
-              .help("This monitor doesn't accept brightness commands, so Curtain darkens the picture instead.")
+            // Its line is kept at 100% too, just invisible, so the row doesn't jump while the
+            // slider crosses 100%.
+            let shown = QuitNote.shows(dimmedInSoftware: true, isOff: false, brightness: screen.brightness)
+            Text("Dimmed by Curtain until it quits").font(Theme.Font.caption).foregroundStyle(Theme.textFaint)
+              .lineLimit(1)
+              .opacity(shown ? 1 : 0)
+              .accessibilityHidden(!shown)
+              .help("This monitor doesn't accept brightness commands, so Curtain darkens the picture instead. It goes back to full brightness when Curtain quits.")
           }
         }
         .layoutPriority(1)

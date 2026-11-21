@@ -24,6 +24,7 @@ func lenovo(control: Screen.Control = .ddc, brightness: Double = 0.45, blackedOu
 let fixtures: [Fixture] = [
   Fixture(name: "on", screens: { Screens(preview: [macBook(), lenovo()]) }),
   Fixture(name: "software", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) }),
+  Fixture(name: "software-full", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 1)]) }),
   Fixture(name: "off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }),
   Fixture(name: "unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }),
   Fixture(name: "accessibility", screens: { Screens(preview: [macBook(), lenovo()]) }, keys: { Keys(preview: true) }),

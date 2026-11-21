@@ -60,6 +60,10 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - **Logic tests are plain executables**: `make test` builds small executables from `Tests/<name>/main.swift` with only
   the sources they check (no XCTest with the command line tools) and runs them. First one:
   `MenuToggle`, what a click on the menu bar icon does (#7).
+- **A software-dimmed screen's row says it goes back to full on quit** (#12, owner's pick of
+  three): software dimming is a colour curve that ends with Curtain, so below 100% the row reads
+  "Dimmed by Curtain until it quits" (line kept, invisible, at 100% so the row doesn't jump) (`Sources/QuitNote.swift`, tested in
+  `make test`). No note at 100% or for Apple/DDC screens.
 
 ## Learned the hard way (keep)
 - The owner's Lenovo answers DDC reads but ignores every write (brightness, contrast); likely
@@ -73,7 +77,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - The owner's menu bar is full: a menu bar manager hides Curtain's icon. `open
   build/Curtain.app --args --show` opens the menu at launch.
 - Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
-  on, dimmed in software, off, unplugged, Accessibility notice) into `build/renders/`, touching no
+  on, dimmed in software, dimmed in software at 100%, off, unplugged, Accessibility notice) into `build/renders/`, touching no
   display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
   initialisers build fake ones. Offscreen capture draws stray ticks on stroked capsules, so
   capsule outlines are filled rings (`CapsuleOutline`). It can't draw Increase Contrast (macOS
