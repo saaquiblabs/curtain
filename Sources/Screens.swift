@@ -1,4 +1,11 @@
-// Every screen Curtain knows about: its brightness, and whether its curtain is drawn.
+// Every screen Curtain knows about: its brightness, and whether it's off.
+//
+// Two ways to switch a screen off:
+// - Quick off (blackedOut): the screen fades to black in a quarter of a second, a black cover
+//   blocks clicks, and the backlight goes down. Instant, no flash; windows stay where they are.
+// - Unplug (curtained): macOS treats the screen as unplugged, so windows move to another screen
+//   and the monitor sleeps. macOS blanks every screen for a moment while it rearranges them;
+//   Curtain fades out first and back in after, so it reads as a fade rather than a glitch.
 
 import AppKit
 import CoreGraphics
@@ -22,7 +29,11 @@ final class Screen: ObservableObject, Identifiable {
   fileprivate var calibration: (red: [CGGammaValue], green: [CGGammaValue], blue: [CGGammaValue], count: UInt32)?
 
   @Published var brightness: Double = 1
+  /// Unplugged: macOS treats it as disconnected.
   @Published var curtained = false
+  /// Quick off: black and covered, still connected.
+  @Published var blackedOut = false
+  var isOff: Bool { curtained || blackedOut }
 
   fileprivate init(id: CGDirectDisplayID, uuid: String, name: String, isBuiltin: Bool, control: Control, ddc: CFTypeRef?) {
     self.id = id; self.uuid = uuid; self.name = name; self.isBuiltin = isBuiltin; self.control = control; self.ddc = ddc
@@ -55,13 +66,17 @@ final class Screens: ObservableObject {
   private var lastMacBrightness: Float = -1
   private var refreshScheduled = false
 
-  /// Curtained screens (UUID → display ID), so they survive sleep and restarts. Cleared by Quit.
+  /// Unplugged screens (UUID → display ID): kept unplugged through sleep and unlock, and
+  /// plugged back in at the next launch if Curtain didn't get to do it on the way out.
   private var curtained: [String: Int] {
     get { defaults.dictionary(forKey: "curtained") as? [String: Int] ?? [:] }
     set { defaults.set(newValue, forKey: "curtained") }
   }
   /// Screens that are off right now. macOS forgets them while they're off, so we keep them here.
   private var offScreens: [CGDirectDisplayID: Screen] = [:]
+  /// Black windows covering quick-off screens, and running gamma fades.
+  private var covers: [CGDirectDisplayID: NSWindow] = [:]
+  private var fades: [CGDirectDisplayID: Timer] = [:]
 
   private init() {
     followMac = defaults.bool(forKey: "followMac")
@@ -69,10 +84,12 @@ final class Screens: ObservableObject {
   }
 
   func start() {
-    // A screen left off by a crash isn't listed by macOS any more: switch it on so it shows up,
-    // and refresh() draws its curtain again.
+    // Every launch starts with all screens on. A screen left unplugged by a crash or force quit
+    // isn't listed by macOS any more, so plug it back in by its remembered ID.
     let online = Self.list(CGGetOnlineDisplayList)
-    for id in curtained.values.map(CGDirectDisplayID.init) where !online.contains(id) { _ = Self.configure(id, enabled: true) }
+    let lost = curtained.values.map(CGDirectDisplayID.init).filter { !online.contains($0) }
+    if !lost.isEmpty { _ = Self.configure(lost, enabled: true) }
+    curtained = [:]
     refresh()
     CGDisplayRegisterReconfigurationCallback({ _, flags, _ in
       guard !flags.contains(.beginConfigurationFlag) else { return }
@@ -108,9 +125,10 @@ final class Screens: ObservableObject {
     var screens: [Screen] = []
     for id in online {
       if let screen = existing[id] {
-        // Display changes can reset colour curves: put software dimming back.
-        if screen.control == .software { applySoftware(screen) }
         screen.curtained = false
+        // Display changes can reset colour curves and move screens: put dimming and covers back.
+        if fades[id] == nil { applyGamma(screen) }
+        if screen.blackedOut { showCover(screen) }
         screens.append(screen)
       } else {
         screens.append(makeScreen(id, ddc: ddc[id]))
@@ -118,6 +136,7 @@ final class Screens: ObservableObject {
     }
     for (id, screen) in offScreens where !online.contains(id) { screen.curtained = true; screens.append(screen) }
     all = screens.sorted { ($0.isBuiltin ? 0 : 1, $0.id) < ($1.isBuiltin ? 0 : 1, $1.id) }
+    for id in covers.keys where !online.contains(id) { hideCover(id) }
     enforceCurtains()
   }
 
@@ -146,7 +165,7 @@ final class Screens: ObservableObject {
       }
     case .software:
       screen.brightness = defaults.object(forKey: "brightness.\(screen.uuid)") as? Double ?? 1
-      applySoftware(screen)
+      applyGamma(screen)
     }
     return screen
   }
@@ -156,6 +175,7 @@ final class Screens: ObservableObject {
   func setBrightness(_ screen: Screen, _ value: Double, showIndicator: Bool = false) {
     let value = min(1, max(screen.minimum, value))
     screen.brightness = value
+    guard !screen.blackedOut else { return } // applied when it's turned back on
     switch screen.control {
     case .apple:
       _ = Private.setBrightness?(screen.id, Float(value))
@@ -163,7 +183,7 @@ final class Screens: ObservableObject {
       queueDDC(screen, UInt16((value * Double(screen.ddcMax)).rounded()))
       defaults.set(value, forKey: "brightness.\(screen.uuid)")
     case .software:
-      applySoftware(screen)
+      applyGamma(screen)
       defaults.set(value, forKey: "brightness.\(screen.uuid)")
     }
     if showIndicator { OSD.showBrightness(value, on: screen.id) }
@@ -208,17 +228,46 @@ final class Screens: ObservableObject {
     }
   }
 
+  // MARK: Colour curves
   // Ported from MonitorControl's Display.swift (MIT, see NOTICE): scale the default gamma table.
-  private func applySoftware(_ screen: Screen) {
+
+  /// How bright the colour curve should be: 0 when off, the slider for software dimming, else 1.
+  private func gammaScale(_ screen: Screen) -> CGGammaValue {
+    screen.blackedOut ? 0 : (screen.control == .software ? CGGammaValue(screen.brightness) : 1)
+  }
+
+  private func applyGamma(_ screen: Screen, scale: CGGammaValue? = nil) {
     if screen.calibration == nil {
+      // Captured before Curtain ever changes the curve, so this is the true calibration.
       var r = [CGGammaValue](repeating: 0, count: 256), g = r, b = r
       var count: UInt32 = 0
       guard CGGetDisplayTransferByTable(screen.id, 256, &r, &g, &b, &count) == .success, count > 0 else { return }
       screen.calibration = (r, g, b, count)
     }
     guard let c = screen.calibration else { return }
-    let v = CGGammaValue(screen.brightness)
-    CGSetDisplayTransferByTable(screen.id, c.count, c.red.map { $0 * v }, c.green.map { $0 * v }, c.blue.map { $0 * v })
+    let v = scale ?? gammaScale(screen)
+    if v == 1, screen.control != .software, scale == nil {
+      CGSetDisplayTransferByTable(screen.id, c.count, c.red, c.green, c.blue)
+    } else {
+      CGSetDisplayTransferByTable(screen.id, c.count, c.red.map { $0 * v }, c.green.map { $0 * v }, c.blue.map { $0 * v })
+    }
+  }
+
+  /// Eases the colour curve from one brightness to another, about as fast as macOS's own fades.
+  private func fadeGamma(_ screen: Screen, from: CGGammaValue, to: CGGammaValue, duration: Double, done: (() -> Void)? = nil) {
+    fades[screen.id]?.invalidate()
+    let start = Date()
+    let timer = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] timer in
+      let p = min(1, Date().timeIntervalSince(start) / duration)
+      let eased = p * p * (3 - 2 * p)
+      self?.applyGamma(screen, scale: from + (to - from) * CGGammaValue(eased))
+      guard p >= 1 else { return }
+      timer.invalidate()
+      self?.fades[screen.id] = nil
+      done?()
+    }
+    RunLoop.main.add(timer, forMode: .common)
+    fades[screen.id] = timer
   }
 
   /// The screen the pointer is on: what the brightness keys change.
@@ -242,58 +291,138 @@ final class Screens: ObservableObject {
   }
 
   private func followTick() {
-    guard let builtin = all.first(where: { $0.isBuiltin && !$0.curtained }) else { return }
+    guard let builtin = all.first(where: { $0.isBuiltin && !$0.isOff }) else { return }
     var value: Float = 0
     guard Private.getBrightness?(builtin.id, &value) == 0, abs(value - lastMacBrightness) > 0.004 else { return }
     lastMacBrightness = value
     builtin.brightness = Double(value)
-    for screen in all where !screen.isBuiltin && !screen.curtained { setBrightness(screen, Double(value)) }
+    for screen in all where !screen.isBuiltin && !screen.isOff { setBrightness(screen, Double(value)) }
   }
 
-  // MARK: Curtain
+  // MARK: Quick off
 
-  /// Draws (closed = true) or opens a screen's curtain. Returns a message if it can't.
+  /// Fades a screen to black (off = true) or back (off = false). Returns false if it can't.
+  @discardableResult
+  func setQuickOff(_ screen: Screen, off: Bool) -> Bool {
+    notice = nil
+    if off {
+      guard !screen.isOff else { return true }
+      guard screensVisible(excluding: screen.id) > 0 else {
+        notice = "One screen has to stay on. Turn another screen on first."
+        return false
+      }
+      let from = gammaScale(screen)
+      screen.blackedOut = true
+      fadeGamma(screen, from: from, to: 0, duration: 0.25) { [weak self, weak screen] in
+        guard let self, let screen, screen.blackedOut else { return }
+        self.showCover(screen)
+        self.setBacklight(screen, 0)
+      }
+    } else {
+      guard screen.blackedOut else { return true }
+      screen.blackedOut = false
+      hideCover(screen.id)
+      setBacklight(screen, screen.brightness)
+      fadeGamma(screen, from: 0, to: gammaScale(screen), duration: 0.35) { [weak self, weak screen] in
+        if let screen { self?.applyGamma(screen) }
+      }
+    }
+    all = all // republish so the menu bar icon updates
+    return true
+  }
+
+  /// The backlight follows quick off where Curtain can reach it: MacBook and Apple screens, and
+  /// monitors that take DDC. The black curve and cover do the rest.
+  private func setBacklight(_ screen: Screen, _ value: Double) {
+    switch screen.control {
+    case .apple: _ = Private.setBrightness?(screen.id, Float(value))
+    case .ddc: queueDDC(screen, UInt16((value * Double(screen.ddcMax)).rounded()))
+    case .software: break
+    }
+  }
+
+  private func showCover(_ screen: Screen) {
+    guard let ns = Self.nsScreen(screen.id) else { return }
+    let window = covers[screen.id] ?? {
+      let w = NSWindow(contentRect: ns.frame, styleMask: .borderless, backing: .buffered, defer: false)
+      w.backgroundColor = .black
+      w.isOpaque = true
+      w.hasShadow = false
+      w.isReleasedWhenClosed = false
+      w.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()))
+      w.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+      return w
+    }()
+    window.setFrame(ns.frame, display: true)
+    window.orderFrontRegardless()
+    covers[screen.id] = window
+  }
+
+  private func hideCover(_ id: CGDirectDisplayID) {
+    covers[id]?.orderOut(nil)
+    covers[id] = nil
+  }
+
+  // MARK: Unplug
+
+  /// Unplugs (closed = true) or plugs back in a screen. Returns false if it can't.
   @discardableResult
   func setCurtain(_ screen: Screen, closed: Bool) -> Bool {
     notice = nil
     if closed {
-      guard screensStillOn(excluding: [screen.id]) > 0 else {
-        notice = "One screen has to stay on. Plug in or open another screen first."
+      guard !screen.curtained else { return true }
+      guard screensVisible(excluding: screen.id) > 0 else {
+        notice = "One screen has to stay on. Turn another screen on first."
         return false
       }
-      guard Self.configure(screen.id, enabled: false) else {
-        notice = "macOS didn't let Curtain switch off \(screen.name)."
+      if screen.blackedOut { // switching from quick off: drop the cover quietly
+        screen.blackedOut = false
+        hideCover(screen.id)
+        setBacklight(screen, screen.brightness)
+      }
+      guard Self.withFade({ Self.configure([screen.id], enabled: false) }) else {
+        notice = "macOS didn't let Curtain unplug \(screen.name)."
         return false
       }
       offScreens[screen.id] = screen
       curtained[screen.uuid] = Int(screen.id)
     } else {
+      guard screen.curtained else { return true }
       curtained[screen.uuid] = nil
       offScreens[screen.id] = nil
-      _ = Self.configure(screen.id, enabled: true)
+      _ = Self.withFade { Self.configure([screen.id], enabled: true) }
     }
     screen.curtained = closed
     scheduleRefresh()
     return true
   }
 
-  /// The keyboard shortcut: open every curtain if any is drawn, otherwise draw every curtain
-  /// except on the screen you're working on.
+  /// The keyboard shortcut: turn every screen back on if any is off, otherwise quick-off every
+  /// screen except the one you're working on.
   func toggleAll() {
-    if all.contains(where: \.curtained) {
+    if all.contains(where: \.isOff) {
       openAll()
     } else {
       let keep = screenUnderPointer() ?? all.first { $0.isBuiltin } ?? all.first
-      for screen in all where screen.id != keep?.id { setCurtain(screen, closed: true) }
+      for screen in all where screen.id != keep?.id { setQuickOff(screen, off: true) }
     }
   }
 
   func openAll() {
-    for screen in all where screen.curtained { setCurtain(screen, closed: false) }
+    for screen in all where screen.blackedOut { setQuickOff(screen, off: false) }
+    let unplugged = all.filter(\.curtained)
+    guard !unplugged.isEmpty else { return }
+    for screen in unplugged {
+      curtained[screen.uuid] = nil
+      offScreens[screen.id] = nil
+      screen.curtained = false
+    }
+    _ = Self.withFade { Self.configure(unplugged.map(\.id), enabled: true) } // one fade for all
+    scheduleRefresh()
   }
 
-  /// Keeps curtains drawn when macOS turns a screen back on (wake, unlock, replug), and opens
-  /// them all if nothing else is left on, such as when the MacBook lid closes.
+  /// Keeps screens unplugged when macOS plugs them back in (wake, unlock, replug), and plugs them
+  /// all back in if nothing else is left on, such as when the MacBook lid closes.
   private func enforceCurtains() {
     let wanted = Set(curtained.keys)
     let on = all.filter { !$0.curtained }
@@ -301,32 +430,68 @@ final class Screens: ObservableObject {
       if !offScreens.isEmpty { openAll() }
       return
     }
-    // Only re-draw curtains if some other screen stays on, so you're never left in the dark.
-    guard on.contains(where: { !wanted.contains($0.uuid) }) else { return }
+    // Only unplug again if some other screen stays on, so you're never left in the dark.
+    guard on.contains(where: { !wanted.contains($0.uuid) && !$0.blackedOut }) else { return }
     for screen in on where wanted.contains(screen.uuid) { setCurtain(screen, closed: true) }
   }
 
-  private func screensStillOn(excluding ids: Set<CGDirectDisplayID>) -> Int {
-    Self.list(CGGetActiveDisplayList).filter { !ids.contains($0) && offScreens[$0] == nil }.count
+  /// Screens you can still see: connected and not quick-off.
+  private func screensVisible(excluding id: CGDirectDisplayID) -> Int {
+    Self.list(CGGetActiveDisplayList).filter { other in
+      other != id && offScreens[other] == nil && !(all.first { $0.id == other }?.blackedOut ?? false)
+    }.count
   }
 
-  /// Every screen back on and colours back to normal. `forget` also clears the remembered
-  /// curtains (Quit); without it they're drawn again next launch (logout, restart).
-  func restoreEverything(forget: Bool) {
-    if forget { curtained = [:] }
-    for id in offScreens.keys { _ = Self.configure(id, enabled: true) }
+  /// Every screen back on, backlights and colours back to normal.
+  func restoreEverything() {
+    for timer in fades.values { timer.invalidate() }
+    fades = [:]
+    for screen in all where screen.blackedOut {
+      screen.blackedOut = false
+      hideCover(screen.id)
+      if screen.control == .apple { _ = Private.setBrightness?(screen.id, Float(screen.brightness)) }
+      if screen.control == .ddc, let service = screen.ddc {
+        DDC.write(service, command: DDC.brightness, value: UInt16((screen.brightness * Double(screen.ddcMax)).rounded()))
+      }
+    }
+    curtained = [:]
+    if !offScreens.isEmpty { _ = Self.configure(Array(offScreens.keys), enabled: true) }
     offScreens = [:]
     CGDisplayRestoreColorSyncSettings()
   }
 
   // MARK: Helpers
 
-  private static func configure(_ id: CGDirectDisplayID, enabled: Bool) -> Bool {
+  /// Fades every screen to black, runs `change`, holds black while monitors re-sync, then fades
+  /// back in without blocking the app.
+  private static func withFade(_ change: () -> Bool) -> Bool {
+    var token: CGDisplayFadeReservationToken = 0
+    guard CGAcquireDisplayFadeReservation(5, &token) == .success else { return change() }
+    let normal = CGDisplayBlendFraction(kCGDisplayBlendNormal), black = CGDisplayBlendFraction(kCGDisplayBlendSolidColor)
+    CGDisplayFade(token, 0.3, normal, black, 0, 0, 0, 1)
+    let ok = change()
+    DispatchQueue.global(qos: .userInteractive).async {
+      usleep(1_200_000)
+      CGDisplayFade(token, 0.5, black, normal, 0, 0, 0, 1)
+      CGReleaseDisplayFadeReservation(token)
+      DispatchQueue.main.async { Screens.shared.refresh() } // the fade restores curves; re-dim
+    }
+    return ok
+  }
+
+  private static func configure(_ ids: [CGDirectDisplayID], enabled: Bool) -> Bool {
     guard let fn = Private.configureDisplayEnabled else { return false }
     var config: CGDisplayConfigRef?
     guard CGBeginDisplayConfiguration(&config) == .success else { return false }
-    guard fn(config, id, enabled) == .success else { CGCancelDisplayConfiguration(config); return false }
+    for id in ids where fn(config, id, enabled) != .success {
+      CGCancelDisplayConfiguration(config)
+      return false
+    }
     return CGCompleteDisplayConfiguration(config, .permanently) == .success
+  }
+
+  private static func nsScreen(_ id: CGDirectDisplayID) -> NSScreen? {
+    NSScreen.screens.first { ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == id }
   }
 
   private static func list(_ fn: (UInt32, UnsafeMutablePointer<CGDirectDisplayID>?, UnsafeMutablePointer<UInt32>?) -> CGError) -> [CGDirectDisplayID] {
@@ -342,7 +507,7 @@ final class Screens: ObservableObject {
   }
 
   private static func name(_ id: CGDirectDisplayID) -> String {
-    if CGDisplayIsBuiltin(id) != 0 { return "MacBook screen" }
+    if CGDisplayIsBuiltin(id) != 0 { return "MacBook" }
     if let ns = NSScreen.screens.first(where: { ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == id }) {
       return ns.localizedName
     }

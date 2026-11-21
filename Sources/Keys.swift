@@ -89,7 +89,7 @@ final class Keys: ObservableObject {
 
     // The MacBook screen (and Apple displays) already respond to these keys: leave them to macOS.
     let screens = Screens.shared
-    guard let target = screens.screenUnderPointer(), target.control != .apple else {
+    guard let target = screens.screenUnderPointer(), target.control != .apple, !target.isOff else {
       return Unmanaged.passUnretained(event)
     }
     if down {

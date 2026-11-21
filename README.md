@@ -4,16 +4,20 @@
 
 1. **Brightness for every screen.** A slider per monitor that sets its real backlight over DDC.
    Monitors that ignore DDC are dimmed in software instead, and Curtain detects that by itself.
-2. **Draw the curtain.** Switch any screen off in one click. macOS treats it as unplugged:
-   windows move to your other screen and the monitor goes to sleep. Click again to bring it back.
-   Curtain never lets you switch off your last screen, and draws the curtain again when macOS
-   turns the screen back on after sleep or unlock.
+2. **Turn a screen off.** Two ways, both one click:
+   - **Turn off** fades it to black in half a second, with no flash on your other screen.
+     Windows stay where they are.
+   - **Unplug** makes macOS treat it as unplugged: windows move to your other screen and the
+     monitor sleeps. macOS blanks every screen for a moment while it rearranges them; Curtain
+     fades through it.
+   Curtain never lets you switch off your last screen, and keeps an unplugged screen unplugged
+   after sleep or unlock.
 3. **Brightness keys for monitors.** F1/F2 change the screen under the pointer, with the
    native macOS brightness indicator. Needs Accessibility permission.
 4. **Follow the Mac.** Your monitors follow your MacBook's brightness as it changes.
-5. **⌃⌥⌘C** draws the curtain on every screen except the one you're working on, or opens it.
+5. **⌃⌥⌘C** turns off every screen except the one you're working on, or turns them all back on.
 
-Quit puts every screen back on. Free, open source, sends nothing anywhere. A Saaquib Labs tool. MIT.
+Quitting, logging out or stopping Curtain puts every screen back on. Free, open source, sends nothing anywhere. A Saaquib Labs tool. MIT.
 
 **Needs:** macOS 13 Ventura or newer. Hardware brightness over DDC needs Apple silicon; on
 Intel Macs, Curtain dims monitors in software (the curtain works on both).

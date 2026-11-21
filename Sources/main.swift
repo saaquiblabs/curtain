@@ -5,13 +5,12 @@ import AppKit
 import Combine
 import SwiftUI
 
-let version = "0.1.0"
+let version = "0.2.0"
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: NSStatusItem!
   private let popover = NSPopover()
   private var watcher: AnyCancellable?
-  private static var quitting = false
 
   func applicationDidFinishLaunching(_: Notification) {
     Screens.shared.start()
@@ -25,7 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     statusItem.button?.action = #selector(togglePopover)
     statusItem.button?.target = self
     watcher = Screens.shared.$all.receive(on: RunLoop.main).sink { [weak self] all in
-      let drawn = all.contains(where: \.curtained)
+      let drawn = all.contains(where: \.isOff)
       let image = NSImage(systemSymbolName: drawn ? "curtains.closed" : "curtains.open", accessibilityDescription: "Curtain")
       image?.isTemplate = true
       self?.statusItem.button?.image = image
@@ -73,17 +72,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  /// Quit from the menu: every screen back on and nothing remembered.
+  /// Quit from the menu: every screen back on first.
   static func quit() {
-    quitting = true
-    Screens.shared.restoreEverything(forget: true)
     NSApp.terminate(nil)
   }
 
-  /// Logout, restart or being killed: screens back on, but curtains are remembered for next time.
+  /// Quit, logout or restart: every screen back on, backlights and colours restored.
   func applicationWillTerminate(_: Notification) {
-    if !Self.quitting { Screens.shared.restoreEverything(forget: false) }
+    Screens.shared.restoreEverything()
   }
+}
+
+// Being stopped by a signal (pkill, `brew services stop`) skips applicationWillTerminate, so
+// catch those signals too and restore the screens before exiting.
+var signalSources: [DispatchSourceSignal] = []
+for sig in [SIGTERM, SIGINT, SIGHUP] {
+  signal(sig, SIG_IGN)
+  let source = DispatchSource.makeSignalSource(signal: sig, queue: .main)
+  source.setEventHandler { Screens.shared.restoreEverything(); exit(0) }
+  source.resume()
+  signalSources.append(source)
 }
 
 if CommandLine.arguments.contains("--version") {

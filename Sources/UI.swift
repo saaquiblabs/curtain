@@ -39,12 +39,12 @@ struct PopoverView: View {
       footer
     }
     .padding(16)
-    .frame(width: 320)
+    .frame(width: 372)
   }
 
   private var header: some View {
     HStack(spacing: 8) {
-      Image(systemName: screens.all.contains(where: \.curtained) ? "curtains.closed" : "curtains.open")
+      Image(systemName: screens.all.contains(where: \.isOff) ? "curtains.closed" : "curtains.open")
         .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.tangerine)
       Text("Curtain").font(.system(size: 15, weight: .semibold))
       Spacer()
@@ -53,14 +53,14 @@ struct PopoverView: View {
   }
 
   private var summary: String {
-    let off = screens.all.filter(\.curtained).count
+    let off = screens.all.filter(\.isOff).count
     let total = screens.all.count
     return off == 0 ? "\(total) screen\(total == 1 ? "" : "s") on" : "\(off) of \(total) off"
   }
 
   private var footer: some View {
     HStack {
-      Text("\(Keys.shortcutLabel)  draws or opens the curtain")
+      Text("\(Keys.shortcutLabel)  turns other screens off / on")
         .font(.caption).foregroundStyle(.secondary)
       Spacer()
       Button("Quit") { AppDelegate.quit() }
@@ -72,35 +72,89 @@ struct PopoverView: View {
 
 struct ScreenRow: View {
   @ObservedObject var screen: Screen
+  @ObservedObject var screens = Screens.shared
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       HStack(spacing: 8) {
         Image(systemName: screen.isBuiltin ? "laptopcomputer" : "display")
           .font(.system(size: 13)).foregroundStyle(.secondary).frame(width: 18)
-        Text(screen.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-        if screen.control == .software && !screen.curtained {
-          Text("dimmed in software").font(.caption2).foregroundStyle(.tertiary)
-            .help("This monitor doesn't accept brightness commands, so Curtain darkens the picture instead.")
+        VStack(alignment: .leading, spacing: 1) {
+          Text(screen.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
+          if screen.control == .software && !screen.isOff {
+            Text("dimmed in software").font(.caption2).foregroundStyle(.tertiary)
+              .help("This monitor doesn't accept brightness commands, so Curtain darkens the picture instead.")
+          }
         }
-        Spacer()
-        CurtainButton(drawn: screen.curtained) {
-          Screens.shared.setCurtain(screen, closed: !screen.curtained)
+        .layoutPriority(1)
+        Spacer(minLength: 4)
+        if screen.isOff {
+          PillButton(title: "Turn on", systemImage: "power", prominent: true,
+                     help: "Turn \(screen.name) back on") {
+            if screen.curtained { screens.setCurtain(screen, closed: false) } else { screens.setQuickOff(screen, off: false) }
+          }
+        } else {
+          PillButton(title: "Unplug", systemImage: "eject", prominent: false,
+                     help: "Unplug \(screen.name) in software: windows move to \(otherName), and every screen blinks for about 2 seconds while macOS rearranges them.") {
+            screens.setCurtain(screen, closed: true)
+          }
+          PillButton(title: "Turn off", systemImage: "power", prominent: false,
+                     help: "Turn \(screen.name) black instantly. Windows stay on it.") {
+            screens.setQuickOff(screen, off: true)
+          }
         }
       }
-      if screen.curtained {
-        Text("Curtain drawn. This screen is off.")
+      if screen.isOff {
+        Text(screen.curtained ? "Unplugged. Its windows moved to \(otherName)." : "Off. Its windows are still there, hidden.")
           .font(.caption).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
       } else {
         BrightnessSlider(value: Binding(get: { screen.brightness },
-                                        set: { Screens.shared.setBrightness(screen, $0) }),
+                                        set: { screens.setBrightness(screen, $0) }),
                          minimum: screen.minimum)
       }
     }
     .padding(12)
     .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.quaternary.opacity(0.6)))
-    .animation(.easeOut(duration: 0.18), value: screen.curtained)
+    .animation(.easeOut(duration: 0.18), value: screen.isOff)
+  }
+
+  private var otherName: String {
+    screens.all.first { $0.id != screen.id && !$0.isOff }?.name ?? "your other screen"
+  }
+}
+
+/// A small labelled button: what it does is written on it.
+struct PillButton: View {
+  var title: String
+  var systemImage: String
+  var prominent: Bool
+  var help: String
+  var action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      Label(title, systemImage: systemImage)
+        .font(.system(size: 11, weight: .semibold))
+        .labelStyle(.titleAndIcon)
+        .padding(.horizontal, 9).padding(.vertical, 4)
+        .fixedSize()
+    }
+    .buttonStyle(PillStyle(prominent: prominent))
+    .help(help)
+  }
+}
+
+struct PillStyle: ButtonStyle {
+  var prominent: Bool
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .foregroundStyle(prominent ? Color.white : Color.primary)
+      .background(Capsule().fill(prominent ? AnyShapeStyle(Color.tangerine) : AnyShapeStyle(.quaternary)))
+      .scaleEffect(configuration.isPressed ? 0.94 : 1)
+      .opacity(configuration.isPressed ? 0.8 : 1)
+      .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
   }
 }
 
@@ -139,36 +193,6 @@ struct BrightnessSlider: View {
     .accessibilityAdjustableAction { direction in
       value = max(minimum, min(1, value + (direction == .increment ? 0.0625 : -0.0625)))
     }
-  }
-}
-
-struct CurtainButton: View {
-  var drawn: Bool
-  var action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      Image(systemName: drawn ? "curtains.closed" : "curtains.open")
-        .font(.system(size: 12, weight: .semibold))
-    }
-    .buttonStyle(CircleButtonStyle(filled: drawn))
-    .help(drawn ? "Open the curtain: switch this screen back on" : "Draw the curtain: switch this screen off")
-    .accessibilityLabel(drawn ? "Switch screen on" : "Switch screen off")
-  }
-}
-
-/// No @State here: the command line tools ship without SwiftUI's macro plugin.
-struct CircleButtonStyle: ButtonStyle {
-  var filled: Bool
-
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .foregroundStyle(filled ? Color.white : Color.primary)
-      .frame(width: 28, height: 28)
-      .background(Circle().fill(filled ? AnyShapeStyle(Color.navy) : AnyShapeStyle(.quaternary)))
-      .scaleEffect(configuration.isPressed ? 0.9 : 1)
-      .opacity(configuration.isPressed ? 0.8 : 1)
-      .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
   }
 }
 

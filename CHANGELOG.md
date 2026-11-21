@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.0 — 2026-11-21
+
+Switching a screen off no longer blanks every screen. Two ways to switch off, both written on
+the buttons:
+
+- **Turn off** (new, the default): the screen fades to black in about half a second. No
+  rearranging, so your other screen doesn't blink. A black cover stops clicks reaching the hidden
+  windows, and the backlight goes down on the MacBook (and on monitors that take DDC). Windows
+  stay where they are. **Turn on** fades it back with the exact colours and brightness it had.
+- **Unplug** (what 0.1 did): windows move to your other screen and the monitor sleeps. macOS
+  still blanks every screen for a moment while it rearranges them, but Curtain now fades all
+  screens out first and back in after, so it reads as a deliberate fade, not a glitch.
+- The menu says what each click does: **Turn off**, **Unplug** and **Turn on** buttons
+  instead of a curtain icon, a hint on hover, and the off screen's row says where its windows are.
+- ⌃⌥⌘C now uses Turn off, so it's instant too.
+- Every launch starts with all screens on. 0.1 unplugged screens again at launch if it had been
+  stopped without cleaning up, which was a surprise. Being stopped by `kill` or
+  `brew services stop` now also puts every screen back on.
+- Brightness changes (keys, Follow the Mac) leave a turned-off screen dark.
+- "MacBook screen" is now just "MacBook"; the menu is a little wider so names fit.
+
 ## 0.1.0 — 2026-11-21
 
 The first working version: a menu bar app with the five features, built and tested on one
@@ -24,7 +45,8 @@ MacBook (M2, macOS 27.2) with one external monitor (Lenovo L27h-4A).
 **Known issues in 0.1**
 
 - Drawing a curtain blanks every screen for 2–3 seconds while macOS rearranges displays.
-- The menu doesn't yet show what a click will do before you click it.
+  (0.2: Turn off avoids it; Unplug fades through it.)
+- The menu doesn't yet show what a click will do before you click it. (0.2: labelled buttons.)
 - The look is a first draft and borrows Lost Buttons' colours; Curtain needs its own identity.
 - No app icon. Brightness keys, Follow the Mac and Open at login are untested in the real app.
 - Hardware brightness over DDC needs Apple silicon; Intel Macs get software dimming.
