@@ -59,6 +59,7 @@ h1 { font-size: clamp(28px, 4.4vw, 40px); line-height: 1.1; margin: 0; letter-sp
 @media (max-width: 640px) { .index { grid-template-columns: 1fr; } }
 
 /* ---------- Direction band ---------- */
+#dirs { display: flex; flex-direction: column; gap: 64px; }
 .dir { display: flex; flex-direction: column; gap: 22px; scroll-margin-top: 24px; }
 .dir-head { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 28px; }
 .dir-head h2 { margin: 0; font-size: clamp(32px, 5vw, 44px); line-height: 1.05; font-weight: 500; text-wrap: balance; }
@@ -180,9 +181,9 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
 }
 .mock svg { display: block; flex: none; }
 .m-head { display: flex; align-items: center; gap: 8px; }
-.m-head .m-glyph { width: 18px; height: 18px; color: var(--m-accent); }
+.m-head .m-glyph { width: 16px; height: 16px; color: var(--m-accent); }
 .m-word { font-family: var(--f-word); font-size: 15px; font-weight: 600; }
-.m-sum { margin-left: auto; font-size: 10.5px; color: var(--m-ink2); font-variant-numeric: tabular-nums; }
+.m-sum { margin-left: auto; font-size: 10px; color: var(--m-ink2); font-variant-numeric: tabular-nums; }
 .m-rows { display: flex; flex-direction: column; gap: 10px; }
 .m-row {
   position: relative; overflow: hidden; padding: 12px; border-radius: var(--r-row); display: flex; flex-direction: column; gap: 10px;
@@ -194,7 +195,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
 .m-ico { width: 18px; display: flex; justify-content: center; color: var(--m-ink2); }
 .m-ico svg { width: 16px; height: 16px; }
 .m-names { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
-.m-name { font-family: var(--f-title); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-name { font-family: var(--f-title); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-hint { font-size: 10px; color: var(--m-ink3); }
 .m-pill {
   display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: var(--r-pill); cursor: pointer;
@@ -209,7 +210,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
 .m-pill.pro:hover { background: var(--m-pro-hover); }
 .m-stage { display: grid; }
 .m-stage > * { grid-area: 1 / 1; transition: opacity .16s ease; }
-.m-offmsg { min-height: 26px; display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--m-ink2); opacity: 0; pointer-events: none; }
+.m-offmsg { min-height: 26px; display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--m-ink2); opacity: 0; pointer-events: none; }
 .m-row.off .m-offmsg { opacity: 1; pointer-events: auto; }
 .m-row.off .m-slider { opacity: 0; pointer-events: none; }
 
@@ -222,29 +223,29 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
 .m-pct { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--m-pct); transition: color .12s ease; }
 .m-slider.high .m-pct { color: var(--m-pct-on-fill); }
 
-.m-notice { display: flex; gap: 6px; font-size: 10.5px; color: var(--m-ink2); align-items: flex-start; }
+.m-notice { display: flex; gap: 6px; font-size: 10px; color: var(--m-ink2); align-items: flex-start; }
 .m-notice svg { width: 12px; height: 12px; margin-top: 1px; }
 .m-div { height: 1px; background: var(--m-row-edge); }
 .m-switches { display: flex; flex-direction: column; gap: 10px; }
 .m-sw-row { display: flex; align-items: center; gap: 12px; }
 .m-sw-text { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
 .m-sw-title { font-size: 13px; }
-.m-sw-detail { font-size: 10.5px; color: var(--m-ink2); }
+.m-sw-detail { font-size: 10px; color: var(--m-ink2); }
 .m-switch {
-  position: relative; width: 32px; height: 18px; border-radius: 9px; border: 0; padding: 0; cursor: pointer; flex: none;
+  position: relative; width: 26px; height: 15px; border-radius: 7.5px; border: 0; padding: 0; cursor: pointer; flex: none;
   background: var(--m-sw-off); transition: background-color .16s ease, box-shadow .16s ease;
 }
 .m-switch::after {
-  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+  content: ""; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%;
   background: var(--m-knob); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .16s cubic-bezier(.3,.7,.2,1);
 }
 .m-switch[aria-checked="true"] { background: var(--m-sw-on); box-shadow: var(--m-sw-glow); }
-.m-switch[aria-checked="true"]::after { transform: translateX(14px); }
+.m-switch[aria-checked="true"]::after { transform: translateX(11px); }
 .m-switch:hover::after { box-shadow: 0 1px 4px rgba(0,0,0,.45); }
-.m-link { display: inline-flex; gap: 6px; align-items: center; font-size: 10.5px; color: var(--m-link); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.m-link { display: inline-flex; gap: 6px; align-items: center; font-size: 10px; color: var(--m-link); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
 .m-link:hover { text-decoration: underline; }
 .m-link svg { width: 12px; height: 12px; }
-.m-foot { display: flex; align-items: center; font-size: 10.5px; color: var(--m-ink2); }
+.m-foot { display: flex; align-items: center; font-size: 10px; color: var(--m-ink2); }
 .m-quit { margin-left: auto; font: inherit; color: inherit; background: none; border: 0; padding: 2px 4px; border-radius: 4px; cursor: pointer; }
 .m-quit:hover { color: var(--m-ink); background: var(--m-pill); }
 .m-veil { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
@@ -296,7 +297,6 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
 }
 .d-velvet .m-slider:hover .m-thumb { transform: scale(1.12); }
 .d-velvet .m-fill { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.15); }
-.d-velvet .m-switch::after { background: var(--m-knob); }
 .d-velvet .m-veil { background: var(--m-veil); transform-origin: top; transform: scaleY(0); transition: transform .2s cubic-bezier(.2,.8,.2,1); }
 .d-velvet .m-row.off .m-veil { transform: scaleY(1); }
 .d-velvet.opening { animation: velvet-open .18s cubic-bezier(.2,.8,.2,1); transform-origin: top right; }
@@ -341,8 +341,6 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
   --m-link: #f0c9a6;
 }
 .d-linen .m-word { font-style: italic; font-weight: 400; font-size: 18px; letter-spacing: .005em; }
-.d-linen .m-name { font-weight: 600; }
-.d-linen .m-pill { font-weight: 600; }
 .d-linen .m-div { height: 1px; background: repeating-linear-gradient(90deg, var(--m-ink3) 0 3px, transparent 3px 7px); opacity: .55; }
 .d-linen .m-switch { box-shadow: inset 0 0 0 1px var(--m-row-edge); }
 .d-linen .m-fill { border-right: 1px solid rgba(255,255,255,.55); }
@@ -366,12 +364,13 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
   --m-pill: transparent; --m-pill-ink: #f5eedf; --m-pill-edge: rgba(245,238,223,.2); --m-pill-hover: rgba(255,181,71,.12);
   --m-pro: #b3172f; --m-pro-ink: #fff4dc; --m-pro-hover: #c91d37;
   --m-sw-off: #2a2530; --m-sw-on: #ffb547; --m-knob: #fff4dc; --m-sw-glow: 0 0 10px rgba(255,181,71,.45);
+  --m-veil: repeating-linear-gradient(90deg, rgba(179,23,47,.34) 0 6px, rgba(110,10,25,.34) 6px 12px);
   --m-link: #ffc76a;
 }
 .d-midnight.ap-light { --m-edge: rgba(255,255,255,.2); --m-shadow: 0 24px 50px rgba(20,16,30,.45), 0 0 0 1px rgba(0,0,0,.35); }
 .d-midnight .m-word { font-weight: 400; font-size: 16px; letter-spacing: .06em; color: var(--m-ink); }
-.d-midnight .m-name { font-weight: 600; letter-spacing: .005em; }
-.d-midnight .m-pill { text-transform: uppercase; letter-spacing: .07em; font-size: 10px; padding: 5px 9px; }
+.d-midnight .m-name { letter-spacing: .005em; }
+.d-midnight .m-pill { letter-spacing: .04em; }
 .d-midnight .m-pill.pro { box-shadow: 0 0 14px rgba(179,23,47,.45); }
 .d-midnight .m-div { height: 5px; background: radial-gradient(circle, rgba(255,181,71,.6) 1.1px, transparent 1.9px) 0 0 / 11px 5px repeat-x; }
 .d-midnight .m-fill { box-shadow: 0 0 16px rgba(255,181,71,.35); }
@@ -379,7 +378,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
 .d-midnight .m-slider:hover .m-fill { box-shadow: 0 0 22px rgba(255,181,71,.5); }
 .d-midnight .m-veil::before, .d-midnight .m-veil::after {
   content: ""; position: absolute; top: 0; bottom: 0; width: 50.5%;
-  background: repeating-linear-gradient(90deg, rgba(179,23,47,.34) 0 6px, rgba(110,10,25,.34) 6px 12px);
+  background: var(--m-veil);
   transition: transform .23s cubic-bezier(.5,0,.2,1);
 }
 .d-midnight .m-veil::before { left: 0; transform: translateX(-101%); }
@@ -458,7 +457,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
   // ---------- The three directions: everything the spec sheet shows ----------
   const DIRS = [
     {
-      key: 'velvet', name: 'Velvet & Brass',
+      key: 'velvet', name: 'Velvet & Brass', mark: '#b8893b',
       tag: 'A theatre box at the opera. Deep velvet drapes on a brass rod: sheer lets a little light through, drawn velvet shuts it out.',
       mode: 'Follows macOS. Rose-plaster panel with oxblood and brass by day; deep velvet with lit brass at night.',
       palette: [
@@ -471,8 +470,8 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
       ],
       type: [
         ['Wordmark', 'Fraunces Italic 600', 'Curtain', 'font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:28px;font-variation-settings:"opsz" 72'],
-        ['Screen names', 'Hanken Grotesk 600 · 13 pt', 'Built-in Retina Display', 'font-family:"Hanken Grotesk";font-weight:600;font-size:13px'],
-        ['Body, captions', 'Hanken Grotesk 400 · 10.5–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:"Hanken Grotesk";font-size:12px'],
+        ['Screen names', 'Hanken Grotesk 600 · 13 pt', 'MacBook', 'font-family:"Hanken Grotesk";font-weight:600;font-size:13px'],
+        ['Body, captions', 'Hanken Grotesk 400 · 10–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:"Hanken Grotesk";font-size:12px'],
         ['Numbers', 'Hanken Grotesk, tabular figures', '0% 11% 45% 72% 100%', 'font-family:"Hanken Grotesk";font-weight:600;font-size:14px;font-variant-numeric:tabular-nums'],
       ],
       fontNote: 'Both OFL. Fraunces only for the wordmark; small text stays in a crisp grotesk.',
@@ -484,7 +483,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
       wordmark: '<div class="wm" style="background:#f5ece6;color:#6e1f2b"><svg viewBox="0 0 220 16" width="200" height="14" aria-hidden="true"><defs><linearGradient id="vb" x1="0" x2="1"><stop offset="0" stop-color="#8c5e1c"/><stop offset=".5" stop-color="#e6c983"/><stop offset="1" stop-color="#8c5e1c"/></linearGradient></defs><rect x="8" y="6" width="204" height="3" rx="1.5" fill="url(#vb)"/><circle cx="7" cy="7.5" r="5" fill="url(#vb)"/><circle cx="213" cy="7.5" r="5" fill="url(#vb)"/></svg><div style="font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:46px;line-height:1;font-variation-settings:\'opsz\' 144">Curtain</div><div class="credit" style="color:#77555b">A Saaquib Labs tool</div></div>',
     },
     {
-      key: 'linen', name: 'Linen & Dusk',
+      key: 'linen', name: 'Linen & Dusk', mark: '#5d6fa6',
       tag: 'Morning light through a linen sheer, then dusk. Sheer is the fabric you can see through; closed is the panel pulled all the way across.',
       mode: 'Follows macOS. Frosted linen with dusk blue by day; a soft twilight blue with an afterglow accent at night. Never pure black.',
       palette: [
@@ -497,11 +496,11 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
       ],
       type: [
         ['Wordmark', 'Newsreader Italic 400', 'Curtain', 'font-family:Newsreader,Georgia,serif;font-style:italic;font-size:30px'],
-        ['Screen names', 'Manrope 600 · 13 pt', 'Built-in Retina Display', 'font-family:Manrope;font-weight:600;font-size:13px'],
-        ['Body, captions', 'Manrope 400 · 10.5–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:Manrope;font-size:12px'],
+        ['Screen names', 'Manrope 600 · 13 pt', 'MacBook', 'font-family:Manrope;font-weight:600;font-size:13px'],
+        ['Body, captions', 'Manrope 400 · 10–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:Manrope;font-size:12px'],
         ['Numbers', 'Manrope, tabular figures', '0% 11% 45% 72% 100%', 'font-family:Manrope;font-weight:600;font-size:14px;font-variant-numeric:tabular-nums'],
       ],
-      fontNote: 'Both OFL. Manrope\'s open shapes stay readable at 10.5 pt; Newsreader only for the wordmark.',
+      fontNote: 'Both OFL. Manrope\'s open shapes stay readable at 10 pt; Newsreader only for the wordmark.',
       shapes: ['Ghost pill buttons with a thin outline; Turn on is a solid pill', 'Slider: a translucent sheer fill with a faint weave, round ends', 'Switches: outlined track, white knob', 'Dividers are a stitched dashed thread'],
       surface: 'Frosted glass with a very fine linen weave, slightly see-through. Larger, softer corners (18 pt panel).',
       motif: 'The sheer. Turning a screen off draws a sheer panel across its row from the left.',
@@ -510,7 +509,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
       wordmark: '<div class="wm" style="background:#fafaf7;color:#2a2f3b"><div style="font-family:Newsreader,Georgia,serif;font-style:italic;font-weight:300;font-size:50px;line-height:1">curtain</div><svg viewBox="0 0 200 12" width="180" height="11" aria-hidden="true"><path d="M2 6 C 22 0, 42 12, 62 6 S 102 0, 122 6 S 162 12, 198 5" fill="none" stroke="#5d6fa6" stroke-width="1.4" stroke-linecap="round" opacity=".7"/></svg><div class="credit" style="color:#687084">A Saaquib Labs tool</div></div>',
     },
     {
-      key: 'midnight', name: 'Midnight Theatre',
+      key: 'midnight', name: 'Midnight Theatre', mark: '#ffb547',
       tag: 'The stage before curtain-up. House-red drapes, footlights, one spotlight. Half-light is a dimmed stage; when a screen goes dark the drapes close and a ghost light stays on.',
       mode: 'Always dark. The stage looks the same whatever macOS is set to; on a light desktop it only gets a brighter rim so it doesn\'t look like a hole.',
       palette: [
@@ -523,12 +522,12 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
       ],
       type: [
         ['Wordmark', 'Limelight', 'Curtain', 'font-family:Limelight,Didot,serif;font-size:28px;letter-spacing:.06em'],
-        ['Screen names', 'Inter Tight 600 · 13 pt', 'Built-in Retina Display', 'font-family:"Inter Tight";font-weight:600;font-size:13px'],
-        ['Body, captions', 'Inter Tight 400 · 10.5–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:"Inter Tight";font-size:12px'],
+        ['Screen names', 'Inter Tight 600 · 13 pt', 'MacBook', 'font-family:"Inter Tight";font-weight:600;font-size:13px'],
+        ['Body, captions', 'Inter Tight 400 · 10–13 pt', 'Monitors match your MacBook\'s brightness', 'font-family:"Inter Tight";font-size:12px'],
         ['Numbers', 'Inter Tight, tabular figures', '0% 11% 45% 72% 100%', 'font-family:"Inter Tight";font-weight:600;font-size:14px;font-variant-numeric:tabular-nums'],
       ],
-      fontNote: 'Both OFL. Limelight is an Art Deco marquee face, used only for the wordmark. Buttons are set in small caps-style capitals.',
-      shapes: ['Ticket-stub buttons, 4 pt corners, capitals; Turn on is house red with a glow', 'Slider: a spotlight beam that brightens toward a lit edge', 'Switches: footlight amber when on, with a soft glow', 'Dividers are a row of footlights'],
+      fontNote: 'Both OFL. Limelight is an Art Deco marquee face, used only for the wordmark.',
+      shapes: ['Ticket-stub buttons, 4 pt corners, lightly spaced letters; Turn on is house red with a glow', 'Slider: a spotlight beam that brightens toward a lit edge', 'Switches: footlight amber when on, with a soft glow', 'Dividers are a row of footlights'],
       surface: 'Solid near-black stage with a warm spotlight falling from the top edge. Tighter corners (10 pt panel).',
       motif: 'The proscenium and the ghost light. Turning a screen off closes red drapes from both sides, and a small ghost light glows by the message.',
       motion: [['Menu opens', 'curtain parts from the centre outward', '240 ms'], ['Turn off', 'drapes close from both sides', '230 ms'], ['Turn on', 'drapes open', '230 ms'], ['Slider', 'beam glows brighter on hover', '120 ms'], ['Switch', 'knob slides, footlight comes up', '160 ms']],
@@ -544,7 +543,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
   function newState() {
     return {
       screens: [
-        { id: 'mb', name: 'Built-in Retina Display', builtin: true, control: 'apple', b: 0.72, blackedOut: false, curtained: false },
+        { id: 'mb', name: 'MacBook', builtin: true, control: 'apple', b: 0.72, blackedOut: false, curtained: false },
         { id: 'len', name: 'L27h-4A', builtin: false, control: 'ddc', b: 0.45, blackedOut: false, curtained: false },
       ],
       followMac: false, brightnessKeys: true, openAtLogin: false, needsPermission: false, notice: null,
@@ -614,7 +613,9 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
           : `Turn ${s.name} black instantly. Windows stay on it.` + (s.builtin ? '' : ' Right-click to unplug it instead.');
         row.querySelector('.m-offtext').textContent = s.curtained
           ? `Unplugged. Its windows moved to ${otherName(s)}.` : 'Off. Its windows are still there, hidden.';
-        row.querySelector('.ghost').hidden = false;
+        const sl = row.querySelector('.m-slider');
+        sl.tabIndex = isOff(s) ? -1 : 0;
+        sl.setAttribute('aria-valuemin', Math.round(minimum(s) * 100));
         paintSlider(s);
       }
       const n = q('.m-notice');
@@ -692,7 +693,6 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
       update();
     }));
     q('.m-link').addEventListener('click', () => { st.needsPermission = false; update(); });
-    q('.m-quit').addEventListener('click', e => { e.currentTarget.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 180 }); });
 
     update();
     return {
@@ -713,7 +713,15 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
   const ctx = document.createElement('div');
   ctx.className = 'ctx'; ctx.hidden = true; ctx.setAttribute('role', 'menu');
   document.body.appendChild(ctx);
+  let ctxOpener = null;
+  function closeCtx(restoreFocus) {
+    if (ctx.hidden) return;
+    ctx.hidden = true;
+    if (restoreFocus && ctxOpener) ctxOpener.focus();
+    ctxOpener = null;
+  }
   function openCtx(x, y, ap, label, act) {
+    ctxOpener = document.activeElement;
     ctx.className = `ctx ap-${ap}`;
     ctx.innerHTML = `<button type="button" role="menuitem">${esc(label)}</button>`;
     ctx.hidden = false;
@@ -721,16 +729,15 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
     ctx.style.left = `${clamp(x, 8, innerWidth - w - 8)}px`;
     ctx.style.top = `${clamp(y, 8, innerHeight - h - 8)}px`;
     const btn = ctx.querySelector('button');
-    btn.addEventListener('click', () => { ctx.hidden = true; act(); });
+    btn.addEventListener('click', () => { closeCtx(true); act(); });
     btn.focus();
   }
-  document.addEventListener('pointerdown', e => { if (!ctx.contains(e.target)) ctx.hidden = true; });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') ctx.hidden = true; });
-  addEventListener('scroll', () => { ctx.hidden = true; }, { passive: true });
+  document.addEventListener('pointerdown', e => { if (!ctx.contains(e.target)) closeCtx(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCtx(true); });
+  addEventListener('scroll', () => closeCtx(false), { passive: true });
 
   // ---------- Build the page ----------
   const root = document.getElementById('dirs');
-  root.style.cssText = 'display:flex;flex-direction:column;gap:64px';
   for (const d of DIRS) {
     const sec = document.createElement('section');
     sec.className = `dir dir-${d.key}`; sec.id = d.key;
@@ -777,7 +784,7 @@ footer.credit { font-size: 12px; color: var(--faint); text-align: center; }
     sec.querySelector('[data-act="replay"]').addEventListener('click', () => mocks.forEach(m => m.replay()));
     sec.querySelector(`#rare-${d.key}`).addEventListener('change', e => mocks.forEach(m => m.setRare(e.target.checked)));
     // The big glyph figures use the direction's mark colour.
-    sec.querySelectorAll('.glyph-big svg').forEach(svg => { svg.style.color = d.key === 'velvet' ? '#b8893b' : d.key === 'linen' ? '#5d6fa6' : '#ffb547'; });
+    sec.querySelectorAll('.glyph-big svg').forEach(svg => { svg.style.color = d.mark; });
   }
 })();
 </script>
