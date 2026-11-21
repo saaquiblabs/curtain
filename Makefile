@@ -24,7 +24,7 @@ run: app
 	-pkill -x curtain
 	open "$(APP)"
 
-.PHONY: app run install uninstall clean renders theme-check
+.PHONY: app run install uninstall clean renders theme-check test
 install: app
 	rm -rf "$(PREFIX)/Curtain.app"
 	cp -R "$(APP)" "$(PREFIX)/Curtain.app"
@@ -46,3 +46,9 @@ renders: theme-check
 theme-check:
 	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/main.swift \
 	  || { echo "theme-check: visual values above belong in Sources/Theme.swift"; exit 1; }
+
+# Logic tests: plain executables built with only the sources they check. Touch no display.
+test:
+	@mkdir -p build
+	$(SWIFTC) $(FLAGS) Sources/MenuToggle.swift Tests/menu-toggle/main.swift -o build/test-menu-toggle
+	build/test-menu-toggle

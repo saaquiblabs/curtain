@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Fix: clicking Curtain's icon while the menu was open closed it and popped it straight back
+  up** (with a menu bar manager such as Ice or Bartender). The icon now opens and closes the
+  menu reliably.
+- **The menu closes when you move on**, like a macOS menu: a click elsewhere, switching app
+  (Cmd-Tab) or Space, or focus going to another window. Just moving the pointer away keeps it
+  open, so you can reach for a slider.
+
 ## 0.2.1 — 2026-11-21
 
 - **Fix: unplugging the MacBook screen switched off its keyboard and trackpad.** macOS treats

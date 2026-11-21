@@ -39,6 +39,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   dimmed in software from then on (`ddcIgnored.<uuid>` default).
 - **The menu is Curtain's own panel** (borderless NSPanel, glass, under the click), not
   NSPopover, which placed itself off-screen when a menu bar manager moved the icon.
+- **Logic tests are plain executables**: `make test` builds small executables from `Tests/<name>/main.swift` with only
+  the sources they check (no XCTest with the command line tools) and runs them. First one:
+  `MenuToggle`, what a click on the menu bar icon does (#7).
 
 ## Learned the hard way (keep)
 - The owner's Lenovo answers DDC reads but ignores every write (brightness, contrast); likely

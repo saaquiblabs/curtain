@@ -20,11 +20,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var outsideClicks: Any?
   private var escapeKey: Any?
   private let presence = MenuPresence()
+  private var toggle = MenuToggle()
+  private var isOpen = false
 
   func applicationDidFinishLaunching(_: Notification) {
     Screens.shared.start()
     Keys.shared.start()
     panel = makePanel()
+    closeWhenMovingOn()
 
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     statusItem.button?.action = #selector(toggleMenu)
@@ -69,6 +72,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     return panel
   }
 
+  /// Like a macOS menu, it closes when you move on: focus goes to another window, another app
+  /// comes forward, or you switch Space. (Mission Control posts nothing we can hear; the panel
+  /// hides during it and closes once you pick a window, which brings another app forward.)
+  private func closeWhenMovingOn() {
+    NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
+      self?.closeMenu(onItsOwn: true)
+    }
+    let workspace = NSWorkspace.shared.notificationCenter
+    workspace.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] note in
+      let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+      if app?.processIdentifier != ProcessInfo.processInfo.processIdentifier { self?.closeMenu(onItsOwn: true) }
+    }
+    workspace.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+      self?.closeMenu(onItsOwn: true)
+    }
+  }
+
   /// Where the menu was opened: under the click (the icon may sit in a menu bar manager's own
   /// bar, so its reported position can't be trusted), or the top right without a click.
   private var anchor: NSPoint?
@@ -84,7 +104,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   @objc private func toggleMenu() {
-    panel.isVisible ? closeMenu() : openMenu(at: NSEvent.mouseLocation)
+    switch toggle.iconClicked(isOpen: isOpen, at: ProcessInfo.processInfo.systemUptime) {
+    case .open: openMenu(at: NSEvent.mouseLocation)
+    case .close: closeMenu()
+    case .ignore: break
+    }
   }
 
   private func openMenu(at point: NSPoint? = nil) {
@@ -97,6 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if !reduceMotion { panel.setFrame(settled.offsetBy(dx: 0, dy: Theme.Motion.openDrift), display: false) }
     panel.alphaValue = 0
     presence.shown = false
+    isOpen = true
     panel.makeKeyAndOrderFront(nil)
     DispatchQueue.main.async { withAnimation(Theme.Motion.openContent) { self.presence.shown = true } }
     NSAnimationContext.runAnimationGroup { context in
@@ -106,7 +131,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       if !reduceMotion { panel.animator().setFrame(settled, display: true) }
     }
     outsideClicks = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-      self?.closeMenu()
+      self?.closeMenu(onItsOwn: true)
     }
     escapeKey = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
       if event.keyCode == 53 { self?.closeMenu(); return nil } // Esc
@@ -114,7 +139,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  private func closeMenu() {
+  /// `onItsOwn`: closed by something other than the icon (outside click, focus, app or Space), so
+  /// an icon click arriving right after is the one that caused it, not a request to reopen.
+  private func closeMenu(onItsOwn: Bool = false) {
+    // Ordering the panel out takes its focus, which calls back here: close only once.
+    guard isOpen else { return }
+    isOpen = false
+    if onItsOwn { toggle.closedOnItsOwn(at: ProcessInfo.processInfo.systemUptime) }
     if let outsideClicks { NSEvent.removeMonitor(outsideClicks) }
     if let escapeKey { NSEvent.removeMonitor(escapeKey) }
     outsideClicks = nil; escapeKey = nil
