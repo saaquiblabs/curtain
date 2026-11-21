@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       let image = NSImage(systemSymbolName: drawn ? "curtains.closed" : "curtains.open", accessibilityDescription: "Curtain")
       image?.isTemplate = true
       self?.statusItem.button?.image = image
+      self?.leaveTurnedOffScreen()
     }
     // `--show` opens the menu at launch: for screenshots, and for menu bars so full that the
     // icon is hidden.
@@ -93,14 +94,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// bar, so its reported position can't be trusted), or the top right without a click.
   private var anchor: NSPoint?
 
-  /// Just under the menu bar, centred on the anchor, kept inside the screen.
+  /// The display the menu moved to because the screen it was on got turned off (#8). It stays
+  /// there, top right under the menu bar, until the menu next opens.
+  private var refuge: CGDirectDisplayID?
+
+  /// Just under the menu bar, centred on the anchor, kept inside the screen. Never on a screen
+  /// that's turned off: its black cover sits above everything, this menu included, so the menu
+  /// goes to a screen that's on, where that row reads Off with Turn on ready (#8).
   private func place() {
     let size = panel.frame.size
-    let point = anchor ?? NSPoint(x: CGFloat.greatestFiniteMagnitude, y: 0)
-    let screen = NSScreen.screens.first { $0.frame.minX <= point.x && point.x <= $0.frame.maxX && anchor != nil } ?? NSScreen.main
+    let topRight = NSPoint(x: CGFloat.greatestFiniteMagnitude, y: 0)
+    let underClick = anchor.flatMap { click in NSScreen.screens.first { $0.frame.minX <= click.x && click.x <= $0.frame.maxX } }
+    var screen = refuge.flatMap(Screens.nsScreen) ?? underClick ?? NSScreen.main
+    var point = refuge == nil ? anchor ?? topRight : topRight
+    if let target = MenuRefuge.destination(menuOn: screen?.displayID,
+                                           screensOn: Screens.shared.all.filter { !$0.isOff }.map(\.id),
+                                           pointerOn: Screens.shared.screenUnderPointer()?.id,
+                                           menuBarOn: NSScreen.screens.first?.displayID),
+       let onScreen = Screens.nsScreen(target) {
+      refuge = target
+      screen = onScreen
+      point = topRight
+    }
     guard let visible = screen?.visibleFrame else { return }
     let x = min(max(point.x - size.width / 2, visible.minX + 8), visible.maxX - size.width - 8)
     panel.setFrameTopLeftPoint(NSPoint(x: x, y: visible.maxY - 6))
+  }
+
+  /// Screens changed: if the open menu's screen was just turned off, it moves to one that's on
+  /// and fades in there.
+  private func leaveTurnedOffScreen() {
+    guard isOpen else { return }
+    let before = refuge
+    place()
+    if refuge != before {
+      panel.alphaValue = 0
+      fadeIn()
+    }
+  }
+
+  /// Fades the menu in, and slides it to `settled` if given (not with Reduce Motion).
+  private func fadeIn(to settled: NSRect? = nil) {
+    NSAnimationContext.runAnimationGroup { context in
+      context.duration = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? Theme.Motion.reducedOpen : Theme.Motion.open
+      context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+      panel.animator().alphaValue = 1
+      if let settled { panel.animator().setFrame(settled, display: true) }
+    }
   }
 
   @objc private func toggleMenu() {
@@ -113,6 +153,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func openMenu(at point: NSPoint? = nil) {
     anchor = point
+    refuge = nil
     Screens.shared.notice = nil
     place()
     // Fades in, drifting down into place (just the fade with Reduce Motion).
@@ -124,12 +165,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     isOpen = true
     panel.makeKeyAndOrderFront(nil)
     DispatchQueue.main.async { withAnimation(Theme.Motion.openContent) { self.presence.shown = true } }
-    NSAnimationContext.runAnimationGroup { context in
-      context.duration = reduceMotion ? Theme.Motion.reducedOpen : Theme.Motion.open
-      context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-      panel.animator().alphaValue = 1
-      if !reduceMotion { panel.animator().setFrame(settled, display: true) }
-    }
+    fadeIn(to: reduceMotion ? nil : settled)
     outsideClicks = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
       self?.closeMenu(onItsOwn: true)
     }

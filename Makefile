@@ -52,3 +52,5 @@ test:
 	@mkdir -p build
 	$(SWIFTC) $(FLAGS) Sources/MenuToggle.swift Tests/menu-toggle/main.swift -o build/test-menu-toggle
 	build/test-menu-toggle
+	$(SWIFTC) $(FLAGS) Sources/MenuRefuge.swift Tests/menu-refuge/main.swift -o build/test-menu-refuge
+	build/test-menu-refuge

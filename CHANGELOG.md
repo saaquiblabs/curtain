@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Fix: turning off the screen the menu was open on hid the menu behind the black.** The
+  menu now moves, still open, to a screen that's on, where that screen's row reads Off with
+  **Turn on** right there. It never opens onto a screen that's off either.
 - **Fix: clicking Curtain's icon while the menu was open closed it and popped it straight back
   up** (with a menu bar manager such as Ice or Bartender). The icon now opens and closes the
   menu reliably.

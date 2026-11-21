@@ -295,8 +295,7 @@ final class Screens: ObservableObject {
   /// The screen the pointer is on: what the brightness keys change.
   func screenUnderPointer() -> Screen? {
     let point = NSEvent.mouseLocation
-    guard let ns = NSScreen.screens.first(where: { NSMouseInRect(point, $0.frame, false) }),
-          let id = ns.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else { return nil }
+    guard let id = NSScreen.screens.first(where: { NSMouseInRect(point, $0.frame, false) })?.displayID else { return nil }
     return all.first { $0.id == id }
   }
 
@@ -520,8 +519,8 @@ final class Screens: ObservableObject {
     return CGCompleteDisplayConfiguration(config, .forSession) == .success
   }
 
-  private static func nsScreen(_ id: CGDirectDisplayID) -> NSScreen? {
-    NSScreen.screens.first { ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == id }
+  static func nsScreen(_ id: CGDirectDisplayID) -> NSScreen? {
+    NSScreen.screens.first { $0.displayID == id }
   }
 
   private static func list(_ fn: (UInt32, UnsafeMutablePointer<CGDirectDisplayID>?, UnsafeMutablePointer<UInt32>?) -> CGError) -> [CGDirectDisplayID] {
@@ -538,7 +537,7 @@ final class Screens: ObservableObject {
 
   private static func name(_ id: CGDirectDisplayID) -> String {
     if CGDisplayIsBuiltin(id) != 0 { return "MacBook" }
-    if let ns = NSScreen.screens.first(where: { ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == id }) {
+    if let ns = nsScreen(id) {
       return ns.localizedName
     }
     if let info = Private.displayCreateInfoDictionary?(id)?.takeRetainedValue() as NSDictionary?,
@@ -547,4 +546,9 @@ final class Screens: ObservableObject {
     }
     return "Display"
   }
+}
+
+extension NSScreen {
+  /// The Core Graphics display this screen shows.
+  var displayID: CGDirectDisplayID? { deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID }
 }

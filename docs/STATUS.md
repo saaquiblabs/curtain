@@ -37,6 +37,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   for any monitor but the hardware never changes.
 - **DDC is verified once**: the first real change is read back; if ignored, that monitor is
   dimmed in software from then on (`ddcIgnored.<uuid>` default).
+- **The menu never sits on a screen that's off** (#8, owner's pick): Turn off's cover is above
+  the menu, so `place()` moves it, still open, to a screen that's on (pointer's, then the main
+  menu bar's, then any; `Sources/MenuRefuge.swift`, tested in `make test`).
 - **The menu is Curtain's own panel** (borderless NSPanel, glass, under the click), not
   NSPopover, which placed itself off-screen when a menu bar manager moved the icon.
 - **Logic tests are plain executables**: `make test` builds small executables from `Tests/<name>/main.swift` with only
