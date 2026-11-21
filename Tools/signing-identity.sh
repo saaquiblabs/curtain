@@ -10,7 +10,7 @@
 # `make` never shows a password dialog. It only signs builds made on this Mac. To remove it:
 #   security delete-keychain ~/Library/Keychains/curtain-signing.keychain-db
 set -e
-KEYCHAIN="$HOME/Library/Keychains/curtain-signing.keychain-db"
+KEYCHAIN="${CURTAIN_KEYCHAIN:-$HOME/Library/Keychains/curtain-signing.keychain-db}"   # override only for tests
 PASSWORD=curtain   # not a secret: it only keeps the file out of the way of other keychains
 NAME="Curtain Local Signing"
 

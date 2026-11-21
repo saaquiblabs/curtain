@@ -22,6 +22,17 @@ Quitting, logging out or stopping Curtain puts every screen back on. Free, open 
 **Needs:** macOS 13 Ventura or newer. Hardware brightness over DDC needs Apple silicon; on
 Intel Macs, Curtain dims monitors in software (the curtain works on both).
 
+## Install
+
+```bash
+brew install saaquiblabs/tap/curtain
+```
+
+Homebrew builds Curtain on your Mac (it needs the command line tools: `xcode-select --install`)
+and puts it in /Applications, so Spotlight finds it. Open it, and allow it in System Settings >
+Privacy & Security > Accessibility when it asks; `brew upgrade` keeps that permission.
+`brew uninstall curtain` quits Curtain first, so every screen comes back on.
+
 ## Build
 
 No Xcode needed, just the command line tools:

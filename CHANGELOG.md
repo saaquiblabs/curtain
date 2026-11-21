@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.2.2 — 2026-11-22
+
+- **Install with Homebrew**: `brew install saaquiblabs/tap/curtain`. It builds Curtain on your
+  Mac, signs it with your Mac's own Curtain certificate and puts it in /Applications, where
+  Spotlight finds it. `brew upgrade` quits Curtain, swaps it and reopens it, and the
+  Accessibility permission stays; `brew uninstall` quits it first, so every screen comes back on.
 
 - **Curtain has its own icon** in Finder, Spotlight, System Settings (Accessibility, Login
   Items): the menu's curtain, linen drapes tied back on a dusk-blue

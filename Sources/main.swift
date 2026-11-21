@@ -5,7 +5,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-let version = "0.2.1"
+let version = "0.2.2"
 
 /// Curtain's menu: a panel that always opens fully on screen, just under the menu bar.
 /// (NSPopover places itself off-screen when a menu bar manager has moved our icon.)

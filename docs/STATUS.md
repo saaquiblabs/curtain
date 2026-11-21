@@ -1,6 +1,7 @@
-# Status — 2026-11-21
+# Status — 2026-11-22
 
-Curtain 0.2.1 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.2.1) and running on
+Curtain 0.2.2 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.2.2) and in Homebrew
+(`brew install saaquiblabs/tap/curtain`), and running on
 the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable). Read
 `CHANGELOG.md` for what each version did and `README.md` for the five features.
 
@@ -48,8 +49,22 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   "Curtain Local Signing" once in `~/Library/Keychains/curtain-signing.keychain-db` (own file,
   fixed non-secret password, so `make` never prompts); requirement = identifier + certificate
   leaf. `Tools/check-signing.sh` rebuilds and fails if the requirement changes. Anyone running as
-  the user can sign with it, as with any local signing setup. Homebrew (#6) still needs a plan:
-  a build on the user's Mac would make its own certificate; a bottle would need a real one.
+  the user can sign with it, as with any local signing setup.
+- **Homebrew is a cask that builds from source** (#14): `Casks/curtain.rb` in
+  saaquiblabs/homebrew-tap downloads the tagged tarball, runs `make test app` in
+  `preflight_steps` and moves `Curtain.app` to /Applications. Not a formula: Spotlight doesn't
+  index Homebrew's Cellar, and a formula's post-install sandbox can't write /Applications. The
+  cask also quits Curtain on uninstall (`uninstall quit:`, screens restored) and on upgrade, and
+  reopens it after. Not a prebuilt release zip: it would be quarantined and Gatekeeper rejects a
+  self-signed, unnotarized app. The steps run in Homebrew's sandbox with `HOME` swapped for a temp
+  dir, so the cask passes the real `HOME` and makes `~/Library/Keychains` writable: the user's
+  "Curtain Local Signing" certificate (same file as dev builds) is made on first install and
+  reused by every upgrade. **Signing outcome, verified 2026-11-22 on the owner's Mac:** a
+  first-time install made the certificate inside the sandbox with no prompt; install and upgrade
+  (0.2.2 → 0.2.3, local tarballs) gave the same designated requirement as `make app`; after the
+  upgrade Curtain was reopened and still trusted (its event tap was live); uninstall quit it and
+  left nothing running or in /Applications; Spotlight finds /Applications/Curtain.app. Bumping a
+  version: new tag, then `version` and `sha256` in the cask.
 - **Apple screens' rows follow macOS's brightness reports** (#11):
   `DisplayServicesRegisterForBrightnessChangeNotifications` calls back on every change, from any
   process (verified with a second process). Curtain's own writes come back too, late; values it
@@ -86,16 +101,17 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   `main.swift`. Test Turn off on the MacBook screen (no blink on the Lenovo the owner reads on).
   Only test Unplug with the owner's OK: both screens go black.
 - From Lost Buttons: an ad-hoc-signed app registered with SMAppService was killed at launch
-  after every `brew upgrade` (cdhash pinned). Curtain's "Open at login" uses SMAppService, so
-  expect the same once it ships via Homebrew; untested.
+  after every `brew upgrade` (cdhash pinned). Curtain is signed with a stable certificate and the
+  cask keeps it at one path (/Applications/Curtain.app), so "Open at login" should survive
+  upgrades; it can only be switched on from Curtain's own menu, so the owner checks it (#14).
 
 ## Not done / untested
 - Brightness keys: on the owner's desk (#11) they never reached Curtain because of ad-hoc
   signing (fixed). Whether this Mac's F1/F2 arrive as system-defined events once trusted is
   still to be confirmed by the owner. Follow the Mac, Open at login: built, never exercised.
-- No app icon. Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
+- Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
 - Memory ~90 MB (SwiftUI); idle CPU not measured.
-- No GitHub release page, no Homebrew formula, not on saaquiblabs.com yet.
+- No GitHub release page, not on saaquiblabs.com yet. Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
 
 ## Next (the plan agreed with the owner, one step per release)
 1. ~~No more jarring blackout~~ done in 0.2.0 / 0.2.1.
