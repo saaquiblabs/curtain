@@ -52,16 +52,21 @@ enum Theme {
   static let row = dynamic(rgb(0xFFFFFF, 0.66), rgb(0xFFFFFF, 0.05))
   static let rowHover = dynamic(rgb(0xFFFFFF, 0.9), rgb(0xFFFFFF, 0.08))
   static let rowEdge = dynamic(rgb(ink, 0.08), rgb(0xFFFFFF, 0.08), contrastLight: rgb(ink, 0.35), contrastDark: rgb(0xFFFFFF, 0.35))
+  /// Rows sit on the cloth as raised cards, and lift a little under the pointer.
+  static let rowShadow = Shadow(color: dynamic(rgb(0x283450, 0.10), rgb(0x000000, 0.35)), radius: 6, y: 2)
+  static let rowShadowHover = Shadow(color: dynamic(rgb(0x283450, 0.16), rgb(0x000000, 0.45)), radius: 12, y: 5)
 
-  /// Ghost pill (Turn off): no fill, an outline, filled faintly on hover.
-  static let pill = Color.clear
+  /// Ghost pill (Turn off): a raised, thinly outlined pill, tinted under the pointer.
+  static let pill = dynamic(rgb(0xFFFFFF, 0.7), rgb(0xFFFFFF, 0.04))
   static let pillText = text
-  static let pillEdge = dynamic(rgb(ink, 0.18), rgb(0xFFFFFF, 0.2), contrastLight: rgb(ink, 0.6), contrastDark: rgb(0xFFFFFF, 0.6))
-  static let pillHover = dynamic(rgb(duskBlue, 0.1), rgb(afterglow, 0.12))
-  /// Solid pill (Turn on).
+  static let pillEdge = dynamic(rgb(ink, 0.16), rgb(0xFFFFFF, 0.2), contrastLight: rgb(ink, 0.6), contrastDark: rgb(0xFFFFFF, 0.6))
+  static let pillHover = dynamic(rgb(0xF1F3F9), rgb(afterglow, 0.12))
+  static let pillShadow = Shadow(color: dynamic(rgb(0x283450, 0.10), rgb(0x000000, 0.3)), radius: 2, y: 1)
+  /// Solid pill (Turn on): glows in the accent colour.
   static let solidPill = accent
   static let solidPillHover = dynamic(rgb(duskBlueDeep), rgb(afterglowLight))
   static let solidPillText = dynamic(rgb(0xFFFFFF), rgb(twilight))
+  static let solidPillGlow = Shadow(color: dynamic(rgb(duskBlue, 0.45), rgb(afterglow, 0.4)), radius: 6, y: 2)
 
   /// Brightness slider: the track, the sheer fill (a gradient with a faint weave and a soft
   /// edge), the sun, and the percentage beside or on the fill.
@@ -70,22 +75,30 @@ enum Theme {
                      dynamic(rgb(duskBlue, 0.58), rgb(afterglow, 0.62), contrastLight: rgb(duskBlue, 0.8))]
   static let fillWeave = dynamic(rgb(0xFFFFFF, 0.18), rgb(0xFFFFFF, 0.12))
   static let fillEdge = Color(nsColor: rgb(0xFFFFFF, 0.55))
+  /// Light catching the top of the fill, and its soft glow on the track.
+  static let fillHighlight = [dynamic(rgb(0xFFFFFF, 0.45), rgb(0xFFFFFF, 0.22)), Color.clear]
+  static let fillGlow = Shadow(color: dynamic(rgb(duskBlue, 0.30), rgb(afterglow, 0.25)), radius: 4, y: 1)
+  /// The track is pressed into the row: a faint shade along its top.
+  static let trackShade = [dynamic(rgb(ink, 0.07), rgb(0x000000, 0.25)), Color.clear]
   static let fillMark = dynamic(rgb(0x3E4D7E), rgb(0xFBE3CB), contrastLight: rgb(0x26315A))
   static let percent = textSecondary
   static let percentOnFill = dynamic(rgb(0x2F3C66), rgb(0xFFF3E6), contrastLight: rgb(0x1C2547))
 
-  /// Switches: outlined track, white knob.
-  static let switchOff = dynamic(rgb(ink, 0.12), rgb(0xFFFFFF, 0.14))
+  /// Switches: outlined track, a white knob that casts a soft shadow, a glow when on.
+  /// (Proportions ported from najmushsaaquib.com's prototype switch.)
+  static let switchOff = dynamic(rgb(ink, 0.14), rgb(0xFFFFFF, 0.16))
   static let switchOn = accent
   static let switchEdge = rowEdge
+  static let switchGlow = Shadow(color: dynamic(rgb(duskBlue, 0.4), rgb(afterglow, 0.35)), radius: 5, y: 1)
   static let knob = Color(nsColor: rgb(0xFFFFFF))
-  static let knobShadow = Color(nsColor: rgb(0x000000, 0.3))
-  static let knobShadowHover = Color(nsColor: rgb(0x000000, 0.45))
+  static let knobShadow = Shadow(color: Color(nsColor: rgb(0x000000, 0.28)), radius: 2.5, y: 1.5)
+  static let knobShadowHover = Shadow(color: Color(nsColor: rgb(0x000000, 0.4)), radius: 4, y: 2)
 
-  /// The sheer drawn across a row that's off: a fading gradient with a few threads.
-  static let veil = [dynamic(rgb(sheer, 0.75), rgb(0x141826, 0.7)),
-                     dynamic(rgb(sheer, 0.35), rgb(0x141826, 0.3))]
-  static let veilThread = Color(nsColor: rgb(0xFFFFFF, 0.18))
+  /// The curtain drawn across a row that's off: pleated linen, each fold lit on one side and
+  /// shaded on the other, with a shadow from its leading edge while it moves.
+  static let pleatLight = dynamic(rgb(0xEEF1F8, 0.97), rgb(0x40476A, 0.96))
+  static let pleatDark = dynamic(rgb(sheer, 0.97), rgb(0x232840, 0.96))
+  static let curtainShadow = Shadow(color: dynamic(rgb(0x283450, 0.25), rgb(0x000000, 0.5)), radius: 5, y: 0)
 
   /// The stitched thread between sections.
   static let thread = textFaint
@@ -118,11 +131,10 @@ enum Theme {
   enum Size {
     static let panelWidth: CGFloat = 372
     static let slider: CGFloat = 26
-    static let switchWidth: CGFloat = 26, switchHeight: CGFloat = 15, knob: CGFloat = 11
+    static let switchWidth: CGFloat = 38, switchHeight: CGFloat = 22, knob: CGFloat = 17, knobInset: CGFloat = 2.5
+    static let folds: [CGFloat] = [15, 19, 13, 17, 14, 20, 16] // curtain pleat widths, repeating: cloth isn't even
     static let weaveStep: CGFloat = 3       // panel weave: a 1 pt thread every 3 pt, both ways
     static let fillWeaveStep: CGFloat = 9   // slider fill: a 2 pt thread every 9 pt
-    static let veilThreadStep: CGFloat = 11 // veil: a 1 pt thread every 11 pt
-    static let knobShadow: CGFloat = 1, knobShadowHover: CGFloat = 2
     static let percentOnFillAbove = 0.85      // the percentage sits on the fill above this
     static let stitch: [CGFloat] = [3, 4]   // divider: 3 pt stitch, 4 pt gap
   }
@@ -138,7 +150,7 @@ enum Theme {
     /// The slider glides to a click far from its edge.
     static let slider = Animation.easeOut(duration: 0.12)
     static let sliderJump = 0.08
-    static let toggle = Animation.timingCurve(0.3, 0.7, 0.2, 1, duration: 0.16)
+    static let toggle = Animation.timingCurve(0.3, 0.7, 0.4, 1, duration: 0.2) // ported switch ease, kept under 250 ms
     static let press = Animation.easeOut(duration: 0.12)
     static let pressScale: CGFloat = 0.94 // pills shrink a touch while pressed (not with Reduce Motion)
     static let pressOpacity = 0.8
@@ -148,6 +160,17 @@ enum Theme {
     /// With Reduce Motion: a plain fade, no movement.
     static let reduced = Animation.easeOut(duration: 0.12)
     static let reducedOpen = 0.12
+  }
+
+  // MARK: Depth
+
+  /// A soft drop shadow: colour, blur and how far down it falls.
+  struct Shadow {
+    var color: Color
+    var radius: CGFloat
+    var y: CGFloat
+
+    static let none = Shadow(color: .clear, radius: 0, y: 0)
   }
 
   // MARK: Surface
@@ -165,5 +188,12 @@ enum Theme {
     effect.layer?.cornerCurve = .continuous
     effect.layer?.masksToBounds = true
     return effect
+  }
+}
+
+extension View {
+  /// Casts one of Theme's shadows.
+  func shadow(_ shadow: Theme.Shadow) -> some View {
+    self.shadow(color: shadow.color, radius: shadow.radius, x: 0, y: shadow.y)
   }
 }

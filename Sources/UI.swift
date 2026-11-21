@@ -194,9 +194,9 @@ struct ScreenRow: View {
     .background(
       ZStack {
         shape.fill(hover.isHovered ? Theme.rowHover : Theme.row)
-        Sheer(drawn: screen.isOff, reduceMotion: reduceMotion)
+          .shadow(hover.isHovered ? Theme.rowShadowHover : Theme.rowShadow)
+        DrawnCurtain(drawn: screen.isOff, reduceMotion: reduceMotion).clipShape(shape)
       }
-      .clipShape(shape)
     )
     .overlay(shape.strokeBorder(Theme.rowEdge, lineWidth: 1))
     .onHover { hover.isHovered = $0 }
@@ -209,23 +209,40 @@ struct ScreenRow: View {
   }
 }
 
-/// The sheer drawn across a row that's off: it slides in from the left (fades, with Reduce Motion).
-struct Sheer: View {
+/// The curtain drawn across a row that's off: pleated linen sliding in from the left, its
+/// leading edge casting a soft shadow (it fades in instead with Reduce Motion).
+struct DrawnCurtain: View {
   var drawn: Bool
   var reduceMotion: Bool
 
   var body: some View {
     GeometryReader { geo in
-      ZStack {
-        Rectangle().fill(LinearGradient(colors: Theme.veil, startPoint: .leading, endPoint: .trailing))
-        Threads(step: Theme.Size.veilThreadStep, width: 1, axis: .vertical).fill(Theme.veilThread)
-      }
-      .offset(x: drawn || reduceMotion ? 0 : -geo.size.width * 1.01)
-      .opacity(drawn || !reduceMotion ? 1 : 0)
+      Pleats()
+        .shadow(Theme.curtainShadow)
+        .offset(x: drawn || reduceMotion ? 0 : -(geo.size.width + Theme.curtainShadow.radius * 2))
+        .opacity(drawn || !reduceMotion ? 1 : 0)
     }
     .allowsHitTesting(false)
     .accessibilityHidden(true)
     .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.veil, value: drawn)
+  }
+
+  /// Folds side by side, each lit on its left and shaded on its right.
+  private struct Pleats: View {
+    var body: some View {
+      GeometryReader { geo in
+        HStack(spacing: 0) {
+          ForEach(0..<Int((geo.size.width / Theme.Size.folds.min()!).rounded(.up)), id: \.self) { index in
+            Rectangle()
+              .fill(LinearGradient(colors: [Theme.pleatDark, Theme.pleatLight, Theme.pleatLight, Theme.pleatDark],
+                                   startPoint: .leading, endPoint: .trailing))
+              .frame(width: Theme.Size.folds[index % Theme.Size.folds.count])
+          }
+        }
+        .frame(width: geo.size.width, height: geo.size.height, alignment: .leading)
+        .clipped()
+      }
+    }
   }
 }
 
@@ -269,7 +286,8 @@ struct PillStyle: ButtonStyle {
       label
         .foregroundStyle(prominent ? Theme.solidPillText : Theme.pillText)
         .background(Capsule().fill(prominent ? (hover.isHovered ? Theme.solidPillHover : Theme.solidPill)
-                                             : (hover.isHovered ? Theme.pillHover : Theme.pill)))
+                                             : (hover.isHovered ? Theme.pillHover : Theme.pill))
+                      .shadow(prominent ? Theme.solidPillGlow : Theme.pillShadow))
         .overlay { if !prominent { CapsuleOutline(color: Theme.pillEdge) } }
         .contentShape(Capsule())
         .onHover { hover.isHovered = $0 }
@@ -294,6 +312,7 @@ struct BrightnessSlider: View {
       let height = geo.size.height
       ZStack(alignment: .leading) {
         Capsule().fill(Theme.track)
+        Capsule().fill(LinearGradient(colors: Theme.trackShade, startPoint: .top, endPoint: .center))
         ZStack {
           // The weave sits under the sheer's tint, so it only shows through faintly.
           Threads(step: Theme.Size.fillWeaveStep, width: 2, axis: .vertical).fill(Theme.fillWeave)
@@ -301,8 +320,10 @@ struct BrightnessSlider: View {
           // The soft right-hand edge of the sheer.
           CapsuleOutline(color: Theme.fillEdge)
             .mask(HStack(spacing: 0) { Spacer(minLength: 0); Rectangle().frame(width: height / 2) })
+          Capsule().fill(LinearGradient(colors: Theme.fillHighlight, startPoint: .top, endPoint: .center))
         }
         .clipShape(Capsule())
+        .shadow(Theme.fillGlow)
         .frame(width: max(height, geo.size.width * fraction))
         HStack {
           Image(systemName: "sun.min.fill").foregroundStyle(Theme.fillMark)
@@ -363,12 +384,12 @@ struct OutlinedSwitch: View {
     Button { isOn.toggle() } label: {
       ZStack(alignment: isOn ? .trailing : .leading) {
         Capsule().fill(isOn ? Theme.switchOn : Theme.switchOff)
+          .shadow(isOn ? Theme.switchGlow : .none)
         CapsuleOutline(color: Theme.switchEdge)
         Circle().fill(Theme.knob)
           .frame(width: Theme.Size.knob, height: Theme.Size.knob)
-          .shadow(color: hover.isHovered ? Theme.knobShadowHover : Theme.knobShadow,
-                  radius: hover.isHovered ? Theme.Size.knobShadowHover : Theme.Size.knobShadow, y: 1)
-          .padding(2)
+          .shadow(hover.isHovered ? Theme.knobShadowHover : Theme.knobShadow)
+          .padding(Theme.Size.knobInset)
       }
       .frame(width: Theme.Size.switchWidth, height: Theme.Size.switchHeight)
       .contentShape(Capsule())
