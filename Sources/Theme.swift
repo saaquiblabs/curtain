@@ -32,7 +32,7 @@ enum Theme {
   private static let twilight = 0x24293A, afterglow = 0xE8B98F, afterglowLight = 0xF0C9A6, ink = 0x2A2F3B
 
   /// The panel's tint over the frosted glass.
-  static let panel = dynamic(rgb(linen, 0.86), rgb(twilight, 0.88),
+  static let panel = dynamic(rgb(linen, 0.74), rgb(twilight, 0.8),
                              contrastLight: rgb(linen, 0.97), contrastDark: rgb(twilight, 0.97))
   /// The fine weave in the panel's cloth: its horizontal and vertical threads.
   static let weaveAcross = dynamic(rgb(0x3C465A, 0.028), rgb(0xFFFFFF, 0.022))
@@ -52,6 +52,9 @@ enum Theme {
   static let row = dynamic(rgb(0xFFFFFF, 0.66), rgb(0xFFFFFF, 0.05))
   static let rowHover = dynamic(rgb(0xFFFFFF, 0.9), rgb(0xFFFFFF, 0.08))
   static let rowEdge = dynamic(rgb(ink, 0.08), rgb(0xFFFFFF, 0.08), contrastLight: rgb(ink, 0.35), contrastDark: rgb(0xFFFFFF, 0.35))
+  /// The soft disc behind a screen's icon: accent-tinted while on, plain while off.
+  static let badge = dynamic(rgb(duskBlue, 0.12), rgb(afterglow, 0.14))
+  static let badgeOff = dynamic(rgb(ink, 0.06), rgb(0xFFFFFF, 0.06))
   /// Rows sit on the cloth as raised cards, and lift a little under the pointer.
   static let rowShadow = Shadow(color: dynamic(rgb(0x283450, 0.10), rgb(0x000000, 0.35)), radius: 6, y: 2)
   static let rowShadowHover = Shadow(color: dynamic(rgb(0x283450, 0.16), rgb(0x000000, 0.45)), radius: 12, y: 5)
@@ -74,13 +77,13 @@ enum Theme {
   static let fill = [dynamic(rgb(duskBlue, 0.32), rgb(afterglow, 0.3), contrastLight: rgb(duskBlue, 0.5)),
                      dynamic(rgb(duskBlue, 0.58), rgb(afterglow, 0.62), contrastLight: rgb(duskBlue, 0.8))]
   static let fillWeave = dynamic(rgb(0xFFFFFF, 0.18), rgb(0xFFFFFF, 0.12))
-  static let fillEdge = Color(nsColor: rgb(0xFFFFFF, 0.55))
   /// Light catching the top of the fill, and its soft glow on the track.
   static let fillHighlight = [dynamic(rgb(0xFFFFFF, 0.45), rgb(0xFFFFFF, 0.22)), Color.clear]
   static let fillGlow = Shadow(color: dynamic(rgb(duskBlue, 0.30), rgb(afterglow, 0.25)), radius: 4, y: 1)
   /// The track is pressed into the row: a faint shade along its top.
   static let trackShade = [dynamic(rgb(ink, 0.07), rgb(0x000000, 0.25)), Color.clear]
-  static let fillMark = dynamic(rgb(0x3E4D7E), rgb(0xFBE3CB), contrastLight: rgb(0x26315A))
+  /// The sun on the slider's knob.
+  static let knobMark = dynamic(rgb(duskBlue), rgb(0xC48A57), contrastLight: rgb(duskBlueDeep), contrastDark: rgb(0x8A5A30))
   static let percent = textSecondary
   static let percentOnFill = dynamic(rgb(0x2F3C66), rgb(0xFFF3E6), contrastLight: rgb(0x1C2547))
 
@@ -98,6 +101,7 @@ enum Theme {
   /// shaded on the other, with a shadow from its leading edge while it moves.
   static let pleatLight = dynamic(rgb(0xEEF1F8, 0.97), rgb(0x40476A, 0.96))
   static let pleatDark = dynamic(rgb(sheer, 0.97), rgb(0x232840, 0.96))
+  static let gatheredOpacity = 0.0
   static let curtainShadow = Shadow(color: dynamic(rgb(0x283450, 0.25), rgb(0x000000, 0.5)), radius: 5, y: 0)
 
   /// The stitched thread between sections.
@@ -118,7 +122,8 @@ enum Theme {
     static let button = SwiftUI.Font.system(size: 11, weight: .semibold)
     static let numeric = SwiftUI.Font.system(size: 11, weight: .semibold).monospacedDigit()
     static let summary = SwiftUI.Font.system(size: 10).monospacedDigit()
-    static let icon = SwiftUI.Font.system(size: 13)
+    static let icon = SwiftUI.Font.system(size: 12)
+    static let keycap = SwiftUI.Font.system(size: 9.5, weight: .medium)
   }
 
   // MARK: Shapes
@@ -126,16 +131,23 @@ enum Theme {
   enum Radius {
     static let panel: CGFloat = 18
     static let row: CGFloat = 14
+    static let keycap: CGFloat = 4
   }
 
   enum Size {
     static let panelWidth: CGFloat = 372
     static let slider: CGFloat = 26
+    static let badge: CGFloat = 24
+    static let keycap: CGFloat = 15
     static let switchWidth: CGFloat = 38, switchHeight: CGFloat = 22, knob: CGFloat = 17, knobInset: CGFloat = 2.5
+    static let gathered: CGFloat = 0        // how wide the curtain stays, gathered at the left, while the screen is on
     static let folds: [CGFloat] = [15, 19, 13, 17, 14, 20, 16] // curtain pleat widths, repeating: cloth isn't even
     static let weaveStep: CGFloat = 3       // panel weave: a 1 pt thread every 3 pt, both ways
     static let fillWeaveStep: CGFloat = 9   // slider fill: a 2 pt thread every 9 pt
-    static let percentOnFillAbove = 0.85      // the percentage sits on the fill above this
+    static let sliderKnobInset: CGFloat = 2.5 // the slider's knob sits this far inside the track
+    static let percentRoom: CGFloat = 52      // the percentage moves onto the fill when the knob gets this close to the end
+    static let percentGap: CGFloat = 10
+    static let sunScale: ClosedRange<CGFloat> = 0.85...1.15 // the sun grows as the screen brightens
     static let stitch: [CGFloat] = [3, 4]   // divider: 3 pt stitch, 4 pt gap
   }
 
@@ -145,8 +157,12 @@ enum Theme {
     /// The menu opens: fades in, drifting down this far.
     static let open = 0.2
     static let openDrift: CGFloat = 6
+    /// ...and its content comes into focus from a soft blur and a touch smaller.
+    static let openBlur: CGFloat = 4
+    static let openScale: CGFloat = 0.98
+    static let openContent = Animation.easeOut(duration: 0.2)
     /// Turning a screen off or on: the sheer slides across the row.
-    static let veil = Animation.timingCurve(0.3, 0.7, 0.2, 1, duration: 0.22)
+    static let veil = Animation.timingCurve(0.22, 1, 0.36, 1, duration: 0.24) // fast start, long soft landing
     /// The slider glides to a click far from its edge.
     static let slider = Animation.easeOut(duration: 0.12)
     static let sliderJump = 0.08

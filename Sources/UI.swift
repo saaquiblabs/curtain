@@ -9,6 +9,9 @@ import SwiftUI
 struct PopoverView: View {
   @ObservedObject var screens: Screens
   @ObservedObject var keys: Keys
+  /// Set by the app as the menu opens, so its content can come into focus.
+  @ObservedObject var presence = MenuPresence()
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
@@ -38,6 +41,8 @@ struct PopoverView: View {
       footer
     }
     .padding(16)
+    .blur(radius: presence.shown || reduceMotion ? 0 : Theme.Motion.openBlur)
+    .scaleEffect(presence.shown || reduceMotion ? 1 : Theme.Motion.openScale, anchor: .top)
     .frame(width: Theme.Size.panelWidth)
     .foregroundStyle(Theme.text)
     .background(MenuSurface())
@@ -60,12 +65,34 @@ struct PopoverView: View {
   }
 
   private var footer: some View {
-    HStack {
-      Text("\(Keys.shortcutLabel)  turns other screens off / on")
+    HStack(spacing: 6) {
+      HStack(spacing: 2) {
+        ForEach(Array(Keys.shortcutLabel.enumerated()), id: \.offset) { Keycap(symbol: String($0.element)) }
+      }
+      Text("turns other screens off / on")
       Spacer()
       QuitButton()
     }
     .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
+  }
+}
+
+/// Whether the menu is showing; the app flips it as the panel opens.
+final class MenuPresence: ObservableObject {
+  @Published var shown = true
+}
+
+/// One key of a shortcut, drawn as a small raised keycap.
+struct Keycap: View {
+  var symbol: String
+
+  var body: some View {
+    let shape = RoundedRectangle(cornerRadius: Theme.Radius.keycap, style: .continuous)
+    Text(symbol)
+      .font(Theme.Font.keycap)
+      .frame(minWidth: Theme.Size.keycap, minHeight: Theme.Size.keycap)
+      .background(shape.fill(Theme.pill).shadow(Theme.pillShadow))
+      .overlay(shape.strokeBorder(Theme.rowEdge, lineWidth: 1))
   }
 }
 
@@ -151,7 +178,10 @@ struct ScreenRow: View {
     VStack(alignment: .leading, spacing: 10) {
       HStack(spacing: 8) {
         Image(systemName: screen.isBuiltin ? "laptopcomputer" : "display")
-          .font(Theme.Font.icon).foregroundStyle(Theme.textSecondary).frame(width: 18)
+          .font(Theme.Font.icon)
+          .foregroundStyle(screen.isOff ? Theme.textSecondary : Theme.accent)
+          .frame(width: Theme.Size.badge, height: Theme.Size.badge)
+          .background(Circle().fill(screen.isOff ? Theme.badgeOff : Theme.badge))
         VStack(alignment: .leading, spacing: 1) {
           Text(screen.name).font(Theme.Font.title).lineLimit(1)
           if screen.control == .software && !screen.isOff {
@@ -209,8 +239,9 @@ struct ScreenRow: View {
   }
 }
 
-/// The curtain drawn across a row that's off: pleated linen sliding in from the left, its
-/// leading edge casting a soft shadow (it fades in instead with Reduce Motion).
+/// The curtain across a row that's off: pleated linen that spreads out from the left edge, its
+/// folds opening as it goes, and gathers back when the screen comes on (a fade with Reduce
+/// Motion). Drawn as one flattened layer so it moves smoothly.
 struct DrawnCurtain: View {
   var drawn: Bool
   var reduceMotion: Bool
@@ -218,9 +249,10 @@ struct DrawnCurtain: View {
   var body: some View {
     GeometryReader { geo in
       Pleats()
+        .drawingGroup()
+        .scaleEffect(x: drawn || reduceMotion ? 1 : Theme.Size.gathered / max(1, geo.size.width), anchor: .leading)
         .shadow(Theme.curtainShadow)
-        .offset(x: drawn || reduceMotion ? 0 : -(geo.size.width + Theme.curtainShadow.radius * 2))
-        .opacity(drawn || !reduceMotion ? 1 : 0)
+        .opacity(drawn ? 1 : reduceMotion ? 0 : Theme.gatheredOpacity)
     }
     .allowsHitTesting(false)
     .accessibilityHidden(true)
@@ -299,8 +331,8 @@ struct PillStyle: ButtonStyle {
   }
 }
 
-/// The brightness bar: a sheer fill with a faint weave that grows as you drag; a click far from
-/// its edge glides there.
+/// The brightness bar: a sheer fill with a knob at its end that carries the sun and follows the
+/// pointer (the sun grows brighter as you go up). A click far from the knob glides there.
 struct BrightnessSlider: View {
   @Binding var value: Double
   var minimum: Double
@@ -310,6 +342,10 @@ struct BrightnessSlider: View {
     GeometryReader { geo in
       let fraction = max(0, min(1, value))
       let height = geo.size.height
+      let travel = geo.size.width - height                 // how far the knob's centre can move
+      let fillWidth = height + travel * fraction
+      let knob = height - Theme.Size.sliderKnobInset * 2
+      let percentInside = fillWidth > geo.size.width - Theme.Size.percentRoom
       ZStack(alignment: .leading) {
         Capsule().fill(Theme.track)
         Capsule().fill(LinearGradient(colors: Theme.trackShade, startPoint: .top, endPoint: .center))
@@ -317,28 +353,31 @@ struct BrightnessSlider: View {
           // The weave sits under the sheer's tint, so it only shows through faintly.
           Threads(step: Theme.Size.fillWeaveStep, width: 2, axis: .vertical).fill(Theme.fillWeave)
           Capsule().fill(LinearGradient(colors: Theme.fill, startPoint: .leading, endPoint: .trailing))
-          // The soft right-hand edge of the sheer.
-          CapsuleOutline(color: Theme.fillEdge)
-            .mask(HStack(spacing: 0) { Spacer(minLength: 0); Rectangle().frame(width: height / 2) })
           Capsule().fill(LinearGradient(colors: Theme.fillHighlight, startPoint: .top, endPoint: .center))
         }
         .clipShape(Capsule())
         .shadow(Theme.fillGlow)
-        .frame(width: max(height, geo.size.width * fraction))
-        HStack {
-          Image(systemName: "sun.min.fill").foregroundStyle(Theme.fillMark)
-          Spacer()
-          Text("\(Int((fraction * 100).rounded()))%")
-            .font(Theme.Font.numeric)
-            .foregroundStyle(fraction > Theme.Size.percentOnFillAbove ? Theme.percentOnFill : Theme.percent)
-        }
-        .font(Theme.Font.button)
-        .padding(.horizontal, 8)
+        .frame(width: fillWidth)
+        Text("\(Int((fraction * 100).rounded()))%")
+          .font(Theme.Font.numeric)
+          .foregroundStyle(percentInside ? Theme.percentOnFill : Theme.percent)
+          .frame(width: percentInside ? fillWidth - height - Theme.Size.percentGap : geo.size.width - Theme.Size.percentGap,
+                 alignment: .trailing)
+        Circle().fill(Theme.knob)
+          .frame(width: knob, height: knob)
+          .shadow(Theme.knobShadow)
+          .overlay(
+            Image(systemName: fraction < 0.5 ? "sun.min.fill" : "sun.max.fill")
+              .font(Theme.Font.button)
+              .foregroundStyle(Theme.knobMark)
+              .scaleEffect(Theme.Size.sunScale.lowerBound + (Theme.Size.sunScale.upperBound - Theme.Size.sunScale.lowerBound) * fraction)
+          )
+          .offset(x: fillWidth - height + Theme.Size.sliderKnobInset)
       }
       .contentShape(Capsule())
       .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
-        let target = max(minimum, min(1, drag.location.x / geo.size.width))
-        // Only the first touch glides (a click away from the edge); dragging follows the pointer.
+        let target = max(minimum, min(1, (drag.location.x - height / 2) / max(1, travel)))
+        // Only the first touch glides (a click away from the knob); dragging follows the pointer.
         if drag.translation == .zero && abs(target - value) > Theme.Motion.sliderJump && !reduceMotion {
           withAnimation(Theme.Motion.slider) { value = target }
         } else {

@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var panel: MenuPanel!
   private var outsideClicks: Any?
   private var escapeKey: Any?
+  private let presence = MenuPresence()
 
   func applicationDidFinishLaunching(_: Notification) {
     Screens.shared.start()
@@ -42,7 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func makePanel() -> MenuPanel {
-    let controller = NSHostingController(rootView: PopoverView(screens: .shared, keys: .shared))
+    let controller = NSHostingController(rootView: PopoverView(screens: .shared, keys: .shared, presence: presence))
     controller.sizingOptions = .preferredContentSize
     let effect = Theme.glass(blending: .behindWindow)
     let host = controller.view
@@ -95,7 +96,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let settled = panel.frame
     if !reduceMotion { panel.setFrame(settled.offsetBy(dx: 0, dy: Theme.Motion.openDrift), display: false) }
     panel.alphaValue = 0
+    presence.shown = false
     panel.makeKeyAndOrderFront(nil)
+    DispatchQueue.main.async { withAnimation(Theme.Motion.openContent) { self.presence.shown = true } }
     NSAnimationContext.runAnimationGroup { context in
       context.duration = reduceMotion ? Theme.Motion.reducedOpen : Theme.Motion.open
       context.timingFunction = CAMediaTimingFunction(name: .easeOut)
