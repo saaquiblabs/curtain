@@ -30,6 +30,7 @@ No Xcode needed, just the command line tools:
 make app          # builds build/Curtain.app
 make run          # builds and opens it
 open build/Curtain.app --args --show   # also opens the menu in a floating panel
+make icon         # redraws Resources/AppIcon.icns from Tools/app-icon (only when the icon changes)
 ```
 
 The first `make app` makes a self-signed "Curtain Local Signing" certificate in its own keychain

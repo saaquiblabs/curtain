@@ -11,13 +11,22 @@ build/curtain: Sources/*.swift
 
 # The app bundle: same binary, plus the name and icon macOS shows in the menu bar, Login Items
 # and the Accessibility list.
-app: build/curtain Resources/Info.plist
+app: build/curtain Resources/Info.plist Resources/AppIcon.icns
 	rm -rf "$(APP)"
 	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"
 	cp build/curtain "$(APP)/Contents/MacOS/curtain"
 	sed 's/@VERSION@/$(VERSION)/g' Resources/Info.plist > "$(APP)/Contents/Info.plist"
-	if [ -f Resources/AppIcon.icns ]; then cp Resources/AppIcon.icns "$(APP)/Contents/Resources/"; fi
+	cp Resources/AppIcon.icns "$(APP)/Contents/Resources/AppIcon.icns"
 	$(MAKE) sign
+
+# Redraws Resources/AppIcon.icns from Tools/app-icon (only needed when the icon changes; the .icns
+# is checked in). Same iconset-to-iconutil steps as ../lost-buttons.
+icon:
+	@mkdir -p build
+	$(SWIFTC) $(FLAGS) Tools/app-icon/main.swift -o build/app-icon
+	rm -rf build/AppIcon.iconset
+	build/app-icon build/AppIcon.iconset
+	iconutil -c icns build/AppIcon.iconset -o Resources/AppIcon.icns
 
 # Signed with this Mac's own Curtain certificate (Tools/signing-identity.sh makes it the first
 # time; no Apple account needed), so the Accessibility permission survives rebuilds (#11). Ad hoc
@@ -31,7 +40,7 @@ run: app
 	-pkill -x curtain
 	open "$(APP)"
 
-.PHONY: app sign run install uninstall clean renders theme-check test
+.PHONY: app icon sign run install uninstall clean renders theme-check test
 install: app
 	rm -rf "$(PREFIX)/Curtain.app"
 	cp -R "$(APP)" "$(PREFIX)/Curtain.app"

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Curtain has its own icon** in Finder, Spotlight, System Settings (Accessibility, Login
+  Items): the menu's curtain, linen drapes tied back on a dusk-blue
+  tile, drawn by `Tools/app-icon` (`make icon`). If an old blank icon lingers, run
+  `killall Dock` or remove and re-add Curtain in Accessibility once.
 - **A monitor Curtain dims in software says so while it's dimmed**: "Dimmed by Curtain until it
   quits" (its tooltip: back to full brightness on quit), so a brighter screen after quitting is no
   surprise. It shows only below 100%, and the row keeps its height at 100%; screens whose own brightness changes (MacBook, DDC monitors) keep it after quit
