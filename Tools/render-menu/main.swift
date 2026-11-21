@@ -35,17 +35,11 @@ let appearances: [(String, NSAppearance.Name)] = [("light", .aqua), ("dark", .da
 /// which SwiftUI's ImageRenderer leaves blank. Rendered at 2x, like a Retina screen.
 @MainActor
 func render(_ view: some View, appearance: NSAppearance.Name, to url: URL) throws {
-  // The same surface as the real panel (main.swift's makePanel): popover glass, 14pt corners.
+  // The same surface as the real panel (main.swift's makePanel): Theme's glass, drawn within the window.
   let host = NSHostingView(rootView: view)
   let size = host.fittingSize
-  let effect = NSVisualEffectView(frame: NSRect(origin: .zero, size: size))
-  effect.material = .popover
-  effect.blendingMode = .withinWindow
-  effect.state = .active
-  effect.wantsLayer = true
-  effect.layer?.cornerRadius = 14
-  effect.layer?.cornerCurve = .continuous
-  effect.layer?.masksToBounds = true
+  let effect = Theme.glass(blending: .withinWindow)
+  effect.frame = NSRect(origin: .zero, size: size)
   effect.addSubview(host)
   let window = NSWindow(contentRect: NSRect(x: -10_000, y: -10_000, width: size.width, height: size.height),
                         styleMask: .borderless, backing: .buffered, defer: false)

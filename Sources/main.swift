@@ -44,14 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func makePanel() -> MenuPanel {
     let controller = NSHostingController(rootView: PopoverView(screens: .shared, keys: .shared))
     controller.sizingOptions = .preferredContentSize
-    let effect = NSVisualEffectView()
-    effect.material = .popover
-    effect.blendingMode = .behindWindow
-    effect.state = .active
-    effect.wantsLayer = true
-    effect.layer?.cornerRadius = 14
-    effect.layer?.cornerCurve = .continuous
-    effect.layer?.masksToBounds = true
+    let effect = Theme.glass(blending: .behindWindow)
     let host = controller.view
     host.translatesAutoresizingMaskIntoConstraints = false
     effect.addSubview(host)
@@ -97,9 +90,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     anchor = point
     Screens.shared.notice = nil
     place()
+    // Fades in, drifting down into place (just the fade with Reduce Motion).
+    let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+    let settled = panel.frame
+    if !reduceMotion { panel.setFrame(settled.offsetBy(dx: 0, dy: Theme.Motion.openDrift), display: false) }
     panel.alphaValue = 0
     panel.makeKeyAndOrderFront(nil)
-    NSAnimationContext.runAnimationGroup { $0.duration = 0.12; panel.animator().alphaValue = 1 }
+    NSAnimationContext.runAnimationGroup { context in
+      context.duration = reduceMotion ? Theme.Motion.reducedOpen : Theme.Motion.open
+      context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+      panel.animator().alphaValue = 1
+      if !reduceMotion { panel.animator().setFrame(settled, display: true) }
+    }
     outsideClicks = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
       self?.closeMenu()
     }

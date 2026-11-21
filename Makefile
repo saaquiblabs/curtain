@@ -24,7 +24,7 @@ run: app
 	-pkill -x curtain
 	open "$(APP)"
 
-.PHONY: app run install uninstall clean renders
+.PHONY: app run install uninstall clean renders theme-check
 install: app
 	rm -rf "$(PREFIX)/Curtain.app"
 	cp -R "$(APP)" "$(PREFIX)/Curtain.app"
@@ -36,7 +36,13 @@ clean:
 	rm -rf build
 
 # Pictures of the real menu drawn from made-up screens (see Tools/render-menu). Touches no display.
-renders:
+renders: theme-check
 	@mkdir -p build
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tools/render-menu/main.swift -o build/render-menu
 	build/render-menu build/renders
+
+# The menu's look lives only in Sources/Theme.swift: fail if a view picks its own colour, font,
+# corner radius or timing.
+theme-check:
+	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/main.swift \
+	  || { echo "theme-check: visual values above belong in Sources/Theme.swift"; exit 1; }

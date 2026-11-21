@@ -1,11 +1,7 @@
 // The menu bar popover: one row per screen, three switches, nothing else.
+// Its whole look comes from Theme (Linen & Dusk); nothing here picks a colour, font or timing.
 
 import SwiftUI
-
-extension Color {
-  static let tangerine = Color(red: 1.0, green: 0.478, blue: 0.2)          // #FF7A33, Saaquib Labs
-  static let navy = Color(red: 0.122, green: 0.173, blue: 0.369)            // #1F2C5E
-}
 
 /// The menu. It takes its screens and keys from outside so it can be drawn from made-up
 /// screens (Tools/render-menu); the app passes the shared ones.
@@ -20,37 +16,39 @@ struct PopoverView: View {
         ForEach(screens.all) { ScreenRow(screen: $0, screens: screens) }
       }
       if let notice = screens.notice {
-        Label(notice, systemImage: "exclamationmark.circle")
-          .font(.caption).foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
+        HStack(alignment: .top, spacing: 6) {
+          Image(systemName: "exclamationmark.circle")
+          Text(notice).fixedSize(horizontal: false, vertical: true)
+        }
+        .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
       }
-      Divider()
+      StitchedThread()
       VStack(spacing: 10) {
         SwitchRow(title: "Follow the Mac", detail: "Monitors match your MacBook's brightness", isOn: $screens.followMac)
         SwitchRow(title: "Brightness keys", detail: "Change the screen under the pointer", isOn: $keys.brightnessKeys)
         if keys.needsPermission {
-          Button(action: keys.askForPermission) {
-            Label("Allow Accessibility so the keys reach your monitor", systemImage: "hand.raised")
-              .font(.caption)
-          }
-          .buttonStyle(.link).frame(maxWidth: .infinity, alignment: .leading)
+          LinkButton(title: "Allow Accessibility so the keys reach your monitor", systemImage: "hand.raised",
+                     action: keys.askForPermission)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         SwitchRow(title: "Open at login", detail: nil, isOn: $screens.openAtLogin)
       }
-      Divider()
+      StitchedThread()
       footer
     }
     .padding(16)
-    .frame(width: 372)
+    .frame(width: Theme.Size.panelWidth)
+    .foregroundStyle(Theme.text)
+    .background(MenuSurface())
   }
 
   private var header: some View {
     HStack(spacing: 8) {
       Image(systemName: screens.all.contains(where: \.isOff) ? "curtains.closed" : "curtains.open")
-        .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.tangerine)
-      Text("Curtain").font(.system(size: 15, weight: .semibold))
+        .font(Theme.Font.mark).foregroundStyle(Theme.accent)
+      Text("Curtain").font(Theme.Font.wordmark)
       Spacer()
-      Text(summary).font(.caption).foregroundStyle(.secondary)
+      Text(summary).font(Theme.Font.summary).foregroundStyle(Theme.textSecondary)
     }
   }
 
@@ -63,28 +61,100 @@ struct PopoverView: View {
   private var footer: some View {
     HStack {
       Text("\(Keys.shortcutLabel)  turns other screens off / on")
-        .font(.caption).foregroundStyle(.secondary)
       Spacer()
-      Button("Quit") { NSApp.terminate(nil) } // applicationWillTerminate puts every screen back on
-        .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary)
-        .keyboardShortcut("q")
+      QuitButton()
+    }
+    .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
+  }
+}
+
+/// The panel's cloth over the frosted glass: a linen (or twilight) tint, a fine weave, a light edge.
+struct MenuSurface: View {
+  var body: some View {
+    let shape = RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
+    ZStack {
+      shape.fill(Theme.panel)
+      Threads(step: Theme.Size.weaveStep, width: 1, axis: .horizontal).fill(Theme.weave)
+      Threads(step: Theme.Size.weaveStep, width: 1, axis: .vertical).fill(Theme.weave)
+    }
+    .clipShape(shape)
+    .overlay(shape.strokeBorder(Theme.panelEdge, lineWidth: 1))
+  }
+}
+
+/// Evenly spaced threads, for weaves and sheers. Vertical threads run top to bottom.
+struct Threads: Shape {
+  var step: CGFloat
+  var width: CGFloat
+  var axis: Axis
+
+  func path(in rect: CGRect) -> Path {
+    var path = Path()
+    var at: CGFloat = 0
+    while at < (axis == .vertical ? rect.width : rect.height) {
+      path.addRect(axis == .vertical ? CGRect(x: rect.minX + at, y: rect.minY, width: width, height: rect.height)
+                                     : CGRect(x: rect.minX, y: rect.minY + at, width: rect.width, height: width))
+      at += step
+    }
+    return path
+  }
+}
+
+/// A capsule's 1 pt outline, drawn as a filled ring. (Stroking a fully rounded shape leaves
+/// stray ticks at its ends when the menu is rendered offscreen; a fill doesn't.)
+struct CapsuleOutline: View {
+  var color: Color
+
+  var body: some View {
+    Ring().fill(color, style: FillStyle(eoFill: true))
+  }
+
+  private struct Ring: Shape {
+    func path(in rect: CGRect) -> Path {
+      var path = Capsule().path(in: rect)
+      path.addPath(Capsule().path(in: rect.insetBy(dx: 1, dy: 1)))
+      return path
     }
   }
+}
+
+/// The divider: a stitched, dashed thread.
+struct StitchedThread: View {
+  var body: some View {
+    Stitch()
+      .stroke(Theme.thread, style: StrokeStyle(lineWidth: 1, dash: Theme.Size.stitch))
+      .opacity(Theme.threadOpacity)
+      .frame(height: 1)
+  }
+
+  private struct Stitch: Shape {
+    func path(in rect: CGRect) -> Path {
+      Path { $0.move(to: CGPoint(x: rect.minX, y: rect.midY)); $0.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)) }
+    }
+  }
+}
+
+/// Whether the pointer is over a view. (No `@State` with the command line tools: see STATUS.)
+final class Hover: ObservableObject {
+  @Published var isOn = false
 }
 
 struct ScreenRow: View {
   @ObservedObject var screen: Screen
   @ObservedObject var screens: Screens
+  @StateObject private var hover = Hover()
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
+    let shape = RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
     VStack(alignment: .leading, spacing: 10) {
       HStack(spacing: 8) {
         Image(systemName: screen.isBuiltin ? "laptopcomputer" : "display")
-          .font(.system(size: 13)).foregroundStyle(.secondary).frame(width: 18)
+          .font(Theme.Font.icon).foregroundStyle(Theme.textSecondary).frame(width: 18)
         VStack(alignment: .leading, spacing: 1) {
-          Text(screen.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
+          Text(screen.name).font(Theme.Font.title).lineLimit(1)
           if screen.control == .software && !screen.isOff {
-            Text("dimmed in software").font(.caption2).foregroundStyle(.tertiary)
+            Text("dimmed in software").font(Theme.Font.caption).foregroundStyle(Theme.textFaint)
               .help("This monitor doesn't accept brightness commands, so Curtain darkens the picture instead.")
           }
         }
@@ -111,8 +181,8 @@ struct ScreenRow: View {
       }
       if screen.isOff {
         Text(screen.curtained ? "Unplugged. Its windows moved to \(otherName)." : "Off. Its windows are still there, hidden.")
-          .font(.caption).foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
+          .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
+          .frame(maxWidth: .infinity, minHeight: Theme.Size.slider, alignment: .leading)
       } else {
         BrightnessSlider(value: Binding(get: { screen.brightness },
                                         set: { screens.setBrightness(screen, $0) }),
@@ -120,12 +190,41 @@ struct ScreenRow: View {
       }
     }
     .padding(12)
-    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.quaternary.opacity(0.6)))
-    .animation(.easeOut(duration: 0.18), value: screen.isOff)
+    .background(
+      ZStack {
+        shape.fill(hover.isOn ? Theme.rowHover : Theme.row)
+        Sheer(drawn: screen.isOff, reduceMotion: reduceMotion)
+      }
+      .clipShape(shape)
+    )
+    .overlay(shape.strokeBorder(Theme.rowEdge, lineWidth: 1))
+    .onHover { hover.isOn = $0 }
+    .animation(Theme.Motion.hover, value: hover.isOn)
+    .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.swap, value: screen.isOff)
   }
 
   private var otherName: String {
     screens.all.first { $0.id != screen.id && !$0.isOff }?.name ?? "your other screen"
+  }
+}
+
+/// The sheer drawn across a row that's off: it slides in from the left (fades, with Reduce Motion).
+struct Sheer: View {
+  var drawn: Bool
+  var reduceMotion: Bool
+
+  var body: some View {
+    GeometryReader { geo in
+      ZStack {
+        Rectangle().fill(LinearGradient(colors: Theme.veil, startPoint: .leading, endPoint: .trailing))
+        Threads(step: Theme.Size.veilThreadStep, width: 1, axis: .vertical).fill(Theme.veilThread)
+      }
+      .offset(x: drawn || reduceMotion ? 0 : -geo.size.width * 1.01)
+      .opacity(drawn || !reduceMotion ? 1 : 0)
+    }
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
+    .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.veil, value: drawn)
   }
 }
 
@@ -140,7 +239,7 @@ struct PillButton: View {
   var body: some View {
     Button(action: action) {
       Label(title, systemImage: systemImage)
-        .font(.system(size: 11, weight: .semibold))
+        .font(Theme.Font.button)
         .labelStyle(.titleAndIcon)
         .padding(.horizontal, 9).padding(.vertical, 4)
         .fixedSize()
@@ -150,48 +249,80 @@ struct PillButton: View {
   }
 }
 
+/// Ghost pill with a thin outline (Turn off), or a solid pill (Turn on).
 struct PillStyle: ButtonStyle {
   var prominent: Bool
 
   func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .foregroundStyle(prominent ? Color.white : Color.primary)
-      .background(Capsule().fill(prominent ? AnyShapeStyle(Color.tangerine) : AnyShapeStyle(.quaternary)))
-      .scaleEffect(configuration.isPressed ? 0.94 : 1)
-      .opacity(configuration.isPressed ? 0.8 : 1)
-      .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    PillBody(label: configuration.label, pressed: configuration.isPressed, prominent: prominent)
+  }
+
+  private struct PillBody<Content: View>: View {
+    var label: Content
+    var pressed: Bool
+    var prominent: Bool
+    @StateObject private var hover = Hover()
+
+    var body: some View {
+      label
+        .foregroundStyle(prominent ? Theme.solidPillText : Theme.pillText)
+        .background(Capsule().fill(prominent ? (hover.isOn ? Theme.solidPillHover : Theme.solidPill)
+                                             : (hover.isOn ? Theme.pillHover : Theme.pill)))
+        .overlay(CapsuleOutline(color: prominent ? Theme.pill : Theme.pillEdge))
+        .contentShape(Capsule())
+        .onHover { hover.isOn = $0 }
+        .scaleEffect(pressed ? 0.94 : 1)
+        .opacity(pressed ? 0.8 : 1)
+        .animation(Theme.Motion.press, value: pressed)
+        .animation(Theme.Motion.hover, value: hover.isOn)
+    }
   }
 }
 
-/// A Control Center–style brightness bar: a thick capsule that fills as you drag.
+/// The brightness bar: a sheer fill with a faint weave that grows as you drag; a click far from
+/// its edge glides there.
 struct BrightnessSlider: View {
   @Binding var value: Double
   var minimum: Double
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     GeometryReader { geo in
       let fraction = max(0, min(1, value))
+      let height = geo.size.height
       ZStack(alignment: .leading) {
-        Capsule().fill(.quaternary)
-        Capsule()
-          .fill(LinearGradient(colors: [Color.tangerine.opacity(0.85), Color.tangerine], startPoint: .leading, endPoint: .trailing))
-          .frame(width: max(26, geo.size.width * fraction))
+        Capsule().fill(Theme.track)
+        ZStack {
+          // The weave sits under the sheer's tint, so it only shows through faintly.
+          Threads(step: Theme.Size.fillWeaveStep, width: 2, axis: .vertical).fill(Theme.fillWeave)
+          Capsule().fill(LinearGradient(colors: Theme.fill, startPoint: .leading, endPoint: .trailing))
+          // The soft right-hand edge of the sheer.
+          CapsuleOutline(color: Theme.fillEdge)
+            .mask(HStack(spacing: 0) { Spacer(minLength: 0); Rectangle().frame(width: height / 2) })
+        }
+        .clipShape(Capsule())
+        .frame(width: max(height, geo.size.width * fraction))
         HStack {
-          Image(systemName: "sun.min.fill").foregroundStyle(.white)
+          Image(systemName: "sun.min.fill").foregroundStyle(Theme.fillMark)
           Spacer()
           Text("\(Int((fraction * 100).rounded()))%")
-            .font(.system(size: 11, weight: .medium).monospacedDigit())
-            .foregroundStyle(fraction > 0.85 ? Color.white : Color.secondary)
+            .font(Theme.Font.numeric)
+            .foregroundStyle(fraction > 0.85 ? Theme.percentOnFill : Theme.percent)
         }
-        .font(.system(size: 11, weight: .semibold))
+        .font(Theme.Font.button)
         .padding(.horizontal, 8)
       }
       .contentShape(Capsule())
       .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
-        value = max(minimum, min(1, drag.location.x / geo.size.width))
+        let target = max(minimum, min(1, drag.location.x / geo.size.width))
+        if abs(target - value) > Theme.Motion.sliderJump && !reduceMotion {
+          withAnimation(Theme.Motion.slider) { value = target }
+        } else {
+          value = target
+        }
       })
     }
-    .frame(height: 26)
+    .frame(height: Theme.Size.slider)
     .accessibilityElement()
     .accessibilityLabel("Brightness")
     .accessibilityValue("\(Int((value * 100).rounded())) percent")
@@ -209,12 +340,75 @@ struct SwitchRow: View {
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
       VStack(alignment: .leading, spacing: 1) {
-        Text(title).font(.system(size: 13))
-        if let detail { Text(detail).font(.caption).foregroundStyle(.secondary) }
+        Text(title).font(Theme.Font.body)
+        if let detail { Text(detail).font(Theme.Font.caption).foregroundStyle(Theme.textSecondary) }
       }
       Spacer(minLength: 0)
-      Toggle(title, isOn: $isOn).labelsHidden()
-        .toggleStyle(.switch).controlSize(.mini).tint(.tangerine)
+      OutlinedSwitch(title: title, isOn: $isOn)
     }
+  }
+}
+
+/// An outlined track with a white knob. VoiceOver sees an ordinary switch.
+struct OutlinedSwitch: View {
+  var title: String
+  @Binding var isOn: Bool
+  @StateObject private var hover = Hover()
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  var body: some View {
+    Button { isOn.toggle() } label: {
+      ZStack(alignment: isOn ? .trailing : .leading) {
+        Capsule().fill(isOn ? Theme.switchOn : Theme.switchOff)
+        CapsuleOutline(color: Theme.switchEdge)
+        Circle().fill(Theme.knob)
+          .frame(width: Theme.Size.knob, height: Theme.Size.knob)
+          .shadow(color: Theme.knobShadow, radius: hover.isOn ? 2 : 1, y: 1)
+          .padding(2)
+      }
+      .frame(width: Theme.Size.switchWidth, height: Theme.Size.switchHeight)
+      .contentShape(Capsule())
+    }
+    .buttonStyle(.plain)
+    .onHover { hover.isOn = $0 }
+    .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.toggle, value: isOn)
+    .animation(Theme.Motion.hover, value: hover.isOn)
+    .accessibilityRepresentation { Toggle(title, isOn: $isOn) }
+  }
+}
+
+/// A plain text link with an icon (the Accessibility notice); underlined under the pointer.
+struct LinkButton: View {
+  var title: String
+  var systemImage: String
+  var action: () -> Void
+  @StateObject private var hover = Hover()
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 6) {
+        Image(systemName: systemImage)
+        Text(title).underline(hover.isOn)
+      }
+      .font(Theme.Font.caption).foregroundStyle(Theme.link)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .onHover { hover.isOn = $0 }
+  }
+}
+
+/// Quit, in the footer: brightens under the pointer.
+struct QuitButton: View {
+  @StateObject private var hover = Hover()
+
+  var body: some View {
+    Button("Quit") { NSApp.terminate(nil) } // applicationWillTerminate puts every screen back on
+      .buttonStyle(.plain)
+      .foregroundStyle(hover.isOn ? Theme.text : Theme.textSecondary)
+      .padding(.horizontal, 4).padding(.vertical, 2)
+      .onHover { hover.isOn = $0 }
+      .animation(Theme.Motion.hover, value: hover.isOn)
+      .keyboardShortcut("q")
   }
 }
