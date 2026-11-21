@@ -94,13 +94,16 @@ struct ScreenRow: View {
             if screen.curtained { screens.setCurtain(screen, closed: false) } else { screens.setQuickOff(screen, off: false) }
           }
         } else {
-          PillButton(title: "Unplug", systemImage: "eject", prominent: false,
-                     help: "Unplug \(screen.name) in software: windows move to \(otherName), and every screen blinks for about 2 seconds while macOS rearranges them.") {
-            screens.setCurtain(screen, closed: true)
-          }
           PillButton(title: "Turn off", systemImage: "power", prominent: false,
-                     help: "Turn \(screen.name) black instantly. Windows stay on it.") {
+                     help: "Turn \(screen.name) black instantly. Windows stay on it." + (screen.isBuiltin ? "" : " Right-click to unplug it instead.")) {
             screens.setQuickOff(screen, off: true)
+          }
+          .contextMenu {
+            if !screen.isBuiltin {
+              Button("Unplug: move its windows to \(otherName) (every screen goes black for a few seconds)") {
+                screens.setCurtain(screen, closed: true)
+              }
+            }
           }
         }
       }

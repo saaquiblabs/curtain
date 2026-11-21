@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 — 2026-11-21
+
+- **Fix: unplugging the MacBook screen switched off its keyboard and trackpad.** macOS treats
+  an unplugged built-in screen like a closed lid. The MacBook screen now only offers Turn off.
+- **Fix: Unplug saved itself into macOS's display settings.** It now lasts for the session
+  only, so it can't change your scaling or colour settings later. (Tested: modes and colour
+  profiles identical before and after an unplug.)
+- Unplug moved off the screen row: it blanks every screen for a few seconds, so it now lives
+  behind a right-click on **Turn off** (monitors only), with that warning on the menu item.
+- **Fix: the menu could open cut off above the top of the screen** when a menu bar manager
+  (Ice, Bartender) had moved Curtain's icon. The menu is now Curtain's own panel: it opens under
+  where you clicked, always fully on screen, with rounded glass corners. Esc or a click outside
+  closes it.
+
 ## 0.2.0 — 2026-11-21
 
 Switching a screen off no longer blanks every screen. Two ways to switch off, both written on

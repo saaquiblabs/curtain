@@ -371,6 +371,12 @@ final class Screens: ObservableObject {
     notice = nil
     if closed {
       guard !screen.curtained else { return true }
+      // Unplugging the built-in screen makes macOS act as if the lid were closed: the built-in
+      // keyboard and trackpad stop working. Turn off is the safe way to darken it.
+      guard !screen.isBuiltin else {
+        notice = "The MacBook screen can't be unplugged: macOS would switch off its keyboard and trackpad. Use Turn off."
+        return false
+      }
       guard screensVisible(excluding: screen.id) > 0 else {
         notice = "One screen has to stay on. Turn another screen on first."
         return false
@@ -487,7 +493,9 @@ final class Screens: ObservableObject {
       CGCancelDisplayConfiguration(config)
       return false
     }
-    return CGCompleteDisplayConfiguration(config, .permanently) == .success
+    // For this session only: `.permanently` rewrote macOS's saved display arrangement, which can
+    // change scaling and colour settings later.
+    return CGCompleteDisplayConfiguration(config, .forSession) == .success
   }
 
   private static func nsScreen(_ id: CGDirectDisplayID) -> NSScreen? {
