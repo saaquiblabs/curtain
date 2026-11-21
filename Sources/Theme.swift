@@ -43,6 +43,8 @@ enum Theme {
   /// Text: names and titles, secondary lines, the faintest hints.
   static let text = dynamic(rgb(ink), rgb(0xE9EAF0), contrastLight: rgb(0x14171E), contrastDark: rgb(0xFFFFFF))
   static let textSecondary = dynamic(rgb(0x687084), rgb(0xA9AEC2), contrastLight: rgb(0x3E4454), contrastDark: rgb(0xD4D7E2))
+  /// A control you can't use right now (Turn off on the only screen that's on) shows at this opacity.
+  static let unavailable = 0.4
   static let textFaint = dynamic(rgb(0x9AA0AE), rgb(0x767C93), contrastLight: rgb(0x555B6B), contrastDark: rgb(0xB4B9CA))
   /// The identity's mark colour: dusk blue by day, afterglow at night. The header's curtain,
   /// Turn on and switches that are on all use it.

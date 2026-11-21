@@ -197,10 +197,13 @@ struct ScreenRow: View {
             if screen.curtained { screens.setCurtain(screen, closed: false) } else { screens.setQuickOff(screen, off: false) }
           }
         } else {
+          let lastOn = !screens.canTurnOff(screen)
           PillButton(title: "Turn off", systemImage: "power", prominent: false,
-                     help: "Turn \(screen.name) black instantly. Windows stay on it." + (screen.isBuiltin ? "" : " Right-click to unplug it instead.")) {
+                     help: lastOn ? "\(screen.name) is the only screen on, so it stays on. Turn another screen on first."
+                                  : "Turn \(screen.name) black instantly. Windows stay on it." + (screen.isBuiltin ? "" : " Right-click to unplug it instead.")) {
             screens.setQuickOff(screen, off: true)
           }
+          .disabled(lastOn)
           .contextMenu {
             if !screen.isBuiltin {
               Button("Unplug: move its windows to \(otherName) (every screen goes black for a few seconds)") {
@@ -313,16 +316,18 @@ struct PillStyle: ButtonStyle {
     var prominent: Bool
     @StateObject private var hover = Hover()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
       label
+        .opacity(isEnabled ? 1 : Theme.unavailable)
         .foregroundStyle(prominent ? Theme.solidPillText : Theme.pillText)
         .background(Capsule().fill(prominent ? (hover.isHovered ? Theme.solidPillHover : Theme.solidPill)
                                              : (hover.isHovered ? Theme.pillHover : Theme.pill))
                       .shadow(prominent ? Theme.solidPillGlow : Theme.pillShadow))
         .overlay { if !prominent { CapsuleOutline(color: Theme.pillEdge) } }
         .contentShape(Capsule())
-        .onHover { hover.isHovered = $0 }
+        .onHover { hover.isHovered = $0 && isEnabled }
         .scaleEffect(pressed && !reduceMotion ? Theme.Motion.pressScale : 1)
         .opacity(pressed ? Theme.Motion.pressOpacity : 1)
         .animation(Theme.Motion.press, value: pressed)

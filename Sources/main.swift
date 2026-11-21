@@ -122,15 +122,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   /// Screens changed: if the open menu's screen was just turned off, it moves to one that's on
-  /// and fades in there.
+  /// and fades in there. The pointer, left invisible on the black screen, jumps to the menu.
   private func leaveTurnedOffScreen() {
     guard isOpen else { return }
     let before = refuge
     place()
-    if refuge != before {
-      panel.alphaValue = 0
-      fadeIn()
-    }
+    guard refuge != before else { return }
+    panel.alphaValue = 0
+    fadeIn()
+    if Screens.shared.screenUnderPointer()?.isOff ?? true { movePointer(to: panel.frame) }
+  }
+
+  /// Puts the pointer in the middle of `frame` (AppKit coordinates, origin bottom left of the
+  /// main screen; the pointer is placed in Core Graphics ones, origin top left).
+  private func movePointer(to frame: NSRect) {
+    guard let mainHeight = NSScreen.screens.first?.frame.maxY else { return }
+    CGWarpMouseCursorPosition(CGPoint(x: frame.midX, y: mainHeight - frame.midY))
+    CGAssociateMouseAndMouseCursorPosition(1) // no pause before the pointer moves again
   }
 
   /// Fades the menu in, and slides it to `settled` if given (not with Reduce Motion).

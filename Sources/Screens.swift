@@ -352,6 +352,11 @@ final class Screens: ObservableObject {
     return true
   }
 
+  /// Whether Turn off is allowed: some other screen has to stay on, so you're never left in the dark.
+  func canTurnOff(_ screen: Screen) -> Bool {
+    all.contains { $0.id != screen.id && !$0.isOff }
+  }
+
   /// The backlight follows quick off where Curtain can reach it: MacBook and Apple screens, and
   /// monitors that take DDC. The black curve and cover do the rest.
   private func setBacklight(_ screen: Screen, _ value: Double) {
