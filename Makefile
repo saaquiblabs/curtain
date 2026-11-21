@@ -36,7 +36,7 @@ clean:
 	rm -rf build
 
 # Pictures of the real menu drawn from made-up screens (see Tools/render-menu). Touches no display.
-renders: Sources/*.swift Tools/render-menu/main.swift
+renders:
 	@mkdir -p build
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tools/render-menu/main.swift -o build/render-menu
 	build/render-menu build/renders

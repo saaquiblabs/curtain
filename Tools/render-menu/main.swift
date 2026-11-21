@@ -5,10 +5,11 @@
 import AppKit
 import SwiftUI
 
+/// One state of the menu. Built fresh for each appearance so no render inherits another's objects.
 struct Fixture {
   var name: String
   var screens: () -> Screens
-  var keys: () -> Keys
+  var keys: () -> Keys = { Keys(preview: false) }
 }
 
 func macBook(_ brightness: Double = 0.72) -> Screen {
@@ -21,11 +22,10 @@ func lenovo(control: Screen.Control = .ddc, brightness: Double = 0.45, blackedOu
 }
 
 let fixtures: [Fixture] = [
-  Fixture(name: "on", screens: { Screens(preview: [macBook(), lenovo()]) }, keys: { Keys(preview: false) }),
-  Fixture(name: "software", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) },
-          keys: { Keys(preview: false) }),
-  Fixture(name: "off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }, keys: { Keys(preview: false) }),
-  Fixture(name: "unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }, keys: { Keys(preview: false) }),
+  Fixture(name: "on", screens: { Screens(preview: [macBook(), lenovo()]) }),
+  Fixture(name: "software", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) }),
+  Fixture(name: "off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }),
+  Fixture(name: "unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }),
   Fixture(name: "accessibility", screens: { Screens(preview: [macBook(), lenovo()]) }, keys: { Keys(preview: true) }),
 ]
 
@@ -35,18 +35,25 @@ let appearances: [(String, NSAppearance.Name)] = [("light", .aqua), ("dark", .da
 /// which SwiftUI's ImageRenderer leaves blank. Rendered at 2x, like a Retina screen.
 @MainActor
 func render(_ view: some View, appearance: NSAppearance.Name, to url: URL) throws {
-  let host = NSHostingView(rootView: view
-    .background(Color(nsColor: .windowBackgroundColor))
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)))
-  host.appearance = NSAppearance(named: appearance)
+  // The same surface as the real panel (main.swift's makePanel): popover glass, 14pt corners.
+  let host = NSHostingView(rootView: view)
   let size = host.fittingSize
+  let effect = NSVisualEffectView(frame: NSRect(origin: .zero, size: size))
+  effect.material = .popover
+  effect.blendingMode = .withinWindow
+  effect.state = .active
+  effect.wantsLayer = true
+  effect.layer?.cornerRadius = 14
+  effect.layer?.cornerCurve = .continuous
+  effect.layer?.masksToBounds = true
+  effect.addSubview(host)
   let window = NSWindow(contentRect: NSRect(x: -10_000, y: -10_000, width: size.width, height: size.height),
                         styleMask: .borderless, backing: .buffered, defer: false)
   window.appearance = NSAppearance(named: appearance)
   window.isOpaque = false
   window.backgroundColor = .clear
-  window.contentView = host
-  host.frame = NSRect(origin: .zero, size: size)
+  window.contentView = effect
+  host.frame = effect.bounds
   host.layoutSubtreeIfNeeded()
   RunLoop.main.run(until: Date().addingTimeInterval(0.15)) // let SwiftUI draw
 
@@ -56,7 +63,7 @@ func render(_ view: some View, appearance: NSAppearance.Name, to url: URL) throw
                                    colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
   else { throw RenderError.bitmap }
   rep.size = size
-  host.cacheDisplay(in: host.bounds, to: rep)
+  effect.cacheDisplay(in: effect.bounds, to: rep)
   guard let png = rep.representation(using: .png, properties: [:]) else { throw RenderError.png }
   try png.write(to: url)
   window.close()

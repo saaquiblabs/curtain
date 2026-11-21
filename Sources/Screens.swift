@@ -39,10 +39,13 @@ final class Screen: ObservableObject, Identifiable {
     self.id = id; self.uuid = uuid; self.name = name; self.isBuiltin = isBuiltin; self.control = control; self.ddc = ddc
   }
 
+  private static var previews: UInt32 = 0
+
   /// A made-up screen for drawing the menu (Tools/render-menu). Not connected to any display.
   static func preview(name: String, isBuiltin: Bool, control: Control, brightness: Double,
                       blackedOut: Bool = false, curtained: Bool = false) -> Screen {
-    let screen = Screen(id: CGDirectDisplayID(name.hashValue & 0xFFFF), uuid: "preview-\(name)", name: name,
+    previews += 1
+    let screen = Screen(id: CGDirectDisplayID(0xC0DE_0000 + previews), uuid: "preview-\(previews)", name: name,
                         isBuiltin: isBuiltin, control: control, ddc: nil)
     screen.brightness = brightness
     screen.blackedOut = blackedOut
