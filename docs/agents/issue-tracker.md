@@ -13,6 +13,15 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
+## Umbrellas, sub-issues and severity
+
+See "Backlog rules" in `CLAUDE.md`. Mechanics:
+
+- **List an umbrella's sub-issues**: `gh api repos/saaquiblabs/curtain/issues/<umbrella>/sub_issues --jq '.[]|"#\(.number) \(.state) \(.title)"'`
+- **Put an issue under an umbrella**: `gh api --method POST repos/saaquiblabs/curtain/issues/<umbrella>/sub_issues -F sub_issue_id=$(gh api repos/saaquiblabs/curtain/issues/<n> --jq .id)` (the database id, not the number). Remove with `--method DELETE .../issues/<umbrella>/sub_issue -F sub_issue_id=<id>`.
+- **Next by severity**: `gh issue list --state open --label severity:high` (then medium, low).
+- Creating issues is capped: don't, unless the owner asks.
+
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
