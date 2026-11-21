@@ -24,6 +24,8 @@ final class Screen: ObservableObject, Identifiable {
   /// The monitor's DDC brightness when Curtain found it, and whether a write has been seen to land.
   fileprivate var ddcAtLaunch: UInt16?
   fileprivate var ddcVerified = false
+  /// Curtain's own recent brightness writes, so macOS reporting them back isn't taken as news.
+  fileprivate var echo = BrightnessEcho()
   /// The screen's own calibrated colour curve (from its ColorSync profile). Software dimming
   /// scales this curve, so colours stay true; writing a plain curve shifted them blue.
   fileprivate var calibration: (red: [CGGammaValue], green: [CGGammaValue], blue: [CGGammaValue], count: UInt32)?
@@ -79,6 +81,8 @@ final class Screens: ObservableObject {
   private var followTimer: Timer?
   private var lastMacBrightness: Float = -1
   private var refreshScheduled = false
+  /// Apple screens macOS reports brightness changes for (registered once per display).
+  private var hearing: Set<CGDirectDisplayID> = []
 
   /// Unplugged screens (UUID → display ID): kept unplugged through sleep and unlock, and
   /// plugged back in at the next launch if Curtain didn't get to do it on the way out.
@@ -142,6 +146,7 @@ final class Screens: ObservableObject {
   func refresh() {
     let online = Self.list(CGGetOnlineDisplayList).filter { CGDisplayMirrorsDisplay($0) == kCGNullDirectDisplay }
     for id in online { offScreens[id] = nil } // macOS turned it back on; enforceCurtains decides
+    hearing.formIntersection(online + Array(offScreens.keys)) // a screen that comes back is heard afresh
     let existing = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     let ddc = DDC.services(for: online.filter { CGDisplayIsBuiltin($0) == 0 && existing[$0] == nil })
     var screens: [Screen] = []
@@ -151,6 +156,7 @@ final class Screens: ObservableObject {
         // Display changes can reset colour curves and move screens: put dimming and covers back.
         if fades[id] == nil { applyGamma(screen) }
         if screen.blackedOut { showCover(screen) }
+        if screen.control == .apple, !screen.isOff { readBrightness(screen) } // in case a report was missed
         screens.append(screen)
       } else {
         screens.append(makeScreen(id, ddc: ddc[id]))
@@ -172,9 +178,8 @@ final class Screens: ObservableObject {
     let screen = Screen(id: id, uuid: Self.uuid(id), name: Self.name(id), isBuiltin: builtin, control: control, ddc: ddc)
     switch control {
     case .apple:
-      var value: Float = 1
-      _ = Private.getBrightness?(id, &value)
-      screen.brightness = Double(value)
+      readBrightness(screen)
+      hear(screen)
     case .ddc:
       screen.brightness = defaults.object(forKey: "brightness.\(screen.uuid)") as? Double ?? 1
       ddcQueue.async { [weak screen] in
@@ -194,13 +199,50 @@ final class Screens: ObservableObject {
 
   // MARK: Brightness
 
+  private func readBrightness(_ screen: Screen) {
+    var value: Float = 0
+    guard Private.getBrightness?(screen.id, &value) == 0 else { return }
+    screen.brightness = Double(value)
+  }
+
+  /// Asks macOS to report every brightness change on this Apple screen, however it was made, so
+  /// its row always shows the real brightness (#11).
+  private func hear(_ screen: Screen) {
+    guard let register = Private.registerForBrightnessChanges, !hearing.contains(screen.id) else { return }
+    let observer = UnsafeRawPointer(bitPattern: UInt(screen.id))
+    let status = register(screen.id, observer, { _, observer, _, _, info in
+      let id = CGDirectDisplayID(UInt(bitPattern: observer))
+      let raw = (info as NSDictionary?)?["value"]
+      guard let value = (raw as? NSNumber)?.doubleValue ?? (raw as? String).flatMap(Double.init) else { return }
+      DispatchQueue.main.async { Screens.shared.heard(value, on: id) }
+    })
+    if status == 0 { hearing.insert(screen.id) }
+  }
+
+  /// macOS reported a brightness change. Curtain's own changes come back too: those are
+  /// already in the row. A screen that's off keeps the brightness it goes back to.
+  private func heard(_ value: Double, on id: CGDirectDisplayID) {
+    guard let screen = all.first(where: { $0.id == id }), screen.control == .apple, !screen.isOff,
+          !screen.echo.isEcho(value, at: ProcessInfo.processInfo.systemUptime) else { return }
+    screen.brightness = value
+    if followMac, screen.isBuiltin { follow(value) }
+  }
+
+  /// Writes an Apple screen's backlight, remembering it as Curtain's own change.
+  private func setAppleBrightness(_ screen: Screen, _ value: Double) {
+    screen.echo.wrote(Double(Float(value)), at: ProcessInfo.processInfo.systemUptime)
+    _ = Private.setBrightness?(screen.id, Float(value))
+  }
+
   func setBrightness(_ screen: Screen, _ value: Double, showIndicator: Bool = false) {
     let value = min(1, max(screen.minimum, value))
     screen.brightness = value
     guard !screen.blackedOut else { return } // applied when it's turned back on
     switch screen.control {
     case .apple:
-      _ = Private.setBrightness?(screen.id, Float(value))
+      setAppleBrightness(screen, value)
+      // macOS's report of this change is an echo, so the monitors follow from here.
+      if followMac, screen.isBuiltin { follow(value) }
     case .ddc:
       queueDDC(screen, UInt16((value * Double(screen.ddcMax)).rounded()))
       defaults.set(value, forKey: "brightness.\(screen.uuid)")
@@ -301,9 +343,19 @@ final class Screens: ObservableObject {
 
   // MARK: Follow the Mac
 
+  /// The other screens take the MacBook's brightness.
+  private func follow(_ value: Double) {
+    for screen in all where !screen.isBuiltin && !screen.isOff { setBrightness(screen, value) }
+  }
+
+  /// Only needed when macOS can't report the MacBook's brightness changes: then check every second.
   private func updateFollowTimer() {
     followTimer?.invalidate(); followTimer = nil
-    guard followMac, all.contains(where: \.isBuiltin) else { return }
+    guard followMac, let builtin = all.first(where: \.isBuiltin) else { return }
+    if hearing.contains(builtin.id) {
+      if !builtin.isOff { follow(builtin.brightness) }
+      return
+    }
     lastMacBrightness = -1
     let timer = Timer(timeInterval: 1, repeats: true) { _ in Screens.shared.followTick() }
     timer.tolerance = 0.5
@@ -317,7 +369,7 @@ final class Screens: ObservableObject {
     guard Private.getBrightness?(builtin.id, &value) == 0, abs(value - lastMacBrightness) > 0.004 else { return }
     lastMacBrightness = value
     builtin.brightness = Double(value)
-    for screen in all where !screen.isBuiltin && !screen.isOff { setBrightness(screen, Double(value)) }
+    follow(Double(value))
   }
 
   // MARK: Quick off
@@ -361,7 +413,7 @@ final class Screens: ObservableObject {
   /// monitors that take DDC. The black curve and cover do the rest.
   private func setBacklight(_ screen: Screen, _ value: Double) {
     switch screen.control {
-    case .apple: _ = Private.setBrightness?(screen.id, Float(value))
+    case .apple: setAppleBrightness(screen, value)
     case .ddc: queueDDC(screen, UInt16((value * Double(screen.ddcMax)).rounded()))
     case .software: break
     }

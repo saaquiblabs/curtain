@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **Fix: the brightness keys stopped reaching Curtain after every rebuild**, so F1/F2 changed
+  the MacBook even with the pointer on a monitor, and Apple's indicator showed the MacBook's
+  brightness instead of the monitor's. macOS tied the Accessibility permission to each build's
+  exact hash: System Settings still showed it on, but macOS no longer trusted the new build.
+  Curtain is now signed with a certificate made on your Mac, so the permission sticks. After
+  updating, remove Curtain from Accessibility once and add it again.
+- **The MacBook's row always shows its real brightness**, however it was changed: F1/F2,
+  Control Centre, auto-brightness or Curtain. It used to keep the value it read at launch.
+  Follow the Mac now reacts to the MacBook's changes as they happen instead of checking every
+  second.
+- If Accessibility is already on in System Settings but Curtain still can't get the keys, the
+  menu says it's a permission for an older Curtain and how to renew it.
 - **Fix: turning off the screen the menu was open on hid the menu behind the black.** The
   menu now moves, still open, to a screen that's on, where that screen's row reads Off with
   **Turn on** right there, and the pointer jumps to the menu. It never opens onto a screen

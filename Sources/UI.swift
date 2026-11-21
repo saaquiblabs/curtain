@@ -31,9 +31,15 @@ struct PopoverView: View {
         SwitchRow(title: "Follow the Mac", detail: "Monitors match your MacBook's brightness", isOn: $screens.followMac)
         SwitchRow(title: "Brightness keys", detail: "Change the screen under the pointer", isOn: $keys.brightnessKeys)
         if keys.needsPermission {
-          LinkButton(title: "Allow Accessibility so the keys reach your monitor", systemImage: "hand.raised",
-                     action: keys.askForPermission)
-            .frame(maxWidth: .infinity, alignment: .leading)
+          VStack(alignment: .leading, spacing: 3) {
+            LinkButton(title: "Allow Accessibility so the keys reach your monitor", systemImage: "hand.raised",
+                       action: keys.askForPermission)
+            // A grant made for an older build still shows as on in System Settings (#11).
+            Text("Already on? It's for an older Curtain: select Curtain there, remove it with −, then add it again.")
+              .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
         SwitchRow(title: "Open at login", detail: nil, isOn: $screens.openAtLogin)
       }

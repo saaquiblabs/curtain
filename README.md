@@ -32,6 +32,11 @@ make run          # builds and opens it
 open build/Curtain.app --args --show   # also opens the menu in a floating panel
 ```
 
+The first `make app` makes a self-signed "Curtain Local Signing" certificate in its own keychain
+file (`~/Library/Keychains/curtain-signing.keychain-db`) and signs every build with it, so the
+Accessibility permission for the brightness keys survives rebuilds. `Tools/check-signing.sh`
+checks that it does.
+
 ## How the curtain works
 
 Curtain calls `CGSConfigureDisplayEnabled`, an undocumented macOS function that tells

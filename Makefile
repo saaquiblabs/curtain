@@ -10,21 +10,28 @@ build/curtain: Sources/*.swift
 	$(SWIFTC) $(FLAGS) Sources/*.swift -o $@
 
 # The app bundle: same binary, plus the name and icon macOS shows in the menu bar, Login Items
-# and the Accessibility list. Signed ad hoc (no Apple account needed) so the signature carries
-# our bundle ID and the Accessibility permission sticks.
+# and the Accessibility list.
 app: build/curtain Resources/Info.plist
 	rm -rf "$(APP)"
 	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"
 	cp build/curtain "$(APP)/Contents/MacOS/curtain"
 	sed 's/@VERSION@/$(VERSION)/g' Resources/Info.plist > "$(APP)/Contents/Info.plist"
 	if [ -f Resources/AppIcon.icns ]; then cp Resources/AppIcon.icns "$(APP)/Contents/Resources/"; fi
-	codesign --force --sign - --identifier $(BUNDLE_ID) "$(APP)"
+	$(MAKE) sign
+
+# Signed with this Mac's own Curtain certificate (Tools/signing-identity.sh makes it the first
+# time; no Apple account needed), so the Accessibility permission survives rebuilds (#11). Ad hoc
+# signing tied it to each build's hash: after a rebuild System Settings still showed it on, but
+# macOS no longer trusted the app and the brightness keys went to macOS.
+sign:
+	keychain=$$(Tools/signing-identity.sh) && codesign --force --keychain "$$keychain" \
+	  --sign "Curtain Local Signing" --identifier $(BUNDLE_ID) "$(APP)"
 
 run: app
 	-pkill -x curtain
 	open "$(APP)"
 
-.PHONY: app run install uninstall clean renders theme-check test
+.PHONY: app sign run install uninstall clean renders theme-check test
 install: app
 	rm -rf "$(PREFIX)/Curtain.app"
 	cp -R "$(APP)" "$(PREFIX)/Curtain.app"
@@ -54,3 +61,5 @@ test:
 	build/test-menu-toggle
 	$(SWIFTC) $(FLAGS) Sources/MenuRefuge.swift Tests/menu-refuge/main.swift -o build/test-menu-refuge
 	build/test-menu-refuge
+	$(SWIFTC) $(FLAGS) Sources/BrightnessEcho.swift Tests/brightness-echo/main.swift -o build/test-brightness-echo
+	build/test-brightness-echo

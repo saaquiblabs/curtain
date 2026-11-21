@@ -2,7 +2,8 @@
 //
 // None of these are in the public SDK, so we can't link against them. Looking each one up by
 // name means a missing function turns one feature off instead of crashing the app. The
-// declarations match the ones MonitorControl ships in its bridging header (MIT, see NOTICE).
+// declarations match the ones MonitorControl ships in its bridging header (MIT, see NOTICE),
+// except those marked "Curtain:", which are Curtain's own.
 
 import CoreGraphics
 import Foundation
@@ -43,4 +44,8 @@ enum Private {
     as: (@convention(c) (CGDirectDisplayID, Float) -> Int32).self)
   static let canChangeBrightness = symbol(displayServices, "DisplayServicesCanChangeBrightness",
     as: (@convention(c) (CGDirectDisplayID) -> Bool).self)
+  // Curtain: tells us whenever an Apple screen's brightness changes, whoever changed it (F1/F2,
+  // Control Centre, auto-brightness). The observer comes back to the callback; userInfo["value"].
+  static let registerForBrightnessChanges = symbol(displayServices, "DisplayServicesRegisterForBrightnessChangeNotifications",
+    as: (@convention(c) (CGDirectDisplayID, UnsafeRawPointer?, CFNotificationCallback) -> Int32).self)
 }

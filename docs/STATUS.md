@@ -42,6 +42,21 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   menu bar's, then any; `Sources/MenuRefuge.swift`, tested in `make test`).
 - **The menu is Curtain's own panel** (borderless NSPanel, glass, under the click), not
   NSPopover, which placed itself off-screen when a menu bar manager moved the icon.
+- **Signed with a local self-signed certificate** (#11), not ad hoc: ad hoc's designated
+  requirement is the cdhash, so every rebuild silently voided the Accessibility grant (switch
+  still on, `AXIsProcessTrusted()` false, F1/F2 went to macOS). `Tools/signing-identity.sh` makes
+  "Curtain Local Signing" once in `~/Library/Keychains/curtain-signing.keychain-db` (own file,
+  fixed non-secret password, so `make` never prompts); requirement = identifier + certificate
+  leaf. `Tools/check-signing.sh` rebuilds and fails if the requirement changes. Anyone running as
+  the user can sign with it, as with any local signing setup. Homebrew (#6) still needs a plan:
+  a build on the user's Mac would make its own certificate; a bottle would need a real one.
+- **Apple screens' rows follow macOS's brightness reports** (#11):
+  `DisplayServicesRegisterForBrightnessChangeNotifications` calls back on every change, from any
+  process (verified with a second process). Curtain's own writes come back too, late; values it
+  wrote in the last second are ignored (`Sources/BrightnessEcho.swift`, tested in `make test`).
+  Follow the Mac rides on the same reports (and on Curtain's own MacBook changes, which are
+  echoes); its 1 s timer is only a fallback. Written new: MonitorControl only reads brightness
+  on demand. A DDC monitor changed with its own buttons is still read only at launch.
 - **Logic tests are plain executables**: `make test` builds small executables from `Tests/<name>/main.swift` with only
   the sources they check (no XCTest with the command line tools) and runs them. First one:
   `MenuToggle`, what a click on the menu bar icon does (#7).
@@ -71,8 +86,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   expect the same once it ships via Homebrew; untested.
 
 ## Not done / untested
-- Brightness keys (needs Accessibility for Curtain.app), Follow the Mac, Open at login: built,
-  never exercised in the real app.
+- Brightness keys: on the owner's desk (#11) they never reached Curtain because of ad-hoc
+  signing (fixed). Whether this Mac's F1/F2 arrive as system-defined events once trusted is
+  still to be confirmed by the owner. Follow the Mac, Open at login: built, never exercised.
 - No app icon. Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
 - Memory ~90 MB (SwiftUI); idle CPU not measured.
 - No GitHub release page, no Homebrew formula, not on saaquiblabs.com yet.
