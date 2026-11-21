@@ -24,7 +24,7 @@ run: app
 	-pkill -x curtain
 	open "$(APP)"
 
-.PHONY: app run install uninstall clean
+.PHONY: app run install uninstall clean renders
 install: app
 	rm -rf "$(PREFIX)/Curtain.app"
 	cp -R "$(APP)" "$(PREFIX)/Curtain.app"
@@ -34,3 +34,9 @@ uninstall:
 
 clean:
 	rm -rf build
+
+# Pictures of the real menu drawn from made-up screens (see Tools/render-menu). Touches no display.
+renders: Sources/*.swift Tools/render-menu/main.swift
+	@mkdir -p build
+	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tools/render-menu/main.swift -o build/render-menu
+	build/render-menu build/renders

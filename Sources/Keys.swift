@@ -22,6 +22,12 @@ final class Keys: ObservableObject {
     brightnessKeys = UserDefaults.standard.object(forKey: "brightnessKeys") as? Bool ?? true
   }
 
+  /// Made-up keys for drawing the menu (Tools/render-menu). Never started.
+  init(preview needsPermission: Bool) {
+    brightnessKeys = true
+    self.needsPermission = needsPermission
+  }
+
   func start() {
     registerShortcut()
     update()

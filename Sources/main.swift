@@ -42,7 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func makePanel() -> MenuPanel {
-    let controller = NSHostingController(rootView: PopoverView())
+    let controller = NSHostingController(rootView: PopoverView(screens: .shared, keys: .shared))
     controller.sizingOptions = .preferredContentSize
     let effect = NSVisualEffectView()
     effect.material = .popover
@@ -114,11 +114,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if let escapeKey { NSEvent.removeMonitor(escapeKey) }
     outsideClicks = nil; escapeKey = nil
     panel.orderOut(nil)
-  }
-
-  /// Quit from the menu: every screen back on first.
-  static func quit() {
-    NSApp.terminate(nil)
   }
 
   /// Quit, logout or restart: every screen back on, backlights and colours restored.

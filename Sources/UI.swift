@@ -7,15 +7,17 @@ extension Color {
   static let navy = Color(red: 0.122, green: 0.173, blue: 0.369)            // #1F2C5E
 }
 
+/// The menu. It takes its screens and keys from outside so it can be drawn from made-up
+/// screens (Tools/render-menu); the app passes the shared ones.
 struct PopoverView: View {
-  @ObservedObject var screens = Screens.shared
-  @ObservedObject var keys = Keys.shared
+  @ObservedObject var screens: Screens
+  @ObservedObject var keys: Keys
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       header
       VStack(spacing: 10) {
-        ForEach(screens.all) { ScreenRow(screen: $0) }
+        ForEach(screens.all) { ScreenRow(screen: $0, screens: screens) }
       }
       if let notice = screens.notice {
         Label(notice, systemImage: "exclamationmark.circle")
@@ -63,7 +65,7 @@ struct PopoverView: View {
       Text("\(Keys.shortcutLabel)  turns other screens off / on")
         .font(.caption).foregroundStyle(.secondary)
       Spacer()
-      Button("Quit") { AppDelegate.quit() }
+      Button("Quit") { NSApp.terminate(nil) } // applicationWillTerminate puts every screen back on
         .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary)
         .keyboardShortcut("q")
     }
@@ -72,7 +74,7 @@ struct PopoverView: View {
 
 struct ScreenRow: View {
   @ObservedObject var screen: Screen
-  @ObservedObject var screens = Screens.shared
+  @ObservedObject var screens: Screens
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {

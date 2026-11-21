@@ -39,6 +39,17 @@ final class Screen: ObservableObject, Identifiable {
     self.id = id; self.uuid = uuid; self.name = name; self.isBuiltin = isBuiltin; self.control = control; self.ddc = ddc
   }
 
+  /// A made-up screen for drawing the menu (Tools/render-menu). Not connected to any display.
+  static func preview(name: String, isBuiltin: Bool, control: Control, brightness: Double,
+                      blackedOut: Bool = false, curtained: Bool = false) -> Screen {
+    let screen = Screen(id: CGDirectDisplayID(name.hashValue & 0xFFFF), uuid: "preview-\(name)", name: name,
+                        isBuiltin: isBuiltin, control: control, ddc: nil)
+    screen.brightness = brightness
+    screen.blackedOut = blackedOut
+    screen.curtained = curtained
+    return screen
+  }
+
   /// Software dimming can't go to zero or the screen looks switched off without being off.
   var minimum: Double { control == .software ? 0.15 : 0 }
 }
@@ -81,6 +92,14 @@ final class Screens: ObservableObject {
   private init() {
     followMac = defaults.bool(forKey: "followMac")
     openAtLogin = SMAppService.mainApp.status == .enabled
+  }
+
+  /// A made-up set of screens for drawing the menu (Tools/render-menu). Never started, so it
+  /// doesn't read, dim or rearrange any real display.
+  init(preview screens: [Screen]) {
+    followMac = false
+    openAtLogin = false
+    all = screens
   }
 
   func start() {

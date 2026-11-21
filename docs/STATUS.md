@@ -49,7 +49,11 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   "L27h-4A", MacBook "Color LCD"); they had been Display P3 / Adobe RGB overrides.
 - The owner's menu bar is full: a menu bar manager hides Curtain's icon. `open
   build/Curtain.app --args --show` opens the menu at launch.
-- Testing: drive `Screens.shared` from a scratch `main.swift` compiled with every source except
+- Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
+  on, dimmed in software, off, unplugged, Accessibility notice) into `build/renders/`, touching no
+  display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
+  initialisers build fake ones. Switches render in their inactive (grey) look offscreen.
+- Testing behaviour: drive `Screens.shared` from a scratch `main.swift` compiled with every source except
   `main.swift`. Test Turn off on the MacBook screen (no blink on the Lenovo the owner reads on).
   Only test Unplug with the owner's OK: both screens go black.
 - From Lost Buttons: an ad-hoc-signed app registered with SMAppService was killed at launch
