@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     Keys.shared.start()
     panel = makePanel()
     closeWhenMovingOn()
+    Screens.shared.willDisconnect = { [weak self] id in self?.rememberHome(leaving: id) }
 
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     statusItem.button?.action = #selector(toggleMenu)
@@ -79,6 +80,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// same spot it had on the screen that went. A fraction, not a point: macOS shifts every screen's
   /// coordinates when the main screen goes. Nil after Turn off: top right, as before.
   private var refugeAcross: CGFloat?
+  /// Where the open menu and the pointer were when Disconnect took their screen (#25, owner's
+  /// pick): meanwhile the pointer keeps its spot on the menu, and Reconnect brings both back
+  /// there. `pointer` is measured from the menu's top left (y downwards).
+  private struct Home { var display: CGDirectDisplayID; var across: CGFloat; var pointer: CGPoint }
+  private var home: Home?
+  /// The pointer's spot on the menu, put again once the screens settle: the first move can come
+  /// before macOS shifts every screen's coordinates, which drags the pointer to the far edge.
+  private var pointerSpot: CGPoint?
+
+  /// Disconnect is about to take `id` away: remember the menu's spot on it, and the pointer's.
+  private func rememberHome(leaving id: CGDirectDisplayID) {
+    home = nil
+    guard isOpen, panel.screen?.displayID == id, let visible = panel.screen?.visibleFrame else { return }
+    let frame = panel.frame, mouse = NSEvent.mouseLocation
+    home = Home(display: id, across: MenuRefuge.across(midX: frame.midX, of: (visible.minX, visible.width)),
+                pointer: CGPoint(x: mouse.x - frame.minX, y: frame.maxY - mouse.y))
+  }
 
   /// Just under the menu bar, centred on the anchor, kept inside the screen. Never on a screen
   /// that's turned off: its black cover sits above everything, this menu included, so the menu
@@ -91,6 +109,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// on the black Lenovo (#29).
   private func place() {
     let size = panel.frame.size
+    // Reconnect (#25): the screen Disconnect took is back, so the open menu goes back to its spot
+    // there, the pointer with it. A closed menu just forgets that spot.
+    var returning: CGPoint? // the pointer's spot on the menu, when it goes back
+    if let home, Screens.shared.all.contains(where: { $0.id == home.display && !$0.isOff }),
+       Screens.nsScreen(home.display) != nil {
+      self.home = nil
+      if isOpen { refuge = home.display; refugeAcross = home.across; returning = home.pointer }
+    }
     let topRight = NSPoint(x: CGFloat.greatestFiniteMagnitude, y: 0)
     let underClick = anchor.flatMap { click in NSScreen.screens.first { $0.frame.minX <= click.x && click.x <= $0.frame.maxX } }
     var screen = refuge.flatMap(Screens.nsScreen) ?? underClick ?? NSScreen.main
@@ -105,7 +131,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       let menuOn = screen?.displayID
       let disconnected = Screens.shared.all.first { $0.id == menuOn }?.curtained ?? false
       refugeAcross = nil
-      if disconnected, let old = screen?.visibleFrame {
+      if disconnected, let home, home.display == menuOn {
+        refugeAcross = home.across
+      } else if disconnected, let old = screen?.visibleFrame {
         refugeAcross = MenuRefuge.across(midX: panel.frame.midX, of: (old.minX, old.width))
       }
       refuge = target
@@ -117,25 +145,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if refuge != nil, let across = refugeAcross { point = NSPoint(x: visible.minX + across * visible.width, y: 0) }
     let x = min(max(point.x - size.width / 2, visible.minX + 8), visible.maxX - size.width - 8)
     panel.setFrameTopLeftPoint(NSPoint(x: x, y: visible.maxY - 6))
-    guard isOpen, moved else { return }
+    guard isOpen, moved || returning != nil else { return }
     panel.alphaValue = 0
     fadeIn()
-    let pointerOnDisconnected = Screens.shared.all.first { $0.id == pointerOn }?.curtained ?? false
-    if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn,
-                                 pointerOnDisconnected: pointerOnDisconnected) { movePointer(to: panel.frame) }
+    // Disconnect or Reconnect: the pointer keeps its spot on the menu (macOS alone put it at the
+    // far edge of the MacBook). Turn off: it follows the menu only off a black screen (#29).
+    let disconnectSpot = moved && refugeAcross != nil ? home?.pointer : nil
+    if let spot = returning ?? disconnectSpot {
+      pointerSpot = spot
+      putPointer(on: spot)
+    } else if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn) {
+      movePointer(to: NSPoint(x: panel.frame.midX, y: panel.frame.midY))
+    }
   }
 
   /// Screens changed: an open menu on a screen that was just turned off moves (place).
   private func leaveTurnedOffScreen() {
-    guard isOpen else { return }
+    guard isOpen else { pointerSpot = nil; return }
     place()
+    if let spot = pointerSpot { pointerSpot = nil; putPointer(on: spot) }
   }
 
-  /// Puts the pointer in the middle of `frame` (AppKit coordinates, origin bottom left of the
-  /// main screen; the pointer is placed in Core Graphics ones, origin top left).
-  private func movePointer(to frame: NSRect) {
+  /// Puts the pointer at `spot` on the menu (measured from its top left), on the menu's screen.
+  private func putPointer(on spot: CGPoint) {
+    guard let onScreen = panel.screen?.frame else { return }
+    movePointer(to: MenuRefuge.pointer(offset: spot, menu: panel.frame, screen: onScreen))
+  }
+
+  /// Puts the pointer at `point` (AppKit coordinates, origin bottom left of the main screen; the
+  /// pointer is placed in Core Graphics ones, origin top left).
+  private func movePointer(to point: NSPoint) {
     guard let mainHeight = NSScreen.screens.first?.frame.maxY else { return }
-    CGWarpMouseCursorPosition(CGPoint(x: frame.midX, y: mainHeight - frame.midY))
+    CGWarpMouseCursorPosition(CGPoint(x: point.x, y: mainHeight - point.y))
     CGAssociateMouseAndMouseCursorPosition(1) // no pause before the pointer moves again
   }
 

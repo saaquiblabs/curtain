@@ -50,8 +50,20 @@ follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: nil, screensOn: [l
 follows(MenuRefuge.pointerFollows(menuMoved: false, pointerOn: macBook, screensOn: [lenovo]), false,
         "the menu didn't move: the pointer is left alone")
 
-follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: lenovo, screensOn: [macBook], pointerOnDisconnected: true), false,
-        "Lenovo disconnected with the menu and pointer on it: macOS moves the pointer, Curtain doesn't (#25)")
+// Disconnect and Reconnect: the pointer keeps its spot on the menu (#25). Menu 360 x 500 pt.
+func at(_ actual: CGPoint, _ expected: CGPoint, _ what: String) {
+  if abs(actual.x - expected.x) < 0.001, abs(actual.y - expected.y) < 0.001 { print("ok    \(what)") } else {
+    failures += 1; print("FAIL  \(what): got \(actual), expected \(expected)")
+  }
+}
+let macBookFrame = CGRect(x: 0, y: 0, width: 1512, height: 982)
+at(MenuRefuge.pointer(offset: CGPoint(x: 300, y: 120), menu: CGRect(x: 1000, y: 450, width: 360, height: 500), screen: macBookFrame),
+   CGPoint(x: 1300, y: 830), "the pointer on the Disconnect button stays on that row of the menu on the MacBook")
+at(MenuRefuge.pointer(offset: CGPoint(x: 300, y: 120), menu: CGRect(x: 1400, y: 450, width: 360, height: 500), screen: macBookFrame),
+   CGPoint(x: 1511, y: 830), "a spot that would fall off the screen stays on its edge")
+at(MenuRefuge.pointer(offset: CGPoint(x: 300, y: 120), menu: CGRect(x: 2000, y: 900, width: 360, height: 500),
+                      screen: CGRect(x: 0, y: 0, width: 2560, height: 1440)),
+   CGPoint(x: 2300, y: 1280), "Reconnect: back on the Lenovo, the same spot on the menu")
 
 // Disconnect: the menu keeps its spot across the screen (#25). Owner's desk on this Mac: the
 // Lenovo (main, 2560 pt wide at x 0) and the MacBook (1512 pt wide, to its right at x 2560).
