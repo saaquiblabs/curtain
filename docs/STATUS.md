@@ -134,12 +134,16 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 
 ## Next (the plan agreed with the owner, one step per release)
 1. ~~No more jarring blackout~~ done in 0.2.0 / 0.2.1.
-2. **Own identity**: a page with 3 visual directions (ideas: Velvet & Brass, Linen & Dusk,
+2. ~~**Own identity**~~ done in 0.3.0; owner signed off on #1 (2026-11-22). Was: a page with 3 visual directions (ideas: Velvet & Brass, Linen & Dusk,
    Midnight Theatre; curtain types people buy most: sheer = dimmed, blackout = off), the real
    menu shown in each; the owner picks.
 3. **A menu you understand by looking**: a map of the screens laid out like the real desk,
    each tile glowing with its brightness and a curtain sliding over it when off; verbs on every
-   button; hover shows the result; "Turn back on" banner after turning off.
-4. App icon + menu bar icon in the chosen identity.
+   button; hover shows the result; "Turn back on" banner after turning off. Planned with the
+   owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22:
+   on macOS 27 a pulled cable no longer blanks the screens, so Curtain's own 2 s fade may be the
+   only blackout left), comparison page (#23), desk map (#24, 0.4.0), Disconnect as its own
+   button (#25), hover results (#26), Turn back on banner (#27). Decisions are on #20.
+4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.
 6. Release: GitHub release, Homebrew (`saaquiblabs/tap`), listing on saaquiblabs.com.
