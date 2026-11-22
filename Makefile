@@ -39,8 +39,11 @@ sign:
 	keychain=$$(Tools/signing-identity.sh) && codesign --force --keychain "$$keychain" \
 	  --sign "Curtain Local Signing" --identifier $(BUNDLE_ID) "$(APP)"
 
+# Waits for the old Curtain to finish quitting (it restores every screen first): opening it while
+# it's still on its way out fails with LaunchServices error -600.
 run: app
 	-pkill -x curtain
+	@for i in $$(seq 50); do pgrep -x curtain >/dev/null || break; sleep 0.1; done
 	open "$(APP)"
 
 .PHONY: app icon sign run install uninstall clean renders screenshots theme-check test
