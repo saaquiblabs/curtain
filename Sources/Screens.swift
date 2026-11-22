@@ -130,7 +130,12 @@ final class Screens: ObservableObject {
     refresh()
     CGDisplayRegisterReconfigurationCallback({ _, flags, _ in
       guard !flags.contains(.beginConfigurationFlag) else { return }
-      DispatchQueue.main.async { Screens.shared.scheduleRefresh() }
+      DispatchQueue.main.async {
+        // A screen gone may have been the last one you could see: check now, not after the wait
+        // that gathers a burst of changes into one (#29). The later refresh still runs.
+        if flags.contains(.removeFlag) { Screens.shared.refresh() }
+        Screens.shared.scheduleRefresh()
+      }
     }, nil)
     // macOS reports a screen going off, but not always one coming back on (after wake or unlock
     // it can quietly switch a curtained screen back on), so check again at each of those moments.
@@ -388,7 +393,8 @@ final class Screens: ObservableObject {
 
   /// Fades a screen to black (off = true) or back (off = false). Returns false if it can't.
   @discardableResult
-  func setQuickOff(_ screen: Screen, off: Bool) -> Bool {
+  /// `instant`: back on with no fade-in, for a screen left as the only one (#29).
+  func setQuickOff(_ screen: Screen, off: Bool, instant: Bool = false) -> Bool {
     notice = nil
     if off {
       guard !screen.isOff else { return true }
@@ -408,13 +414,21 @@ final class Screens: ObservableObject {
       screen.blackedOut = false
       hideCover(screen.id)
       setBacklight(screen, screen.brightness)
-      fadeGamma(screen, from: 0, to: gammaScale(screen), duration: 0.35) { [weak self, weak screen] in
-        if let screen { self?.applyGamma(screen) }
+      if instant {
+        fades[screen.id]?.invalidate(); fades[screen.id] = nil
+        applyGamma(screen)
+      } else {
+        fadeGamma(screen, from: 0, to: gammaScale(screen), duration: 0.35) { [weak self, weak screen] in
+          if let screen { self?.applyGamma(screen) }
+        }
       }
     }
     all = all // republish so the menu bar icon updates
     return true
   }
+
+  /// Whether a screen's colour curve is still fading (Tests/never-dark).
+  func isFading(_ screen: Screen) -> Bool { fades[screen.id] != nil }
 
   /// Whether Turn off is allowed: some other screen has to stay on, so you're never left in the dark.
   func canTurnOff(_ screen: Screen) -> Bool {
@@ -505,8 +519,9 @@ final class Screens: ObservableObject {
     }
   }
 
-  func openAll() {
-    for screen in all where screen.blackedOut { setQuickOff(screen, off: false) }
+  /// `instant`: turned-off screens come back with no fade-in (keepAScreenOn).
+  func openAll(instant: Bool = false) {
+    for screen in all where screen.blackedOut { setQuickOff(screen, off: false, instant: instant) }
     let unplugged = all.filter(\.curtained)
     guard !unplugged.isEmpty else { return }
     for screen in unplugged {
@@ -525,7 +540,7 @@ final class Screens: ObservableObject {
   @discardableResult
   private func keepAScreenOn() -> Bool {
     guard NeverDark.mustTurnAllOn(screensOff: all.map(\.isOff)) else { return false }
-    openAll()
+    openAll(instant: true) // you're in the dark: no fade to wait through
     return true
   }
 

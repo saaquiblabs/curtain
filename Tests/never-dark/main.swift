@@ -30,6 +30,7 @@ do {
   expect(mac.blackedOut, "the MacBook is turned off while the Lenovo is on")
   screens.replacePreview(with: [mac])
   expect(!mac.blackedOut && !mac.isOff, "Lenovo unplugged: the MacBook is back on")
+  expect(!screens.isFading(mac), "…straight away, without the quarter-second fade you'd wait through in the dark")
 }
 
 // The same with the Lenovo unplugged by Curtain and the MacBook turned off: nothing visible.

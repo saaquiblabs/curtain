@@ -52,9 +52,15 @@ final class Keys: ObservableObject {
     permissionTimer = timer
   }
 
+  /// One window per click (PermissionAsk): macOS's own dialog the first time, System Settings after.
   func askForPermission() {
-    let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-    if !AXIsProcessTrustedWithOptions([key: true] as CFDictionary) {
+    let defaults = UserDefaults.standard
+    switch PermissionAsk.next(askedBefore: defaults.bool(forKey: "askedAccessibility")) {
+    case .systemPrompt:
+      defaults.set(true, forKey: "askedAccessibility")
+      let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+      _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
+    case .openSettings:
       NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
     }
   }
