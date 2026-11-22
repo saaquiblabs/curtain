@@ -66,7 +66,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
     panel.isReleasedWhenClosed = false
     panel.contentView = effect
-    // Content grows (a notice appears): keep the top edge under the menu bar.
+    // The panel fits the menu as its content changes: a monitor unplugged takes its row away and
+    // the panel shrinks with it, instead of leaving bare glass above and below (#4).
+    presence.resized = { [weak panel] size in
+      guard let panel, size.height > 0, panel.contentLayoutRect.size != size else { return }
+      panel.setContentSize(size)
+    }
+    // Content grows or shrinks (a notice appears, a row goes): keep the top edge under the menu bar.
     NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: panel, queue: .main) { [weak self] _ in
       self?.place()
     }
@@ -171,6 +177,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.alphaValue = 0
     presence.shown = false
     isOpen = true
+    panel.ignoresMouseEvents = false
     panel.makeKeyAndOrderFront(nil)
     DispatchQueue.main.async { withAnimation(Theme.Motion.openContent) { self.presence.shown = true } }
     fadeIn(to: reduceMotion ? nil : settled)
@@ -193,7 +200,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if let outsideClicks { NSEvent.removeMonitor(outsideClicks) }
     if let escapeKey { NSEvent.removeMonitor(escapeKey) }
     outsideClicks = nil; escapeKey = nil
-    panel.orderOut(nil)
+    // Fades out, rising a touch, its content going soft (just a quicker fade with Reduce Motion);
+    // ordered out once the fade ends, unless it was opened again meanwhile.
+    let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+    panel.ignoresMouseEvents = true
+    withAnimation(Theme.Motion.closeContent) { presence.shown = false }
+    NSAnimationContext.runAnimationGroup({ context in
+      context.duration = reduceMotion ? Theme.Motion.reducedClose : Theme.Motion.close
+      context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+      panel.animator().alphaValue = 0
+      if !reduceMotion { panel.animator().setFrame(panel.frame.offsetBy(dx: 0, dy: Theme.Motion.closeDrift), display: true) }
+    }, completionHandler: { [weak self] in
+      guard let self, !self.isOpen else { return }
+      self.panel.orderOut(nil)
+    })
   }
 
   /// Quit, logout or restart: every screen back on, backlights and colours restored.
