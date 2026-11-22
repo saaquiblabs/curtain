@@ -43,7 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func makePanel() -> MenuPanel {
-    let panel = MenuPanel.make(showing: PopoverView(screens: .shared, keys: .shared, presence: presence), presence: presence)
+    let panel = MenuPanel.make(screens: .shared, keys: .shared, presence: presence)
     // Content grows or shrinks (a notice appears, a row goes): keep the top edge under the menu bar.
     NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: panel, queue: .main) { [weak self] _ in
       self?.place()
@@ -141,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     anchor = point
     refuge = nil
     Screens.shared.notice = nil
-    panel.fit() // a size change SwiftUI never reported can't outlive a reopen (#21)
+    panel.fit()
     place()
     // Fades in, drifting down into place (just the fade with Reduce Motion).
     let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion

@@ -78,7 +78,7 @@ screenshots: renders
 # The menu's look lives only in Sources/Theme.swift: fail if a view picks its own colour, font,
 # corner radius or timing.
 theme-check:
-	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/main.swift \
+	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/main.swift Sources/MenuPanel.swift \
 	  || { echo "theme-check: visual values above belong in Sources/Theme.swift"; exit 1; }
 
 # Logic tests: plain executables built with only the sources they check. Touch no display (the
