@@ -27,8 +27,11 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - **Turn off is the default** way to switch a screen off: gamma fades to 0 in ~0.25 s, a black
   window at shielding level blocks clicks, backlight to 0 (Apple screens / DDC). No display
   rearrangement, so no blink. The pointer can still wander onto it (invisible).
-- **Unplug** (`CGSConfigureDisplayEnabled`) blanks every screen 2–5 s while macOS rearranges;
-  unavoidable. Wrapped in a CGDisplayFade, behind a right-click on Turn off, monitors only.
+- **Unplug** (`CGSConfigureDisplayEnabled`) blanked every screen 2–5 s while macOS rearranged,
+  so it was wrapped in a 2 s CGDisplayFade (0.3 s out, 1.2 s hold, 0.5 s in). Behind a
+  right-click on Turn off, monitors only. **Fade test (#22, macOS 27.2, 2026-11-22):** the owner
+  watched Unplug + Reconnect of the Lenovo three ways (today's 2 s fade, no fade, a short fade)
+  and picked the **short fade: 0.15 s out, no hold, 0.15 s in**. Disconnect (#25) uses it.
 - **Never unplug the built-in screen**: macOS treats it as a closed lid and disables the
   built-in keyboard and trackpad (happened to the owner).
 - **Session-only display changes** (`.forSession`). `.permanently` rewrote macOS's saved display
@@ -140,9 +143,8 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 3. **A menu you understand by looking**: a map of the screens laid out like the real desk,
    each tile glowing with its brightness and a curtain sliding over it when off; verbs on every
    button; hover shows the result; "Turn back on" banner after turning off. Planned with the
-   owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22:
-   on macOS 27 a pulled cable no longer blanks the screens, so Curtain's own 2 s fade may be the
-   only blackout left), comparison page (#23), desk map (#24, 0.4.0), Disconnect as its own
+   owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22, done:
+   owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23), desk map (#24, 0.4.0), Disconnect as its own
    button (#25), hover results (#26), Turn back on banner (#27). Decisions are on #20.
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.
