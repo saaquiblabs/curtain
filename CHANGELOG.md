@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-11-22
+
+- **Spotlight shows one Curtain.** `make app` now builds into `build/app.noindex/`, a folder
+  Spotlight skips, so a Mac that builds Curtain from source (or runs `make run` to test) no longer
+  lists a second Curtain.app next to the one in /Applications. The Homebrew cask points at the new
+  path from 0.4.1.
+
 ## 0.4.0 — 2026-11-22
 
 The first part of step 3, a menu you understand by looking (#20).

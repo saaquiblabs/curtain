@@ -3,7 +3,7 @@
 # app's designated requirement. Builds the app, changes one sealed file the way any rebuild does,
 # signs again exactly as `make app` does, and fails if the requirement changed.
 set -e
-APP=build/Curtain.app
+APP=build/app.noindex/Curtain.app
 make -s app >/dev/null
 before=$(codesign -d -r- "$APP" 2>&1 | sed -n "s/.*designated => //p")
 trap 'rm -f "$APP/Contents/Resources/rebuild-stamp"' EXIT

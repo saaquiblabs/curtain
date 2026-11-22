@@ -2,7 +2,9 @@ PREFIX ?= /usr/local
 SWIFTC ?= swiftc
 FLAGS = -O -swift-version 5 -target $(shell uname -m)-apple-macos13.0
 VERSION := $(shell sed -n 's/^let version = "\(.*\)"/\1/p' Sources/main.swift)
-APP = build/Curtain.app
+# The test copy sits in a folder Spotlight skips (a name ending in .noindex), so Spotlight and
+# Launchpad show only the installed /Applications/Curtain.app, as with any Mac app.
+APP = build/app.noindex/Curtain.app
 BUNDLE_ID = com.saaquiblabs.curtain
 
 build/curtain: Sources/*.swift
@@ -13,6 +15,7 @@ build/curtain: Sources/*.swift
 # and the Accessibility list.
 app: build/curtain Resources/Info.plist Resources/AppIcon.icns Resources/Fonts/*.ttf
 	rm -rf "$(APP)"
+	rm -rf build/Curtain.app # where 0.3.x and earlier built it, which Spotlight listed as a second Curtain
 	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources/Fonts"
 	cp build/curtain "$(APP)/Contents/MacOS/curtain"
 	sed 's/@VERSION@/$(VERSION)/g' Resources/Info.plist > "$(APP)/Contents/Info.plist"
