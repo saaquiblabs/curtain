@@ -186,6 +186,77 @@ final class Hover: ObservableObject {
   @Published var isHovered = false
 }
 
+/// Draws every control as if the pointer were over it, so `make renders` can show hover states.
+private struct HoverPreview: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+  var hoverPreview: Bool {
+    get { self[HoverPreview.self] }
+    set { self[HoverPreview.self] = newValue }
+  }
+}
+
+extension View {
+  /// The pointing hand over a control you can click, the arrow while it's disabled (#10). One
+  /// modifier for every control in the menu.
+  func clickable() -> some View { modifier(Clickable()) }
+}
+
+private struct Clickable: ViewModifier {
+  @Environment(\.isEnabled) private var isEnabled
+
+  func body(content: Content) -> some View {
+    content.background(CursorArea(pointer: Pointer.over(clickable: true, enabled: isEnabled)))
+  }
+}
+
+/// An AppKit view behind the control that shows the hand over it. Two ways, because the menu is a
+/// non-activating panel and Curtain usually isn't the active app: a cursor rectangle (the window
+/// puts the arrow back outside it), and an always-active tracking area that sets the hand on
+/// entering and moving and the arrow on leaving. If the control goes away under the pointer (a
+/// pill that swaps, a slider that goes when its screen turns off) the arrow comes back, so the
+/// hand can't get stuck the way a pushed cursor can. It never takes clicks.
+private struct CursorArea: NSViewRepresentable {
+  var pointer: Pointer
+
+  func makeNSView(context: Context) -> CursorView { CursorView() }
+  func updateNSView(_ view: CursorView, context: Context) { view.pointer = pointer }
+
+  final class CursorView: NSView {
+    var pointer = Pointer.arrow {
+      didSet {
+        guard pointer != oldValue else { return }
+        window?.invalidateCursorRects(for: self)
+        if inside { show() }
+      }
+    }
+    private var inside = false
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func resetCursorRects() {
+      if pointer == .hand { addCursorRect(bounds, cursor: .pointingHand) }
+    }
+
+    override func updateTrackingAreas() {
+      super.updateTrackingAreas()
+      trackingAreas.forEach(removeTrackingArea)
+      addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .mouseMoved, .activeAlways, .inVisibleRect],
+                                     owner: self))
+    }
+
+    override func mouseEntered(with event: NSEvent) { inside = true; show() }
+    override func mouseMoved(with event: NSEvent) { if inside { show() } }
+    override func mouseExited(with event: NSEvent) { inside = false; NSCursor.arrow.set() }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+      if newWindow == nil && inside { inside = false; NSCursor.arrow.set() }
+      super.viewWillMove(toWindow: newWindow)
+    }
+
+    private func show() { (pointer == .hand ? NSCursor.pointingHand : NSCursor.arrow).set() }
+  }
+}
+
 struct ScreenRow: View {
   @ObservedObject var screen: Screen
   @ObservedObject var screens: Screens
@@ -342,21 +413,24 @@ struct PillStyle: ButtonStyle {
     @StateObject private var hover = Hover()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.hoverPreview) private var hoverPreview
 
     var body: some View {
+      let hovered = (hover.isHovered || hoverPreview) && isEnabled
       label
         .opacity(isEnabled ? 1 : Theme.unavailable)
-        .foregroundStyle(prominent ? Theme.solidPillText : Theme.pillText)
-        .background(Capsule().fill(prominent ? (hover.isHovered ? Theme.solidPillHover : Theme.solidPill)
-                                             : (hover.isHovered ? Theme.pillHover : Theme.pill))
-                      .shadow(prominent ? Theme.solidPillGlow : Theme.pillShadow))
-        .overlay { if !prominent { CapsuleOutline(color: Theme.pillEdge) } }
+        .foregroundStyle(prominent ? Theme.solidPillText : (hovered ? Theme.pillTextHover : Theme.pillText))
+        .background(Capsule().fill(prominent ? (hovered ? Theme.solidPillHover : Theme.solidPill)
+                                             : (hovered ? Theme.pillHover : Theme.pill))
+                      .shadow(prominent ? (hovered ? Theme.solidPillGlowHover : Theme.solidPillGlow) : Theme.pillShadow))
+        .overlay { if !prominent { CapsuleOutline(color: hovered ? Theme.pillEdgeHover : Theme.pillEdge) } }
         .contentShape(Capsule())
-        .onHover { hover.isHovered = $0 && isEnabled }
+        .clickable()
+        .onHover { hover.isHovered = $0 }
         .scaleEffect(pressed && !reduceMotion ? Theme.Motion.pressScale : 1)
         .opacity(pressed ? Theme.Motion.pressOpacity : 1)
         .animation(Theme.Motion.press, value: pressed)
-        .animation(Theme.Motion.hover, value: hover.isHovered)
+        .animation(Theme.Motion.hover, value: hovered)
     }
   }
 }
@@ -366,9 +440,12 @@ struct PillStyle: ButtonStyle {
 struct BrightnessSlider: View {
   @Binding var value: Double
   var minimum: Double
+  @StateObject private var hover = Hover()
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.hoverPreview) private var hoverPreview
 
   var body: some View {
+    let hovered = hover.isHovered || hoverPreview
     GeometryReader { geo in
       let fraction = max(0, min(1, value))
       let height = geo.size.height
@@ -377,7 +454,7 @@ struct BrightnessSlider: View {
       let knob = height - Theme.Size.sliderKnobInset * 2
       let percentInside = fillWidth > geo.size.width - Theme.Size.percentRoom
       ZStack(alignment: .leading) {
-        Capsule().fill(Theme.track)
+        Capsule().fill(hovered ? Theme.trackHover : Theme.track)
         Capsule().fill(LinearGradient(colors: Theme.trackShade, startPoint: .top, endPoint: .center))
         ZStack {
           // The weave sits under the sheer's tint, so it only shows through faintly.
@@ -395,16 +472,20 @@ struct BrightnessSlider: View {
                  alignment: .trailing)
         Circle().fill(Theme.knob)
           .frame(width: knob, height: knob)
-          .shadow(Theme.knobShadow)
+          .shadow(hovered ? Theme.knobShadowHover : Theme.knobShadow)
           .overlay(
             Image(systemName: fraction < 0.5 ? "sun.min.fill" : "sun.max.fill")
               .font(Theme.Font.button)
               .foregroundStyle(Theme.knobMark)
               .scaleEffect(Theme.Size.sunScale.lowerBound + (Theme.Size.sunScale.upperBound - Theme.Size.sunScale.lowerBound) * fraction)
           )
+          .scaleEffect(hovered && !reduceMotion ? Theme.Size.knobHoverScale : 1)
           .offset(x: fillWidth - height + Theme.Size.sliderKnobInset)
       }
       .contentShape(Capsule())
+      .clickable()
+      .onHover { hover.isHovered = $0 }
+      .animation(Theme.Motion.hover, value: hovered)
       .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
         let target = max(minimum, min(1, (drag.location.x - height / 2) / max(1, travel)))
         // Only the first touch glides (a click away from the knob); dragging follows the pointer.
@@ -448,25 +529,28 @@ struct OutlinedSwitch: View {
   @Binding var isOn: Bool
   @StateObject private var hover = Hover()
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.hoverPreview) private var hoverPreview
 
   var body: some View {
+    let hovered = hover.isHovered || hoverPreview
     Button { isOn.toggle() } label: {
       ZStack(alignment: isOn ? .trailing : .leading) {
-        Capsule().fill(isOn ? Theme.switchOn : Theme.switchOff)
-          .shadow(isOn ? Theme.switchGlow : .none)
+        Capsule().fill(isOn ? (hovered ? Theme.switchOnHover : Theme.switchOn) : (hovered ? Theme.switchOffHover : Theme.switchOff))
+          .shadow(isOn ? (hovered ? Theme.switchGlowHover : Theme.switchGlow) : .none)
         CapsuleOutline(color: Theme.switchEdge)
         Circle().fill(Theme.knob)
           .frame(width: Theme.Size.knob, height: Theme.Size.knob)
-          .shadow(hover.isHovered ? Theme.knobShadowHover : Theme.knobShadow)
+          .shadow(hovered ? Theme.knobShadowHover : Theme.knobShadow)
           .padding(Theme.Size.knobInset)
       }
       .frame(width: Theme.Size.switchWidth, height: Theme.Size.switchHeight)
       .contentShape(Capsule())
     }
     .buttonStyle(.plain)
+    .clickable()
     .onHover { hover.isHovered = $0 }
     .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.toggle, value: isOn)
-    .animation(Theme.Motion.hover, value: hover.isHovered)
+    .animation(Theme.Motion.hover, value: hovered)
     .accessibilityRepresentation { Toggle(title, isOn: $isOn) }
   }
 }
@@ -477,32 +561,39 @@ struct LinkButton: View {
   var systemImage: String
   var action: () -> Void
   @StateObject private var hover = Hover()
+  @Environment(\.hoverPreview) private var hoverPreview
 
   var body: some View {
     Button(action: action) {
       HStack(spacing: 6) {
         Image(systemName: systemImage)
-        Text(title).underline(hover.isHovered)
+        Text(title).underline(hover.isHovered || hoverPreview)
       }
       .font(Theme.Font.caption).foregroundStyle(Theme.link)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .clickable()
     .onHover { hover.isHovered = $0 }
   }
 }
 
-/// Quit, in the footer: brightens under the pointer.
+/// Quit, in the footer: brightens on a faint pill under the pointer.
 struct QuitButton: View {
   @StateObject private var hover = Hover()
+  @Environment(\.hoverPreview) private var hoverPreview
 
   var body: some View {
+    let hovered = hover.isHovered || hoverPreview
     Button("Quit") { NSApp.terminate(nil) } // applicationWillTerminate puts every screen back on
       .buttonStyle(.plain)
-      .foregroundStyle(hover.isHovered ? Theme.text : Theme.textSecondary)
-      .padding(.horizontal, 4).padding(.vertical, 2)
+      .foregroundStyle(hovered ? Theme.text : Theme.textSecondary)
+      .padding(.horizontal, 6).padding(.vertical, 2)
+      .background(Capsule().fill(hovered ? Theme.quitHover : .clear))
+      .contentShape(Capsule())
+      .clickable()
       .onHover { hover.isHovered = $0 }
-      .animation(Theme.Motion.hover, value: hover.isHovered)
+      .animation(Theme.Motion.hover, value: hovered)
       .keyboardShortcut("q")
   }
 }

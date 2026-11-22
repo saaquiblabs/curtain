@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Every control answers the pointer**: the pointing hand over Turn off / Turn on, the slider,
+  the switches, Quit and the Accessibility link (the arrow stays over text and over a Turn off
+  you can't use). Under the pointer, Turn off turns dusk blue (afterglow at night), Turn on
+  glows brighter, the slider's track deepens and its knob lifts, switches deepen, Quit sits on
+  a faint pill (#10).
+
 ## 0.2.2 — 2026-11-22
 
 - **Install with Homebrew**: `brew install saaquiblabs/tap/curtain`. It builds Curtain on your

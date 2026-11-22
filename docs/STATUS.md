@@ -80,6 +80,13 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   "Dimmed by Curtain until it quits" (line kept, invisible, at 100% so the row doesn't jump) (`Sources/QuitNote.swift`, tested in
   `make test`). No note at 100% or for Apple/DDC screens.
 
+- **The pointing hand comes from one modifier** (#10): `.clickable()` in `Sources/UI.swift` puts
+  an AppKit view behind the control with a cursor rectangle and an always-active tracking area
+  (the menu is a non-activating panel, so Curtain usually isn't the active app). SwiftUI's
+  `pointerStyle` needs macOS 15; push/pop leaves the hand stuck when a control vanishes under the
+  pointer. Which cursor is `Sources/Pointer.swift` (tested in `make test`): hand only when
+  clickable and enabled.
+
 ## Learned the hard way (keep)
 - The owner's Lenovo answers DDC reads but ignores every write (brightness, contrast); likely
   the HDMI↔USB-C cable. Owner hasn't checked the monitor's DDC/CI menu yet. A USB-C↔USB-C
@@ -92,11 +99,14 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - The owner's menu bar is full: a menu bar manager hides Curtain's icon. `open
   build/Curtain.app --args --show` opens the menu at launch.
 - Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
-  on, dimmed in software, dimmed in software at 100%, off, unplugged, Accessibility notice) into `build/renders/`, touching no
+  on, dimmed in software, dimmed in software at 100%, off, unplugged, Accessibility notice, and
+  `hover`/`hover-off` with every control drawn as if under the pointer) into `build/renders/`, touching no
   display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
   initialisers build fake ones. Offscreen capture draws stray ticks on stroked capsules, so
   capsule outlines are filled rings (`CapsuleOutline`). It can't draw Increase Contrast (macOS
-  won't give an offscreen window those appearances): check that on a real Mac.
+  won't give an offscreen window those appearances): check that on a real Mac. It can't show the
+  cursor either, and this terminal can't move the pointer (no Accessibility): the owner checks the
+  hand cursor on their desk.
 - Testing behaviour: drive `Screens.shared` from a scratch `main.swift` compiled with every source except
   `main.swift`. Test Turn off on the MacBook screen (no blink on the Lenovo the owner reads on).
   Only test Unplug with the owner's OK: both screens go black.

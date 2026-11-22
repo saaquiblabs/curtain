@@ -10,6 +10,8 @@ struct Fixture {
   var name: String
   var screens: () -> Screens
   var keys: () -> Keys = { Keys(preview: false) }
+  /// Draw every control as if the pointer were over it (#10).
+  var hover = false
 }
 
 func macBook(_ brightness: Double = 0.72) -> Screen {
@@ -28,6 +30,10 @@ let fixtures: [Fixture] = [
   Fixture(name: "off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }),
   Fixture(name: "unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }),
   Fixture(name: "accessibility", screens: { Screens(preview: [macBook(), lenovo()]) }, keys: { Keys(preview: true) }),
+  // Every control under the pointer at once: pills, slider, switches, link, Quit. In hover-off the
+  // MacBook's Turn off is the only screen on, so it stays plain (disabled).
+  Fixture(name: "hover", screens: { Screens(preview: [macBook(), lenovo()]) }, keys: { Keys(preview: true) }, hover: true),
+  Fixture(name: "hover-off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }, hover: true),
 ]
 
 let appearances: [(String, NSAppearance.Name)] = [("light", .aqua), ("dark", .darkAqua)]
@@ -76,7 +82,8 @@ MainActor.assumeIsolated {
     for (label, appearance) in appearances {
       let url = out.appendingPathComponent("\(fixture.name)-\(label).png")
       do {
-        try render(PopoverView(screens: fixture.screens(), keys: fixture.keys()), appearance: appearance, to: url)
+        try render(PopoverView(screens: fixture.screens(), keys: fixture.keys()).environment(\.hoverPreview, fixture.hover),
+                   appearance: appearance, to: url)
         print("rendered \(url.path)")
       } catch {
         print("failed \(url.path): \(error)")

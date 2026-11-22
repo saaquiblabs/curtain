@@ -74,3 +74,5 @@ test:
 	build/test-brightness-echo
 	$(SWIFTC) $(FLAGS) Sources/QuitNote.swift Tests/quit-note/main.swift -o build/test-quit-note
 	build/test-quit-note
+	$(SWIFTC) $(FLAGS) Sources/Pointer.swift Tests/pointer/main.swift -o build/test-pointer
+	build/test-pointer

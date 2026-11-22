@@ -65,17 +65,24 @@ enum Theme {
   static let pill = dynamic(rgb(0xFFFFFF, 0.7), rgb(0xFFFFFF, 0.04))
   static let pillText = text
   static let pillEdge = dynamic(rgb(ink, 0.16), rgb(0xFFFFFF, 0.2), contrastLight: rgb(ink, 0.6), contrastDark: rgb(0xFFFFFF, 0.6))
-  static let pillHover = dynamic(rgb(0xF1F3F9), rgb(afterglow, 0.12))
+  /// Under the pointer the ghost pill takes on the accent: a sheer dusk (or afterglow) fill, an
+  /// accent outline and accent text, so it's plain at a glance that it will respond (#10).
+  static let pillHover = dynamic(rgb(0xE2E7F4), rgb(afterglow, 0.2), contrastLight: rgb(0xD5DCEE))
+  static let pillEdgeHover = dynamic(rgb(duskBlue, 0.6), rgb(afterglow, 0.6), contrastLight: rgb(duskBlueDeep), contrastDark: rgb(afterglowLight))
+  static let pillTextHover = dynamic(rgb(duskBlueDeep), rgb(afterglowLight), contrastLight: rgb(0x34437A))
   static let pillShadow = Shadow(color: dynamic(rgb(0x283450, 0.10), rgb(0x000000, 0.3)), radius: 2, y: 1)
   /// Solid pill (Turn on): glows in the accent colour.
   static let solidPill = accent
   static let solidPillHover = dynamic(rgb(duskBlueDeep), rgb(afterglowLight))
   static let solidPillText = dynamic(rgb(0xFFFFFF), rgb(twilight))
   static let solidPillGlow = Shadow(color: dynamic(rgb(duskBlue, 0.45), rgb(afterglow, 0.4)), radius: 6, y: 2)
+  static let solidPillGlowHover = Shadow(color: dynamic(rgb(duskBlue, 0.7), rgb(afterglow, 0.65)), radius: 10, y: 3)
 
   /// Brightness slider: the track, the sheer fill (a gradient with a faint weave and a soft
   /// edge), the sun, and the percentage beside or on the fill.
   static let track = dynamic(rgb(ink, 0.07), rgb(0xFFFFFF, 0.07), contrastLight: rgb(ink, 0.16), contrastDark: rgb(0xFFFFFF, 0.16))
+  /// Under the pointer the track deepens and the knob lifts and grows a little.
+  static let trackHover = dynamic(rgb(ink, 0.12), rgb(0xFFFFFF, 0.12), contrastLight: rgb(ink, 0.24), contrastDark: rgb(0xFFFFFF, 0.24))
   static let fill = [dynamic(rgb(duskBlue, 0.32), rgb(afterglow, 0.3), contrastLight: rgb(duskBlue, 0.5)),
                      dynamic(rgb(duskBlue, 0.58), rgb(afterglow, 0.62), contrastLight: rgb(duskBlue, 0.8))]
   static let fillWeave = dynamic(rgb(0xFFFFFF, 0.18), rgb(0xFFFFFF, 0.12))
@@ -93,6 +100,10 @@ enum Theme {
   /// (Proportions ported from najmushsaaquib.com's prototype switch.)
   static let switchOff = dynamic(rgb(ink, 0.14), rgb(0xFFFFFF, 0.16))
   static let switchOn = accent
+  /// Under the pointer: the track deepens (off) or brightens (on), the glow and knob shadow grow.
+  static let switchOffHover = dynamic(rgb(ink, 0.24), rgb(0xFFFFFF, 0.26))
+  static let switchOnHover = solidPillHover
+  static let switchGlowHover = Shadow(color: dynamic(rgb(duskBlue, 0.6), rgb(afterglow, 0.55)), radius: 8, y: 2)
   static let switchEdge = rowEdge
   static let switchGlow = Shadow(color: dynamic(rgb(duskBlue, 0.4), rgb(afterglow, 0.35)), radius: 5, y: 1)
   static let knob = Color(nsColor: rgb(0xFFFFFF))
@@ -109,6 +120,9 @@ enum Theme {
   /// The stitched thread between sections.
   static let thread = textFaint
   static let threadOpacity = 0.55
+
+  /// Quit, under the pointer: full-strength text on a faint pill.
+  static let quitHover = dynamic(rgb(ink, 0.08), rgb(0xFFFFFF, 0.1))
 
   /// Links (the Accessibility notice).
   static let link = dynamic(rgb(duskBlueDeep), rgb(afterglowLight), contrastLight: rgb(0x34437A))
@@ -147,6 +161,7 @@ enum Theme {
     static let weaveStep: CGFloat = 3       // panel weave: a 1 pt thread every 3 pt, both ways
     static let fillWeaveStep: CGFloat = 9   // slider fill: a 2 pt thread every 9 pt
     static let sliderKnobInset: CGFloat = 2.5 // the slider's knob sits this far inside the track
+    static let knobHoverScale: CGFloat = 1.08 // the slider's knob grows this much under the pointer
     static let percentRoom: CGFloat = 52      // the percentage moves onto the fill when the knob gets this close to the end
     static let percentGap: CGFloat = 10
     static let sunScale: ClosedRange<CGFloat> = 0.85...1.15 // the sun grows as the screen brightens
