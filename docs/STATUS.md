@@ -69,7 +69,12 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   first-time install made the certificate inside the sandbox with no prompt; install and upgrade
   (0.2.2 → 0.2.3, local tarballs) gave the same designated requirement as `make app`; after the
   upgrade Curtain was reopened and still trusted (its event tap was live); uninstall quit it and
-  left nothing running or in /Applications; Spotlight finds /Applications/Curtain.app. Bumping a
+  left nothing running or in /Applications; Spotlight finds /Applications/Curtain.app. **Since 0.4.2
+  (#37):** on macOS 26 `codesign --keychain` finds no identity unless that keychain is also on
+  the user's search list (`~/Library/Preferences/com.apple.security.plist`); the script adds it,
+  and the cask runs `Tools/signing-identity.sh` as its own first step with that folder writable
+  (inside `make`'s sandbox the write silently does nothing). Verified on a MacBook Pro, macOS 26.6:
+  brew install from a local 0.4.2 tarball with the keychain off the list. Bumping a
   version: new tag, then `version` and `sha256` in the cask. **From 0.4.1 `make app` builds
   `build/app.noindex/Curtain.app`** (Spotlight skips `.noindex` folders, so only
   /Applications/Curtain.app shows): the cask's `app` line points there from 0.4.1.

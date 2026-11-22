@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2 — 2026-11-22
+
+- **Fix: installing failed on some Macs with "Curtain Local Signing: no identity found".** On
+  macOS 26, `codesign` only finds Curtain's signing certificate when its keychain is on your
+  keychain search list, and Curtain never put it there, so `brew install` and `make app` stopped
+  at signing. `Tools/signing-identity.sh` now adds it (keeping your other keychains), so it shows
+  in Keychain Access as curtain-signing. The certificate and the Accessibility permission are
+  unchanged (#37).
+
 ## 0.4.1 — 2026-11-22
 
 - **Spotlight shows one Curtain.** `make app` now builds into `build/app.noindex/`, a folder
