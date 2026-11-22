@@ -12,7 +12,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   (labelled buttons, hover hints, the screen's state written in its row). Premium, its own
   identity: Linen & Dusk (owner's pick on #3), built into the menu in #4. Every colour, font
   role, radius, surface and timing lives in `Sources/Theme.swift`; `make theme-check` fails if a
-  view picks its own. Custom fonts (Newsreader, Manrope) come in #5; release 0.3.0 in #6.
+  view picks its own. Custom fonts (Newsreader Italic wordmark, Manrope everything else) are bundled in
+  `Resources/Fonts` and registered at launch by `Sources/Fonts.swift` (#5; system font fallback,
+  logged once; `make test` and `make renders` fail if a role misses its real face); release 0.3.0 in #6.
 - Small steps, one release each, each with a CHANGELOG entry.
 
 ## Decisions made (candidates for ADRs)
