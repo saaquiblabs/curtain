@@ -47,8 +47,8 @@ func drawMenu(_ menu: NSImage, at origin: NSPoint, scale: CGFloat) {
   NSGraphicsContext.restoreGraphicsState()
 }
 // The menu pictures are 372x423 points; day behind, night in front and lower.
-drawMenu(day, at: NSPoint(x: 640, y: 150), scale: 1.0)
-drawMenu(night, at: NSPoint(x: 860, y: 40), scale: 1.0)
+drawMenu(day, at: NSPoint(x: 660, y: 112), scale: 0.88)  // 0.88: the desk map made the menu taller (#24)
+drawMenu(night, at: NSPoint(x: 880, y: 28), scale: 0.88)
 
 icon.draw(in: NSRect(x: 72, y: 340, width: 180, height: 180))
 

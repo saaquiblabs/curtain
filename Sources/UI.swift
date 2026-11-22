@@ -1,4 +1,4 @@
-// The menu bar popover: one row per screen, three switches, nothing else.
+// The menu bar popover: the desk map (Sources/DeskMap.swift), one row per screen, three switches.
 // Its whole look comes from Theme (Linen & Dusk): colours, fonts, shapes, surface and timings.
 // Layout (spacing, padding) still lives here; `make theme-check` guards the rest.
 
@@ -11,13 +11,17 @@ struct PopoverView: View {
   @ObservedObject var keys: Keys
   /// Set by the app as the menu opens, so its content can come into focus.
   @ObservedObject var presence = MenuPresence()
+  /// Which screen's tile or row is under the pointer (`make renders` sets one to show it lit).
+  @ObservedObject var lit = LitScreen()
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
+    let mapShown = screens.all.count > 1
     VStack(alignment: .leading, spacing: 14) {
       header
+      if mapShown { DeskMap(screens: screens, lit: lit) }
       VStack(spacing: 10) {
-        ForEach(screens.all) { ScreenRow(screen: $0, screens: screens) }
+        ForEach(screens.all) { ScreenRow(screen: $0, screens: screens, lit: lit, linked: mapShown) }
       }
       if let notice = screens.notice {
         HStack(alignment: .top, spacing: 6) {
@@ -265,7 +269,10 @@ private struct CursorArea: NSViewRepresentable {
 struct ScreenRow: View {
   @ObservedObject var screen: Screen
   @ObservedObject var screens: Screens
-  @StateObject private var hover = Hover()
+  /// The screen lit on the desk map; this row lights up with its tile.
+  @ObservedObject var lit: LitScreen
+  /// Whether there's a map to light up with (two screens or more).
+  var linked: Bool
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
@@ -328,58 +335,22 @@ struct ScreenRow: View {
     .padding(12)
     .background(
       ZStack {
-        shape.fill(hover.isHovered ? Theme.rowHover : Theme.row)
-          .shadow(hover.isHovered ? Theme.rowShadowHover : Theme.rowShadow)
-        DrawnCurtain(drawn: screen.isOff, reduceMotion: reduceMotion).clipShape(shape)
+        shape.fill(isLit ? Theme.rowHover : Theme.row)
+          .shadow(isLit ? Theme.rowShadowHover : Theme.rowShadow)
+        Drapes(drawn: screen.isOff, reduceMotion: reduceMotion).clipShape(shape)
       }
     )
-    .overlay(shape.strokeBorder(Theme.rowEdge, lineWidth: 1))
-    .onHover { hover.isHovered = $0 }
-    .animation(Theme.Motion.rowHover, value: hover.isHovered)
+    .overlay(shape.strokeBorder(isLit && linked ? Theme.rowEdgeLit : Theme.rowEdge, lineWidth: 1))
+    .onHover { lit.hover(screen.id, $0) }
+    .animation(Theme.Motion.rowHover, value: isLit)
     .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.swap, value: screen.isOff)
   }
 
+  /// Under the pointer, or its tile is.
+  private var isLit: Bool { lit.id == screen.id }
+
   private var otherName: String {
     screens.all.first { $0.id != screen.id && !$0.isOff }?.name ?? "your other screen"
-  }
-}
-
-/// The curtain across a row that's off: pleated linen that spreads out from the left edge, its
-/// folds opening as it goes, and gathers back when the screen comes on (a fade with Reduce
-/// Motion). Drawn as one flattened layer so it moves smoothly.
-struct DrawnCurtain: View {
-  var drawn: Bool
-  var reduceMotion: Bool
-
-  var body: some View {
-    GeometryReader { geo in
-      Pleats()
-        .drawingGroup()
-        .scaleEffect(x: drawn || reduceMotion ? 1 : Theme.Size.gathered / max(1, geo.size.width), anchor: .leading)
-        .shadow(Theme.curtainShadow)
-        .opacity(drawn ? 1 : reduceMotion ? 0 : Theme.gatheredOpacity)
-    }
-    .allowsHitTesting(false)
-    .accessibilityHidden(true)
-    .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.veil, value: drawn)
-  }
-
-  /// Folds side by side, each lit on its left and shaded on its right.
-  private struct Pleats: View {
-    var body: some View {
-      GeometryReader { geo in
-        HStack(spacing: 0) {
-          ForEach(0..<Int((geo.size.width / Theme.Size.folds.min()!).rounded(.up)), id: \.self) { index in
-            Rectangle()
-              .fill(LinearGradient(colors: [Theme.pleatDark, Theme.pleatLight, Theme.pleatLight, Theme.pleatDark],
-                                   startPoint: .leading, endPoint: .trailing))
-              .frame(width: Theme.Size.folds[index % Theme.Size.folds.count])
-          }
-        }
-        .frame(width: geo.size.width, height: geo.size.height, alignment: .leading)
-        .clipped()
-      }
-    }
   }
 }
 

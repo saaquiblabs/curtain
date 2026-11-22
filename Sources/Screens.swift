@@ -36,6 +36,10 @@ final class Screen: ObservableObject, Identifiable {
   /// Quick off: black and covered, still connected.
   @Published var blackedOut = false
   var isOff: Bool { curtained || blackedOut }
+  /// Where it sits in the desk arrangement (CGDisplayBounds, points), for the desk map (#24).
+  /// While it's unplugged macOS no longer lists it, so its last place is kept, moving along with
+  /// the screens that stayed.
+  @Published var bounds: CGRect = .zero
 
   fileprivate init(id: CGDirectDisplayID, uuid: String, name: String, isBuiltin: Bool, control: Control, ddc: CFTypeRef?) {
     self.id = id; self.uuid = uuid; self.name = name; self.isBuiltin = isBuiltin; self.control = control; self.ddc = ddc
@@ -45,13 +49,14 @@ final class Screen: ObservableObject, Identifiable {
 
   /// A made-up screen for drawing the menu (Tools/render-menu). Not connected to any display.
   static func preview(name: String, isBuiltin: Bool, control: Control, brightness: Double,
-                      blackedOut: Bool = false, curtained: Bool = false) -> Screen {
+                      blackedOut: Bool = false, curtained: Bool = false, bounds: CGRect = .zero) -> Screen {
     previews += 1
     let screen = Screen(id: CGDirectDisplayID(0xC0DE_0000 + previews), uuid: "preview-\(previews)", name: name,
                         isBuiltin: isBuiltin, control: control, ddc: nil)
     screen.brightness = brightness
     screen.blackedOut = blackedOut
     screen.curtained = curtained
+    screen.bounds = bounds
     return screen
   }
 
@@ -165,9 +170,18 @@ final class Screens: ObservableObject {
     hearing.formIntersection(online + Array(offScreens.keys)) // a screen that comes back is heard afresh
     let existing = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     let ddc = DDC.services(for: online.filter { CGDisplayIsBuiltin($0) == 0 && existing[$0] == nil })
+    // macOS moves the origin when the main screen goes: unplugged screens' last places move with
+    // a screen that stayed, so their outlines keep their side on the desk map.
+    if let anchor = online.lazy.compactMap({ existing[$0] }).first(where: { !$0.bounds.isEmpty }) {
+      let now = CGDisplayBounds(anchor.id)
+      for (id, screen) in offScreens where !online.contains(id) {
+        screen.bounds = DeskLayout.moved(screen.bounds, anchorWas: anchor.bounds, anchorIs: now)
+      }
+    }
     var screens: [Screen] = []
     for id in online {
       if let screen = existing[id] {
+        screen.bounds = CGDisplayBounds(id)
         screen.curtained = false
         // Display changes can reset colour curves and move screens: put dimming and covers back.
         if fades[id] == nil { applyGamma(screen) }
@@ -192,6 +206,7 @@ final class Screens: ObservableObject {
     let ignoresDDC = defaults.bool(forKey: "ddcIgnored.\(Self.uuid(id))")
     let control: Screen.Control = apple ? .apple : (ddc != nil && !ignoresDDC ? .ddc : .software)
     let screen = Screen(id: id, uuid: Self.uuid(id), name: Self.name(id), isBuiltin: builtin, control: control, ddc: ddc)
+    screen.bounds = CGDisplayBounds(id)
     switch control {
     case .apple:
       readBrightness(screen)

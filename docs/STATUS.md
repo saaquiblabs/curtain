@@ -93,6 +93,14 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   pointer. Which cursor is `Sources/Pointer.swift` (tested in `make test`): hand only when
   clickable and enabled.
 
+- **The desk map** (#24, 0.4.0, owner's pick on #23): bezelled monitors with drapes from both
+  sides, above the rows, shown with two screens or more. Tiles come from `Screen.bounds`
+  (`CGDisplayBounds`), laid out by `Sources/DeskLayout.swift` (whole desk fitted into 340 × 90 pt,
+  6 pt gaps; tested). An unplugged screen keeps its last bounds, moved along with a screen that
+  stayed when macOS shifts the origin (not yet watched on a real unplug). The rows' curtain is the
+  same two-sided drapes; drapes take 720 ms, the one motion over 250 ms. Tile ↔ row lighting goes
+  through `LitScreen`. Hover previews on tiles are #26, not here.
+
 ## Learned the hard way (keep)
 - The owner's Lenovo answers DDC reads but ignores every write (brightness, contrast); likely
   the HDMI↔USB-C cable. Owner hasn't checked the monitor's DDC/CI menu yet. A USB-C↔USB-C
@@ -144,7 +152,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
    each tile glowing with its brightness and a curtain sliding over it when off; verbs on every
    button; hover shows the result; "Turn back on" banner after turning off. Planned with the
    owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22, done:
-   owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23, done: owner picked bezelled monitors with drapes from both sides, the same drapes on the rows, drapes 720 ms as the one exception to the 250 ms rule; page linked on #23), desk map (#24, 0.4.0), Disconnect as its own
+   owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23, done: owner picked bezelled monitors with drapes from both sides, the same drapes on the rows, drapes 720 ms as the one exception to the 250 ms rule; page linked on #23), desk map (#24, 0.4.0, built), Disconnect as its own
    button (#25), hover results (#26), Turn back on banner (#27). Decisions are on #20.
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.

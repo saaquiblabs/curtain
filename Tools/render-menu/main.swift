@@ -14,20 +14,29 @@ struct Fixture {
   var hover = false
   /// Draw Increase Contrast's colours (#6).
   var contrast = false
+  /// Light up this screen's tile and row on the desk map, as the pointer over either does (#24).
+  var lit: ((Screens) -> Screen?)? = nil
 }
 
+// The owner's desk as macOS arranges it (CGDisplayBounds, points): the L27h-4A on the left, the
+// MacBook to its right, 198 points lower. Curtain names the built-in screen "MacBook".
 func macBook(_ brightness: Double = 0.72) -> Screen {
-  .preview(name: "Built-in Retina Display", isBuiltin: true, control: .apple, brightness: brightness)
+  .preview(name: "MacBook", isBuiltin: true, control: .apple, brightness: brightness,
+           bounds: CGRect(x: 2560, y: 198, width: 1710, height: 1112))
 }
 
 func lenovo(control: Screen.Control = .ddc, brightness: Double = 0.45, blackedOut: Bool = false, curtained: Bool = false) -> Screen {
   .preview(name: "L27h-4A", isBuiltin: false, control: control, brightness: brightness,
-           blackedOut: blackedOut, curtained: curtained)
+           blackedOut: blackedOut, curtained: curtained, bounds: CGRect(x: 0, y: 0, width: 2560, height: 1440))
 }
 
 let fixtures: [Fixture] = [
+  // The desk map (#24) shows in every state with two screens: both on, one off (drapes), one
+  // unplugged (a dashed outline). The MacBook alone has no map.
   Fixture(name: "on", screens: { Screens(preview: [macBook(), lenovo()]) }),
-  // The MacBook alone, as after the Lenovo is unplugged: the panel fits one row (#21).
+  // The pointer over the Lenovo's tile (or its row): both light up.
+  Fixture(name: "lit", screens: { Screens(preview: [macBook(), lenovo()]) }, lit: { $0.all.last }),
+  // The MacBook alone, as after the Lenovo is unplugged: the panel fits one row (#21), no map.
   Fixture(name: "one-screen", screens: { Screens(preview: [macBook()]) }),
   Fixture(name: "software", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) }),
   Fixture(name: "software-full", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 1)]) }),
@@ -42,6 +51,7 @@ let fixtures: [Fixture] = [
   Fixture(name: "contrast-on", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) },
           keys: { Keys(preview: true) }, contrast: true),
   Fixture(name: "contrast-off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }, contrast: true),
+  Fixture(name: "contrast-unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }, contrast: true),
 ]
 
 let appearances: [(String, NSAppearance.Name)] = [("light", .aqua), ("dark", .darkAqua)]
@@ -147,7 +157,9 @@ MainActor.assumeIsolated {
       let url = out.appendingPathComponent("\(fixture.name)-\(label).png")
       Theme.previewIncreaseContrast = fixture.contrast
       do {
-        try render(PopoverView(screens: fixture.screens(), keys: fixture.keys()).environment(\.hoverPreview, fixture.hover),
+        let screens = fixture.screens(), lit = LitScreen()
+        lit.id = fixture.lit?(screens)?.id
+        try render(PopoverView(screens: screens, keys: fixture.keys(), lit: lit).environment(\.hoverPreview, fixture.hover),
                    appearance: appearance, to: url,
                    spoken: label == "light" && !fixture.hover && !fixture.contrast ? out.appendingPathComponent("\(fixture.name)-voiceover.txt") : nil)
         print("rendered \(url.path)")

@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.4.0 — 2026-11-22
+
+The first part of step 3, a menu you understand by looking (#20).
+
+- **A map of your desk above the rows.** With two screens or more, the menu opens on a small
+  drawing of them, placed and sized as macOS arranges them (System Settings → Displays), the
+  whole desk fitted into 340 × 90 points: each monitor drawn with its dark bezel and stand, the
+  MacBook on its keyboard deck, its name underneath (`Sources/DeskMap.swift`). Each screen's
+  wallpaper is as bright as the screen and glows on the cloth; drapes close over a screen that's
+  off; an unplugged screen leaves only a dashed outline, in the place it had. Hovering a tile
+  lights up its row and the other way round; clicking a tile does nothing. With one screen there's
+  no map. VoiceOver reads the map as one line, left to right: "L27h-4A on, MacBook off". The
+  owner picked the look from four mock-ups on #23 (bezelled monitors, drapes from both sides) (#24).
+- **The same drapes on the rows.** A row that's off used to get one curtain drawn from the left;
+  now two drapes close from both sides and meet in the middle, as on the map. They take 720 ms
+  with a gentle start and a soft landing: slower than everything else in the menu (under 250 ms),
+  by the owner's choice. With Reduce Motion they fade instead.
+- Where each tile goes is plain geometry from the screens' bounds (`Sources/DeskLayout.swift`),
+  tested in `make test`: the owner's desk, a monitor left of and above the main screen, three
+  monitors too wide for the panel, two stacked screens, and an unplugged screen keeping its side
+  when macOS moves the others. `make renders` draws the map both on, one off, one unplugged, one
+  lit, with Increase Contrast, and the one-screen menu without it, plus the VoiceOver line.
+
 ## 0.3.1 — 2026-11-22
 
 - **The menu fits one screen after a monitor goes, even while it was closed.** On 0.3.0, unplug

@@ -78,7 +78,7 @@ screenshots: renders
 # The menu's look lives only in Sources/Theme.swift: fail if a view picks its own colour, font,
 # corner radius or timing.
 theme-check:
-	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/main.swift Sources/MenuPanel.swift \
+	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/DeskMap.swift Sources/main.swift Sources/MenuPanel.swift \
 	  || { echo "theme-check: visual values above belong in Sources/Theme.swift"; exit 1; }
 
 # Logic tests: plain executables built with only the sources they check. Touch no display (the
@@ -101,6 +101,8 @@ test:
 	build/test-fonts
 	$(SWIFTC) $(FLAGS) Sources/Wording.swift Tests/wording/main.swift -o build/test-wording
 	build/test-wording
+	$(SWIFTC) $(FLAGS) Sources/DeskLayout.swift Tests/desk-layout/main.swift -o build/test-desk-layout
+	build/test-desk-layout
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/menu-panel/main.swift -o build/test-menu-panel
 	build/test-menu-panel
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/never-dark/main.swift -o build/test-never-dark

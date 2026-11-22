@@ -1,7 +1,8 @@
 // Curtain's look: Linen & Dusk (the owner's pick on issue #3; see docs/identity/directions.html).
 // Every colour, shape, surface and motion the menu uses comes from here; the views read nothing
 // else. Follows macOS: frosted linen with dusk blue by day, twilight with afterglow at night.
-// Increase Contrast strengthens text and edges in both.
+// Increase Contrast strengthens text and edges in both. The desk map (#24) is drawn from the
+// owner's pick on #23: bezelled monitors with drapes from both sides.
 
 import AppKit
 import SwiftUI
@@ -114,12 +115,44 @@ enum Theme {
   static let knobShadow = Shadow(color: Color(nsColor: rgb(0x000000, 0.28)), radius: 2.5, y: 1.5)
   static let knobShadowHover = Shadow(color: Color(nsColor: rgb(0x000000, 0.4)), radius: 4, y: 2)
 
-  /// The curtain drawn across a row that's off: pleated linen, each fold lit on one side and
-  /// shaded on the other, with a shadow from its leading edge while it moves.
+  /// The drapes drawn across a screen that's off, on its row and its tile: pleated linen, each
+  /// fold lit on one side and shaded on the other, two panels that meet in the middle, each with a
+  /// shadow from its leading edge.
   static let pleatLight = dynamic(rgb(0xEEF1F8, 0.97), rgb(0x40476A, 0.96))
   static let pleatDark = dynamic(rgb(sheer, 0.97), rgb(0x232840, 0.96))
-  static let gatheredOpacity = 0.0
-  static let curtainShadow = Shadow(color: dynamic(rgb(0x283450, 0.25), rgb(0x000000, 0.5)), radius: 5, y: 0)
+  static let curtainShadow = Shadow(color: dynamic(rgb(0x283450, 0.25), rgb(0x000000, 0.5)), radius: 5, y: 0, x: 4)
+  /// The smaller drapes on a tile cast a smaller shadow.
+  static let tileCurtainShadow = Shadow(color: dynamic(rgb(0x283450, 0.25), rgb(0x000000, 0.5)), radius: 2, y: 0, x: 2)
+
+  /// The desk map (#24): each screen drawn as a monitor, a dark bezel around a dusk wallpaper
+  /// (afterglow at night), the monitor on a stand, the MacBook on its keyboard deck.
+  static let bezel = dynamic(rgb(ink), rgb(0x10131C), contrastLight: rgb(0x14171E), contrastDark: rgb(0x05070C))
+  static let bezelEdge = dynamic(rgb(0xFFFFFF, 0), rgb(0xFFFFFF, 0.14), contrastDark: rgb(0xFFFFFF, 0.45))
+  static let deck = dynamic(rgb(0xC3C8D4), rgb(0x4A5068), contrastLight: rgb(0x8E95A6), contrastDark: rgb(0x7C84A0))
+  static let deckNotch = Color(nsColor: rgb(0x000000, 0.18))
+  static let wallpaper = [dynamic(rgb(0xE6EBF6), rgb(0xF6D8B8)), dynamic(rgb(0xA9B6DA), rgb(0xC79A92)),
+                          dynamic(rgb(duskBlue), rgb(0x4B4F78))]
+  /// The wallpaper's gradient runs at 160°: from near the top, a little right, to near the bottom.
+  static let wallpaperStart = UnitPoint(x: 0.33, y: 0.03), wallpaperEnd = UnitPoint(x: 0.67, y: 0.97)
+  /// Light catching the top of the glass.
+  static let screenSheen = Color(nsColor: rgb(0xFFFFFF, 0.4))
+  /// Brightness dims the wallpaper: black over it, this strong at 0%.
+  static let screenDim = Color(nsColor: rgb(0x000000, 1))
+  static let screenDimMax = 0.82
+  /// ...and its glow on the cloth, in the accent colour, growing with brightness.
+  static func tileGlow(_ glow: Double) -> Shadow {
+    Shadow(color: dynamic(rgb(duskBlue, 0.04 + 0.32 * glow), rgb(afterglow, 0.04 + 0.32 * glow)),
+           radius: 1 + 6 * glow, y: 0)
+  }
+  /// A disconnected screen: only its dashed outline is left.
+  static let tileOutline = dynamic(rgb(ink, 0.38), rgb(0xE9EAF0, 0.34), contrastLight: rgb(ink, 0.75), contrastDark: rgb(0xFFFFFF, 0.7))
+  /// The ring around a tile whose row is under the pointer, and that row's edge while its tile is.
+  static let tileRing = dynamic(rgb(duskBlue, 0.75), rgb(afterglow, 0.8), contrastLight: rgb(duskBlueDeep), contrastDark: rgb(afterglowLight))
+  static let rowEdgeLit = dynamic(rgb(duskBlue, 0.45), rgb(afterglow, 0.45), contrastLight: rgb(duskBlueDeep), contrastDark: rgb(afterglowLight))
+  /// The name under a tile: secondary, full text while lit, faint while disconnected.
+  static let tileName = textSecondary
+  static let tileNameLit = text
+  static let tileNameGone = textFaint
 
   /// The stitched thread between sections.
   static let thread = textFaint
@@ -159,6 +192,11 @@ enum Theme {
     static let panel: CGFloat = 18
     static let row: CGFloat = 14
     static let keycap: CGFloat = 4
+    /// Desk map: a monitor's corners, the MacBook's (rounder lid, square hinge), the glass inside.
+    static let monitor: CGFloat = 5
+    static let laptopTop: CGFloat = 6, laptopBottom: CGFloat = 2
+    static let glass: CGFloat = 2
+    static let deck: CGFloat = 4
   }
 
   enum Size {
@@ -167,7 +205,7 @@ enum Theme {
     static let badge: CGFloat = 24
     static let keycap: CGFloat = 15
     static let switchWidth: CGFloat = 38, switchHeight: CGFloat = 22, knob: CGFloat = 17, knobInset: CGFloat = 2.5
-    static let gathered: CGFloat = 0        // how wide the curtain stays, gathered at the left, while the screen is on
+    static let gathered: CGFloat = 0.001    // how much of each drape stays, gathered at its edge, while the screen is on
     static let folds: [CGFloat] = [15, 19, 13, 17, 14, 20, 16] // curtain pleat widths, repeating: cloth isn't even
     static let weaveStep: CGFloat = 3       // panel weave: a 1 pt thread every 3 pt, both ways
     static let fillWeaveStep: CGFloat = 9   // slider fill: a 2 pt thread every 9 pt
@@ -177,9 +215,25 @@ enum Theme {
     static let percentGap: CGFloat = 10
     static let sunScale: ClosedRange<CGFloat> = 0.85...1.15 // the sun grows as the screen brightens
     static let stitch: [CGFloat] = [3, 4]   // divider: 3 pt stitch, 4 pt gap
+
+    /// Desk map (#24): the whole desk fits this box (the panel's width inside its padding), and
+    /// neighbouring tiles sit this far apart.
+    static let mapWidth: CGFloat = 340, mapHeight: CGFloat = 90, tileGap: CGFloat = 6
+    /// Under the tiles: room for the stand or deck and the name.
+    static let mapFoot: CGFloat = 28
+    static let bezel: CGFloat = 3, laptopChin: CGFloat = 4   // the MacBook's bezel is a touch deeper at the hinge
+    static let sheen: CGFloat = 3                            // the light along the top of the glass
+    static let standWidth: CGFloat = 26, standNeck: CGFloat = 6, standHeight: CGFloat = 9, standFoot: CGFloat = 2.5
+    static let deckHeight: CGFloat = 4, deckOverhang: CGFloat = 0.07 // the keyboard deck reaches 7% past the lid on each side
+    static let deckNotch: CGFloat = 1.5, deckNotchWidth: CGFloat = 0.2
+    static let nameBelowMonitor: CGFloat = 13, nameBelowLaptop: CGFloat = 8
+    static let outlineWidth: CGFloat = 1.5, outlineDash: [CGFloat] = [4, 3]
+    static let ringWidth: CGFloat = 1.5, ringGap: CGFloat = 3
+    static let tileFolds: CGFloat = 0.36   // a tile's pleats are this much narrower than a row's
+    static let drapeOverlap: CGFloat = 0.505 // each drape covers just over half, so they meet with no seam
   }
 
-  // MARK: Motion (all under 250 ms; Reduce Motion swaps movement for a short fade)
+  // MARK: Motion (all under 250 ms but the drapes; Reduce Motion swaps movement for a short fade)
 
   enum Motion {
     /// The menu opens: fades in, drifting down this far.
@@ -193,8 +247,14 @@ enum Theme {
     static let close = 0.15
     static let closeDrift: CGFloat = 4
     static let closeContent = Animation.easeIn(duration: 0.15)
-    /// Turning a screen off or on: the sheer slides across the row.
-    static let veil = Animation.timingCurve(0.22, 1, 0.36, 1, duration: 0.24) // fast start, long soft landing
+    /// Turning a screen off or on: the drapes close from both sides, on its row and its tile. The
+    /// one motion over 250 ms, by the owner's choice on #23: 720 ms, a gentle start, a soft landing.
+    static let drapes = Animation.timingCurve(0.45, 0.05, 0.25, 1, duration: 0.72)
+    /// The drapes appear at once as they start to close, and go once they've opened.
+    static let drapesShow = Animation.linear(duration: 0.01)
+    static let drapesHide = drapesShow.delay(0.71)
+    /// A tile fading to its outline as its screen is unplugged, and back.
+    static let tileGone = Animation.easeOut(duration: 0.2)
     /// The slider glides to a click far from its edge.
     static let slider = Animation.easeOut(duration: 0.12)
     static let sliderJump = 0.08
@@ -218,8 +278,11 @@ enum Theme {
     var color: Color
     var radius: CGFloat
     var y: CGFloat
+    var x: CGFloat = 0
 
     static let none = Shadow(color: .clear, radius: 0, y: 0)
+    /// The same shadow falling the other way (the right-hand drape's).
+    var mirrored: Shadow { Shadow(color: color, radius: radius, y: y, x: -x) }
   }
 
   // MARK: Surface
@@ -243,6 +306,6 @@ enum Theme {
 extension View {
   /// Casts one of Theme's shadows.
   func shadow(_ shadow: Theme.Shadow) -> some View {
-    self.shadow(color: shadow.color, radius: shadow.radius, x: 0, y: shadow.y)
+    self.shadow(color: shadow.color, radius: shadow.radius, x: shadow.x, y: shadow.y)
   }
 }
