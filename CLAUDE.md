@@ -13,6 +13,7 @@ Each chat implements exactly one GitHub issue (usually via `/implement #N`), so 
 - **No new issues while the open ones are being worked down.** The set is capped (under 10). New
   findings go as a comment on the closest open issue, or into that issue's scope; only the owner
   lifts the cap. 2026-11-22: lifted once for step 3 (umbrella #20 + #21–#27).
+  2026-11-22: lifted once more for #29 (critical: never leave every screen black; no v0.3.1 tag until it's fixed).
 - **Every issue sits under an umbrella** as a GitHub sub-issue, never as a loose issue. Umbrella
   today: #20 (Step 3, a menu you understand by looking). Closed: #1 (identity, owner signed off
   2026-11-22) and #6 (Ship 0.3.0).
