@@ -35,35 +35,42 @@ MainActor.assumeIsolated {
 
   let screens = Screens(preview: [macBook(), lenovo()])
   let presence = MenuPresence()
-  let panel = MenuPanel.make(showing: PopoverView(screens: screens, keys: Keys(preview: false), presence: presence),
-                             presence: presence)
+  let panel = MenuPanel.make(screens: screens, keys: Keys(preview: false), presence: presence)
   func height() -> CGFloat { panel.contentLayoutRect.height }
+  func expectFits(_ menu: CGFloat, _ what: String) {
+    expect(abs(height() - menu) < 1, what, "panel \(height()), menu \(menu)")
+  }
   func open() { panel.setFrameTopLeftPoint(NSPoint(x: -10_000, y: -10_000)); panel.orderFrontRegardless(); settle() }
   func close() { panel.orderOut(nil); settle() }
 
   open()
-  expect(abs(height() - two) < 1, "two screens: the panel is as tall as the menu", "panel \(height()), menu \(two)")
+  expectFits(two, "two screens: the panel is as tall as the menu")
 
   // The Lenovo goes while the menu is open: SwiftUI reports the change and the panel shrinks (#4).
   screens.replacePreview(with: [macBook()]); settle()
-  expect(abs(height() - one) < 1, "monitor unplugged while open: the panel shrinks", "panel \(height()), menu \(one)")
+  expectFits(one, "monitor unplugged while open: the panel shrinks")
   screens.replacePreview(with: [macBook(), lenovo()]); settle()
-  expect(abs(height() - two) < 1, "monitor plugged in while open: the panel grows", "panel \(height()), menu \(two)")
+  expectFits(two, "monitor plugged in while open: the panel grows")
 
   // The Lenovo goes while the menu is closed, then the menu opens: the owner's case on 0.3.0,
   // where the panel kept its two-screen height (#21). Checked before any fit().
   close()
   screens.replacePreview(with: [macBook()]); settle()
-  expect(abs(height() - one) < 1, "monitor unplugged while closed: the panel shrinks before opening", "panel \(height()), menu \(one)")
+  expectFits(one, "monitor unplugged while closed: the panel shrinks before opening")
   open()
-  expect(abs(height() - one) < 1, "…and opens fitted", "panel \(height()), menu \(one)")
+  expectFits(one, "…and opens fitted")
   panel.fit() // what the app does on every open
-  expect(abs(height() - one) < 1, "…and fit() on open leaves it fitted", "panel \(height()), menu \(one)")
+  expectFits(one, "…and fit() on open leaves it fitted")
+
+  // fit() on its own corrects a panel left at the wrong height (the app calls it on every open).
+  panel.setContentSize(NSSize(width: panel.contentLayoutRect.width, height: two)); settle()
+  panel.fit()
+  expectFits(one, "fit() shrinks a panel left at the two-screen height")
 
   close()
   screens.replacePreview(with: [macBook(), lenovo()]); settle()
   open()
-  expect(abs(height() - two) < 1, "monitor plugged in while closed: the panel opens fitted", "panel \(height()), menu \(two)")
+  expectFits(two, "monitor plugged in while closed: the panel opens fitted")
 
   // A notice under the rows (a screen that can't be dimmed) comes and goes while closed.
   close()

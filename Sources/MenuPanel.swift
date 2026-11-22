@@ -12,12 +12,12 @@ final class MenuPanel: NSPanel {
   /// The SwiftUI menu inside the glass, and the controller that sizes it. The panel must keep the
   /// controller: freed, its view still grows with the menu but never shrinks, so after a monitor
   /// went the panel kept its two-screen height, bare glass above and below (#21).
-  private var host: NSView!
-  private var controller: NSHostingController<AnyView>!
+  private var controller: NSHostingController<PopoverView>!
+  private var host: NSView { controller.view }
 
-  /// The menu in Theme's glass, sized to fit it.
-  static func make(showing menu: some View, presence: MenuPresence) -> MenuPanel {
-    let controller = NSHostingController(rootView: AnyView(menu))
+  /// The menu for these screens and keys in Theme's glass, sized to fit it.
+  static func make(screens: Screens, keys: Keys, presence: MenuPresence) -> MenuPanel {
+    let controller = NSHostingController(rootView: PopoverView(screens: screens, keys: keys, presence: presence))
     controller.sizingOptions = .preferredContentSize
     let effect = Theme.glass(blending: .behindWindow)
     let host = controller.view
@@ -29,7 +29,6 @@ final class MenuPanel: NSPanel {
     ])
     let panel = MenuPanel(contentRect: NSRect(origin: .zero, size: host.fittingSize),
                           styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-    panel.host = host
     panel.controller = controller
     panel.isOpaque = false
     panel.backgroundColor = .clear
