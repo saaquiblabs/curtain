@@ -23,6 +23,28 @@ enum Wording {
     "\(screen) brightness"
   }
 
+  /// What each row button says it does, under the pointer (#25). `other`: a screen that stays on.
+  static func turnOffHelp(screen: String, onlyOneOn: Bool) -> String {
+    onlyOneOn ? "\(screen) is the only screen on, so it stays on. Turn another screen on first."
+              : "Turn \(screen) black instantly. Windows stay on it."
+  }
+
+  static func disconnectHelp(screen: String, other: String, onlyOneOn: Bool) -> String {
+    onlyOneOn ? "\(screen) is the only screen on, so it stays connected. Turn another screen on first."
+              : "Disconnect \(screen): macOS treats it as unplugged and moves its windows to \(other). Every screen blinks black for a moment."
+  }
+
+  static func turnOnHelp(screen: String) -> String { "Turn \(screen) back on" }
+
+  static func reconnectHelp(screen: String) -> String {
+    "Reconnect \(screen). Every screen blinks black for a moment."
+  }
+
+  /// The line in place of the slider while a screen is off or disconnected.
+  static func offLine(disconnected: Bool, other: String) -> String {
+    disconnected ? "Disconnected. Its windows moved to \(other)." : "Off. Its windows are still there, hidden."
+  }
+
   /// What a screen's tile on the desk map shows.
   enum TileState: String { case on, off, disconnected }
 

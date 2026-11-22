@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// Where Curtain's menu goes when the screen it's open on is turned off (#8).
@@ -19,11 +20,33 @@ enum MenuRefuge {
     return screensOn.first
   }
 
-  /// Whether the pointer jumps to the menu after the menu moved: only when it was left on a screen
-  /// you can't see (or on no known screen), where you'd lose it (#8, #29).
+  /// Whether the pointer jumps to the menu after Turn off moved it: only when it was left on a
+  /// screen you can't see (or on no known screen), where you'd lose it (#8, #29). (Disconnect
+  /// keeps the pointer's spot on the menu instead: `pointer(offset:menu:screen:)`, #25.)
   static func pointerFollows(menuMoved: Bool, pointerOn: UInt32?, screensOn: [UInt32]) -> Bool {
     guard menuMoved else { return false }
     guard let pointerOn else { return true }
     return !screensOn.contains(pointerOn)
+  }
+
+  /// Where the menu's middle sits across a screen when Disconnect takes away its screen (#25,
+  /// owner's pick): 0 at the left edge, 1 at the right, kept as a fraction because macOS moves
+  /// every screen's coordinates when the main screen goes. Screen as (minX, width) of its visible area.
+  static func across(midX: Double, of screen: (minX: Double, width: Double)) -> Double {
+    guard screen.width > 0 else { return 0.5 }
+    return min(max((midX - screen.minX) / screen.width, 0), 1)
+  }
+
+  /// The same place across another screen: left stays left, right stays right.
+  static func sameSpot(midX: Double, from old: (minX: Double, width: Double), to new: (minX: Double, width: Double)) -> Double {
+    new.minX + across(midX: midX, of: old) * new.width
+  }
+
+  /// Where the pointer goes so it keeps its spot on the menu after Disconnect or Reconnect moved
+  /// the menu (#25, owner's pick): the same offset from the menu's top left, kept on the screen.
+  /// AppKit coordinates (y grows upwards); `offset.y` is measured down from the menu's top.
+  static func pointer(offset: CGPoint, menu: CGRect, screen: CGRect) -> CGPoint {
+    CGPoint(x: min(max(menu.minX + offset.x, screen.minX), screen.maxX - 1),
+            y: min(max(menu.maxY - offset.y, screen.minY), screen.maxY - 1))
   }
 }

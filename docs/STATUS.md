@@ -27,12 +27,14 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - **Turn off is the default** way to switch a screen off: gamma fades to 0 in ~0.25 s, a black
   window at shielding level blocks clicks, backlight to 0 (Apple screens / DDC). No display
   rearrangement, so no blink. The pointer can still wander onto it (invisible).
-- **Unplug** (`CGSConfigureDisplayEnabled`) blanked every screen 2–5 s while macOS rearranged,
-  so it was wrapped in a 2 s CGDisplayFade (0.3 s out, 1.2 s hold, 0.5 s in). Behind a
-  right-click on Turn off, monitors only. **Fade test (#22, macOS 27.2, 2026-11-22):** the owner
+- **Disconnect** (`CGSConfigureDisplayEnabled`; called Unplug and hidden behind a right-click on
+  Turn off until #25) blanks every screen 2–5 s while macOS rearranges, so it was wrapped in a 2 s
+  CGDisplayFade (0.3 s out, 1.2 s hold, 0.5 s in). Since #25 (0.5.0) it's its own button on
+  monitor rows (never the MacBook), Reconnect on a disconnected row; `Sources/RowButtons.swift`
+  (tested) says which row gets which. In code the state is still `curtained` / `setCurtain`. **Fade test (#22, macOS 27.2, 2026-11-22):** the owner
   watched Unplug + Reconnect of the Lenovo three ways (today's 2 s fade, no fade, a short fade)
-  and picked the **short fade: 0.15 s out, no hold, 0.15 s in**. Disconnect (#25) uses it.
-- **Never unplug the built-in screen**: macOS treats it as a closed lid and disables the
+  and picked the **short fade: 0.15 s out, no hold, 0.15 s in**. `withFade` uses it since #25.
+- **Never disconnect the built-in screen**: macOS treats it as a closed lid and disables the
   built-in keyboard and trackpad (happened to the owner).
 - **Session-only display changes** (`.forSession`). `.permanently` rewrote macOS's saved display
   arrangement. macOS still touches its display plist on any change, but modes and profiles stay.
@@ -120,7 +122,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - The owner's menu bar is full: a menu bar manager hides Curtain's icon. `open
   build/app.noindex/Curtain.app --args --show` opens the menu at launch.
 - Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
-  on, dimmed in software, dimmed in software at 100%, off, unplugged, Accessibility notice, and
+  on, dimmed in software, dimmed in software at 100%, off, disconnected, Accessibility notice, and
   `hover`/`hover-off` with every control drawn as if under the pointer) into `build/renders/`, touching no
   display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
   initialisers build fake ones. Offscreen capture draws stray ticks on stroked capsules, so
@@ -136,7 +138,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   hand cursor on their desk.
 - Testing behaviour: drive `Screens.shared` from a scratch `main.swift` compiled with every source except
   `main.swift`. Test Turn off on the MacBook screen (no blink on the Lenovo the owner reads on).
-  Only test Unplug with the owner's OK: both screens go black.
+  Only test Disconnect with the owner's OK: both screens go black.
 - From Lost Buttons: an ad-hoc-signed app registered with SMAppService was killed at launch
   after every `brew upgrade` (cdhash pinned). Curtain is signed with a stable certificate and the
   cask keeps it at one path (/Applications/Curtain.app), so "Open at login" should survive
@@ -160,7 +162,8 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
    button; hover shows the result; "Turn back on" banner after turning off. Planned with the
    owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22, done:
    owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23, done: owner picked bezelled monitors with drapes from both sides, the same drapes on the rows, drapes 720 ms as the one exception to the 250 ms rule; page linked on #23), desk map (#24, 0.4.0, built), Disconnect as its own
-   button (#25), hover results (#26), Turn back on banner (#27). Decisions are on #20.
+   button (#25, built for 0.5.0), hover results (#26), Turn back on banner (#27). Decisions are on #20.
+   #25–#27 ship together as 0.5.0 (owner, 2026-11-22, noted on #20).
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.
 6. Release: GitHub release, Homebrew (`saaquiblabs/tap`), listing on saaquiblabs.com.

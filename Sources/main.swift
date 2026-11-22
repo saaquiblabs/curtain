@@ -23,6 +23,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     Keys.shared.start()
     panel = makePanel()
     closeWhenMovingOn()
+    Screens.shared.willReconfigure = { [weak self] id, disconnecting in
+      // macOS takes focus from the menu or switches Space while a screen goes or comes back (the
+      // menu closed on Reconnect in the owner's test): not you moving on, so the menu stays open.
+      self?.holdOpenUntil = ProcessInfo.processInfo.systemUptime + 6 // a monitor takes 2–5 s to wake
+      if disconnecting { self?.rememberHome(leaving: id) }
+    }
 
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     statusItem.button?.action = #selector(toggleMenu)
@@ -56,16 +62,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// hides during it and closes once you pick a window, which brings another app forward.)
   private func closeWhenMovingOn() {
     NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
-      self?.closeMenu(onItsOwn: true)
+      self?.movedOn()
     }
     let workspace = NSWorkspace.shared.notificationCenter
     workspace.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] note in
       let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-      if app?.processIdentifier != ProcessInfo.processInfo.processIdentifier { self?.closeMenu(onItsOwn: true) }
+      if app?.processIdentifier != ProcessInfo.processInfo.processIdentifier { self?.movedOn() }
     }
     workspace.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
-      self?.closeMenu(onItsOwn: true)
+      self?.movedOn()
     }
+  }
+
+  /// Until when the menu ignores focus and Space changes: Disconnect or Reconnect is under way (#25).
+  private var holdOpenUntil: TimeInterval = 0
+
+  /// Focus, app or Space moved on: close, unless Curtain's own Disconnect or Reconnect caused it.
+  /// (A click outside the menu still closes it.)
+  private func movedOn() {
+    guard ProcessInfo.processInfo.systemUptime >= holdOpenUntil else { return }
+    closeMenu(onItsOwn: true)
   }
 
   /// Where the menu was opened: under the click (the icon may sit in a menu bar manager's own
@@ -75,6 +91,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// The display the menu moved to because the screen it was on got turned off (#8). It stays
   /// there, top right under the menu bar, until the menu next opens.
   private var refuge: CGDirectDisplayID?
+  /// How far across the refuge the menu's middle sits when Disconnect moved it (#25), 0 to 1: the
+  /// same spot it had on the screen that went. A fraction, not a point: macOS shifts every screen's
+  /// coordinates when the main screen goes. Nil after Turn off: top right, as before.
+  private var refugeAcross: CGFloat?
+  /// Where the open menu and the pointer were when Disconnect took their screen (#25, owner's
+  /// pick): meanwhile the pointer keeps its spot on the menu, and Reconnect brings both back
+  /// there. `pointer` is measured from the menu's top left (y downwards).
+  private struct Home { var display: CGDirectDisplayID; var across: CGFloat; var pointer: CGPoint }
+  private var home: Home?
+  /// The pointer's spot on the menu, put again once the screens settle: the first move can come
+  /// before macOS shifts every screen's coordinates, which drags the pointer to the far edge.
+  private var pointerSpot: CGPoint?
+
+  /// Disconnect is about to take `id` away: remember the menu's spot on it, and the pointer's.
+  private func rememberHome(leaving id: CGDirectDisplayID) {
+    home = nil
+    guard isOpen, panel.screen?.displayID == id, let visible = panel.screen?.visibleFrame else { return }
+    let frame = panel.frame, mouse = NSEvent.mouseLocation
+    home = Home(display: id, across: MenuRefuge.across(midX: frame.midX, of: (visible.minX, visible.width)),
+                pointer: CGPoint(x: mouse.x - frame.minX, y: frame.maxY - mouse.y))
+  }
 
   /// Just under the menu bar, centred on the anchor, kept inside the screen. Never on a screen
   /// that's turned off: its black cover sits above everything, this menu included, so the menu
@@ -87,6 +124,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// on the black Lenovo (#29).
   private func place() {
     let size = panel.frame.size
+    // Reconnect (#25): the screen Disconnect took is back, so the open menu goes back to its spot
+    // there, the pointer with it. A closed menu just forgets that spot.
+    var returning: CGPoint? // the pointer's spot on the menu, when it goes back
+    if let home, Screens.shared.all.contains(where: { $0.id == home.display && !$0.isOff }),
+       Screens.nsScreen(home.display) != nil {
+      self.home = nil
+      if isOpen { refuge = home.display; refugeAcross = home.across; returning = home.pointer }
+    }
     let topRight = NSPoint(x: CGFloat.greatestFiniteMagnitude, y: 0)
     let underClick = anchor.flatMap { click in NSScreen.screens.first { $0.frame.minX <= click.x && click.x <= $0.frame.maxX } }
     var screen = refuge.flatMap(Screens.nsScreen) ?? underClick ?? NSScreen.main
@@ -97,31 +142,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if let target = MenuRefuge.destination(menuOn: screen?.displayID, screensOn: screensOn, pointerOn: pointerOn,
                                            menuBarOn: NSScreen.screens.first?.displayID),
        let onScreen = Screens.nsScreen(target) {
+      // Disconnect (#25, owner's pick): the menu keeps its spot across the screen. Turn off: top right.
+      let menuOn = screen?.displayID
+      let disconnected = Screens.shared.all.first { $0.id == menuOn }?.curtained ?? false
+      refugeAcross = nil
+      if disconnected, let home, home.display == menuOn {
+        refugeAcross = home.across
+      } else if disconnected, let old = screen?.visibleFrame {
+        refugeAcross = MenuRefuge.across(midX: panel.frame.midX, of: (old.minX, old.width))
+      }
       refuge = target
       screen = onScreen
       point = topRight
       moved = true
     }
     guard let visible = screen?.visibleFrame else { return }
+    if refuge != nil, let across = refugeAcross { point = NSPoint(x: visible.minX + across * visible.width, y: 0) }
     let x = min(max(point.x - size.width / 2, visible.minX + 8), visible.maxX - size.width - 8)
     panel.setFrameTopLeftPoint(NSPoint(x: x, y: visible.maxY - 6))
-    guard isOpen, moved else { return }
+    guard isOpen, moved || returning != nil else { return }
     panel.alphaValue = 0
     fadeIn()
-    if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn) { movePointer(to: panel.frame) }
+    // Disconnect or Reconnect: the pointer keeps its spot on the menu (macOS alone put it at the
+    // far edge of the MacBook). Turn off: it follows the menu only off a black screen (#29).
+    let disconnectSpot = moved && refugeAcross != nil ? home?.pointer : nil
+    if returning != nil { panel.makeKeyAndOrderFront(nil) } // focus taken during the change: Esc works again
+    if let spot = returning ?? disconnectSpot {
+      pointerSpot = spot
+      putPointer(on: spot)
+    } else if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn) {
+      movePointer(to: NSPoint(x: panel.frame.midX, y: panel.frame.midY))
+    }
   }
 
   /// Screens changed: an open menu on a screen that was just turned off moves (place).
   private func leaveTurnedOffScreen() {
-    guard isOpen else { return }
+    guard isOpen else { pointerSpot = nil; return }
     place()
+    if let spot = pointerSpot { pointerSpot = nil; putPointer(on: spot) }
   }
 
-  /// Puts the pointer in the middle of `frame` (AppKit coordinates, origin bottom left of the
-  /// main screen; the pointer is placed in Core Graphics ones, origin top left).
-  private func movePointer(to frame: NSRect) {
+  /// Puts the pointer at `spot` on the menu (measured from its top left), on the menu's screen.
+  private func putPointer(on spot: CGPoint) {
+    guard let onScreen = panel.screen?.frame else { return }
+    movePointer(to: MenuRefuge.pointer(offset: spot, menu: panel.frame, screen: onScreen))
+  }
+
+  /// Puts the pointer at `point` (AppKit coordinates, origin bottom left of the main screen; the
+  /// pointer is placed in Core Graphics ones, origin top left).
+  private func movePointer(to point: NSPoint) {
     guard let mainHeight = NSScreen.screens.first?.frame.maxY else { return }
-    CGWarpMouseCursorPosition(CGPoint(x: frame.midX, y: mainHeight - frame.midY))
+    CGWarpMouseCursorPosition(CGPoint(x: point.x, y: mainHeight - point.y))
     CGAssociateMouseAndMouseCursorPosition(1) // no pause before the pointer moves again
   }
 
@@ -146,6 +217,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func openMenu(at point: NSPoint? = nil) {
     anchor = point
     refuge = nil
+    refugeAcross = nil
     Screens.shared.notice = nil
     panel.fit()
     place()

@@ -3,9 +3,10 @@
 // Two ways to switch a screen off:
 // - Quick off (blackedOut): the screen fades to black in a quarter of a second, a black cover
 //   blocks clicks, and the backlight goes down. Instant, no flash; windows stay where they are.
-// - Unplug (curtained): macOS treats the screen as unplugged, so windows move to another screen
-//   and the monitor sleeps. macOS blanks every screen for a moment while it rearranges them;
-//   Curtain fades out first and back in after, so it reads as a fade rather than a glitch.
+// - Disconnect (curtained; "Unplug" before #25): macOS treats the screen as unplugged, so windows
+//   move to another screen and the monitor sleeps. macOS blanks every screen for a moment while it
+//   rearranges them; Curtain fades out first and back in after (0.15 s each, the owner's pick on
+//   #22), so it reads as a blink rather than a glitch.
 
 import AppKit
 import CoreGraphics
@@ -69,6 +70,10 @@ final class Screens: ObservableObject {
 
   @Published private(set) var all: [Screen] = []
   @Published var notice: String?
+  /// Called just before Disconnect takes a screen away (disconnecting true) or Reconnect brings it
+  /// back (false), with its id, while the menu and pointer are still where you left them (#25:
+  /// the menu remembers that spot for Reconnect, and stays open through the change).
+  var willReconfigure: ((CGDirectDisplayID, _ disconnecting: Bool) -> Void)?
 
   @Published var followMac: Bool { didSet { defaults.set(followMac, forKey: "followMac"); updateFollowTimer() } }
   @Published var openAtLogin: Bool {
@@ -494,7 +499,7 @@ final class Screens: ObservableObject {
       // Unplugging the built-in screen makes macOS act as if the lid were closed: the built-in
       // keyboard and trackpad stop working. Turn off is the safe way to darken it.
       guard !screen.isBuiltin else {
-        notice = "The MacBook screen can't be unplugged: macOS would switch off its keyboard and trackpad. Use Turn off."
+        notice = "The MacBook screen can't be disconnected: macOS would switch off its keyboard and trackpad. Use Turn off."
         return false
       }
       guard screensVisible(excluding: screen.id) > 0 else {
@@ -506,14 +511,16 @@ final class Screens: ObservableObject {
         hideCover(screen.id)
         setBacklight(screen, screen.brightness)
       }
+      willReconfigure?(screen.id, true)
       guard Self.withFade({ Self.configure([screen.id], enabled: false) }) else {
-        notice = "macOS didn't let Curtain unplug \(screen.name)."
+        notice = "macOS didn't let Curtain disconnect \(screen.name)."
         return false
       }
       offScreens[screen.id] = screen
       curtained[screen.uuid] = Int(screen.id)
     } else {
       guard screen.curtained else { return true }
+      willReconfigure?(screen.id, false)
       curtained[screen.uuid] = nil
       offScreens[screen.id] = nil
       _ = Self.withFade { Self.configure([screen.id], enabled: true) }
@@ -598,17 +605,19 @@ final class Screens: ObservableObject {
 
   // MARK: Helpers
 
-  /// Fades every screen to black, runs `change`, holds black while monitors re-sync, then fades
-  /// back in without blocking the app.
+  /// Fades every screen to black, runs `change`, then fades back in without blocking the app:
+  /// 0.15 s out, no hold, 0.15 s in. The owner tried this against the old 0.3 s / 1.2 s hold /
+  /// 0.5 s and no fade at all on #22, and picked it.
+  static let fadeOut: Float = 0.15, fadeIn: Float = 0.15
+
   private static func withFade(_ change: () -> Bool) -> Bool {
     var token: CGDisplayFadeReservationToken = 0
     guard CGAcquireDisplayFadeReservation(5, &token) == .success else { return change() }
     let normal = CGDisplayBlendFraction(kCGDisplayBlendNormal), black = CGDisplayBlendFraction(kCGDisplayBlendSolidColor)
-    CGDisplayFade(token, 0.3, normal, black, 0, 0, 0, 1)
+    CGDisplayFade(token, fadeOut, normal, black, 0, 0, 0, 1)
     let ok = change()
     DispatchQueue.global(qos: .userInteractive).async {
-      usleep(1_200_000)
-      CGDisplayFade(token, 0.5, black, normal, 0, 0, 0, 1)
+      CGDisplayFade(token, fadeIn, black, normal, 0, 0, 0, 1)
       CGReleaseDisplayFadeReservation(token)
       DispatchQueue.main.async { Screens.shared.refresh() } // the fade restores curves; re-dim
     }

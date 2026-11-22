@@ -32,7 +32,7 @@ func lenovo(control: Screen.Control = .ddc, brightness: Double = 0.45, blackedOu
 
 let fixtures: [Fixture] = [
   // The desk map (#24) shows in every state with two screens: both on, one off (drapes), one
-  // unplugged (a dashed outline). The MacBook alone has no map.
+  // disconnected (a dashed outline; its row offers Reconnect, #25). The MacBook alone has no map.
   Fixture(name: "on", screens: { Screens(preview: [macBook(), lenovo()]) }),
   // The pointer over the Lenovo's tile (or its row): both light up.
   Fixture(name: "lit", screens: { Screens(preview: [macBook(), lenovo()]) }, lit: { $0.all.last }),
@@ -41,7 +41,7 @@ let fixtures: [Fixture] = [
   Fixture(name: "software", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) }),
   Fixture(name: "software-full", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 1)]) }),
   Fixture(name: "off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }),
-  Fixture(name: "unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }),
+  Fixture(name: "disconnected", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }),
   Fixture(name: "accessibility", screens: { Screens(preview: [macBook(), lenovo()]) }, keys: { Keys(preview: true) }),
   // Every control under the pointer at once: pills, slider, switches, link, Quit. In hover-off the
   // MacBook's Turn off is the only screen on, so it stays plain (disabled).
@@ -51,7 +51,7 @@ let fixtures: [Fixture] = [
   Fixture(name: "contrast-on", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) },
           keys: { Keys(preview: true) }, contrast: true),
   Fixture(name: "contrast-off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }, contrast: true),
-  Fixture(name: "contrast-unplugged", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }, contrast: true),
+  Fixture(name: "contrast-disconnected", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }, contrast: true),
 ]
 
 let appearances: [(String, NSAppearance.Name)] = [("light", .aqua), ("dark", .darkAqua)]
