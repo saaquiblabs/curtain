@@ -23,7 +23,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     Keys.shared.start()
     panel = makePanel()
     closeWhenMovingOn()
-    Screens.shared.willDisconnect = { [weak self] id in self?.rememberHome(leaving: id) }
+    Screens.shared.willReconfigure = { [weak self] id, disconnecting in
+      // macOS takes focus from the menu or switches Space while a screen goes or comes back (the
+      // menu closed on Reconnect in the owner's test): not you moving on, so the menu stays open.
+      self?.holdOpenUntil = ProcessInfo.processInfo.systemUptime + 6 // a monitor takes 2–5 s to wake
+      if disconnecting { self?.rememberHome(leaving: id) }
+    }
 
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     statusItem.button?.action = #selector(toggleMenu)
@@ -57,16 +62,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// hides during it and closes once you pick a window, which brings another app forward.)
   private func closeWhenMovingOn() {
     NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
-      self?.closeMenu(onItsOwn: true)
+      self?.movedOn()
     }
     let workspace = NSWorkspace.shared.notificationCenter
     workspace.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] note in
       let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-      if app?.processIdentifier != ProcessInfo.processInfo.processIdentifier { self?.closeMenu(onItsOwn: true) }
+      if app?.processIdentifier != ProcessInfo.processInfo.processIdentifier { self?.movedOn() }
     }
     workspace.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
-      self?.closeMenu(onItsOwn: true)
+      self?.movedOn()
     }
+  }
+
+  /// Until when the menu ignores focus and Space changes: Disconnect or Reconnect is under way (#25).
+  private var holdOpenUntil: TimeInterval = 0
+
+  /// Focus, app or Space moved on: close, unless Curtain's own Disconnect or Reconnect caused it.
+  /// (A click outside the menu still closes it.)
+  private func movedOn() {
+    guard ProcessInfo.processInfo.systemUptime >= holdOpenUntil else { return }
+    closeMenu(onItsOwn: true)
   }
 
   /// Where the menu was opened: under the click (the icon may sit in a menu bar manager's own
@@ -151,6 +166,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // Disconnect or Reconnect: the pointer keeps its spot on the menu (macOS alone put it at the
     // far edge of the MacBook). Turn off: it follows the menu only off a black screen (#29).
     let disconnectSpot = moved && refugeAcross != nil ? home?.pointer : nil
+    if returning != nil { panel.makeKeyAndOrderFront(nil) } // focus taken during the change: Esc works again
     if let spot = returning ?? disconnectSpot {
       pointerSpot = spot
       putPointer(on: spot)

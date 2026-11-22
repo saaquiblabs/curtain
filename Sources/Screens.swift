@@ -70,9 +70,10 @@ final class Screens: ObservableObject {
 
   @Published private(set) var all: [Screen] = []
   @Published var notice: String?
-  /// Called just before Disconnect takes a screen away, with its id, while the menu and pointer
-  /// are still where you left them (#25: the menu remembers that spot for Reconnect).
-  var willDisconnect: ((CGDirectDisplayID) -> Void)?
+  /// Called just before Disconnect takes a screen away (disconnecting true) or Reconnect brings it
+  /// back (false), with its id, while the menu and pointer are still where you left them (#25:
+  /// the menu remembers that spot for Reconnect, and stays open through the change).
+  var willReconfigure: ((CGDirectDisplayID, _ disconnecting: Bool) -> Void)?
 
   @Published var followMac: Bool { didSet { defaults.set(followMac, forKey: "followMac"); updateFollowTimer() } }
   @Published var openAtLogin: Bool {
@@ -510,7 +511,7 @@ final class Screens: ObservableObject {
         hideCover(screen.id)
         setBacklight(screen, screen.brightness)
       }
-      willDisconnect?(screen.id)
+      willReconfigure?(screen.id, true)
       guard Self.withFade({ Self.configure([screen.id], enabled: false) }) else {
         notice = "macOS didn't let Curtain disconnect \(screen.name)."
         return false
@@ -519,6 +520,7 @@ final class Screens: ObservableObject {
       curtained[screen.uuid] = Int(screen.id)
     } else {
       guard screen.curtained else { return true }
+      willReconfigure?(screen.id, false)
       curtained[screen.uuid] = nil
       offScreens[screen.id] = nil
       _ = Self.withFade { Self.configure([screen.id], enabled: true) }
