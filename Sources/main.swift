@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var isOpen = false
 
   func applicationDidFinishLaunching(_: Notification) {
+    Fonts.register(from: Bundle.main.resourceURL?.appendingPathComponent("Fonts")) // before the menu first draws
     Screens.shared.start()
     Keys.shared.start()
     panel = makePanel()

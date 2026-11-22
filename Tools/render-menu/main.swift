@@ -74,6 +74,15 @@ enum RenderError: Error { case bitmap, png }
 
 let out = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? "build/renders", isDirectory: true)
 try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+// The bundled fonts, as the app registers them at launch. The pictures must show the real faces,
+// so a font that falls back fails the run (#5).
+Fonts.register(from: URL(fileURLWithPath: "Resources/Fonts", isDirectory: true))
+for role in Fonts.Role.allCases {
+  guard let font = Fonts.font(role), CTFontCopyFamilyName(font) as String == role.spec.face.family else {
+    print("failed: \(role) didn't resolve to \(role.spec.face.family)"); exit(1)
+  }
+}
+print("fonts: \(Fonts.Role.allCases.count) roles in their bundled faces")
 _ = NSApplication.shared
 NSApp.setActivationPolicy(.prohibited)
 

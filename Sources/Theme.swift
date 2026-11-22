@@ -127,17 +127,24 @@ enum Theme {
   /// Links (the Accessibility notice).
   static let link = dynamic(rgb(duskBlueDeep), rgb(afterglowLight), contrastLight: rgb(0x34437A))
 
-  // MARK: Fonts by role (system font for now; the bundled faces come in #5)
+  // MARK: Fonts by role: Manrope, with Newsreader Italic for the wordmark (Sources/Fonts.swift, #5)
+
+  /// A role's bundled face, or the system font it falls back to if that face didn't load.
+  /// Read only after Fonts.register (the app's launch, the render harness).
+  private static func bundled(_ role: Fonts.Role, fallback: SwiftUI.Font) -> SwiftUI.Font {
+    Fonts.font(role).map(SwiftUI.Font.init) ?? fallback
+  }
 
   enum Font {
-    static let wordmark = SwiftUI.Font.system(size: 18, weight: .regular, design: .serif).italic()
+    static let wordmark = bundled(.wordmark, fallback: .system(size: 18, weight: .regular, design: .serif).italic())
+    static let title = bundled(.title, fallback: .system(size: 13, weight: .semibold))
+    static let body = bundled(.body, fallback: .system(size: 13))
+    static let caption = bundled(.caption, fallback: .system(size: 10))
+    static let button = bundled(.button, fallback: .system(size: 11, weight: .semibold))
+    static let numeric = bundled(.numeric, fallback: .system(size: 11, weight: .semibold).monospacedDigit())
+    static let summary = bundled(.summary, fallback: .system(size: 10).monospacedDigit())
+    // SF Symbols and the ⌃⌥⌘ keycaps stay on the system font: Manrope doesn't draw them.
     static let mark = SwiftUI.Font.system(size: 15, weight: .medium)
-    static let title = SwiftUI.Font.system(size: 13, weight: .medium)
-    static let body = SwiftUI.Font.system(size: 13)
-    static let caption = SwiftUI.Font.system(size: 10)
-    static let button = SwiftUI.Font.system(size: 11, weight: .semibold)
-    static let numeric = SwiftUI.Font.system(size: 11, weight: .semibold).monospacedDigit()
-    static let summary = SwiftUI.Font.system(size: 10).monospacedDigit()
     static let icon = SwiftUI.Font.system(size: 12)
     static let keycap = SwiftUI.Font.system(size: 9.5, weight: .medium)
   }

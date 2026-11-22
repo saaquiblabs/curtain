@@ -11,12 +11,13 @@ build/curtain: Sources/*.swift
 
 # The app bundle: same binary, plus the name and icon macOS shows in the menu bar, Login Items
 # and the Accessibility list.
-app: build/curtain Resources/Info.plist Resources/AppIcon.icns
+app: build/curtain Resources/Info.plist Resources/AppIcon.icns Resources/Fonts/*.ttf
 	rm -rf "$(APP)"
-	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"
+	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources/Fonts"
 	cp build/curtain "$(APP)/Contents/MacOS/curtain"
 	sed 's/@VERSION@/$(VERSION)/g' Resources/Info.plist > "$(APP)/Contents/Info.plist"
 	cp Resources/AppIcon.icns "$(APP)/Contents/Resources/AppIcon.icns"
+	cp Resources/Fonts/*.ttf Resources/Fonts/OFL-*.txt "$(APP)/Contents/Resources/Fonts/" # Manrope, Newsreader Italic and their licences (NOTICE)
 	$(MAKE) sign
 
 # Redraws Resources/AppIcon.icns from Tools/app-icon (only needed when the icon changes; the .icns
@@ -90,3 +91,5 @@ test:
 	build/test-quit-note
 	$(SWIFTC) $(FLAGS) Sources/Pointer.swift Tests/pointer/main.swift -o build/test-pointer
 	build/test-pointer
+	$(SWIFTC) $(FLAGS) Sources/Fonts.swift Tests/fonts/main.swift -o build/test-fonts
+	build/test-fonts

@@ -7,6 +7,11 @@
   you can't use). Under the pointer, Turn off turns dusk blue (afterglow at night), Turn on
   glows brighter, the slider's track deepens and its knob lifts, switches deepen, Quit sits on
   a faint pill (#10).
+- **Curtain's own type**: Manrope for every label, button and caption, Newsreader Italic for the
+  wordmark, bundled inside the app (both OFL, credited in NOTICE) so the menu looks the same on
+  every Mac. Percentages use tabular digits, so they don't jitter while you drag. If a font can't
+  load, that text falls back to the system font and Curtain logs it once. The app grows by about
+  0.7 MB (#5).
 
 ## 0.2.2 — 2026-11-22
 
