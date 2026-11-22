@@ -27,6 +27,8 @@ func lenovo(control: Screen.Control = .ddc, brightness: Double = 0.45, blackedOu
 
 let fixtures: [Fixture] = [
   Fixture(name: "on", screens: { Screens(preview: [macBook(), lenovo()]) }),
+  // The MacBook alone, as after the Lenovo is unplugged: the panel fits one row (#21).
+  Fixture(name: "one-screen", screens: { Screens(preview: [macBook()]) }),
   Fixture(name: "software", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 0.4)]) }),
   Fixture(name: "software-full", screens: { Screens(preview: [macBook(), lenovo(control: .software, brightness: 1)]) }),
   Fixture(name: "off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }),

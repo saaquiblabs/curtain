@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.1 — 2026-11-22
+
+- **The menu fits one screen after a monitor goes, even while it was closed.** On 0.3.0, unplug
+  the Lenovo with the menu closed and the next open kept the two-screen height, with bare glass
+  above and below and the rows floating in the middle. The menu's SwiftUI controller was let go
+  once the panel was built; its view still grew with the menu but never shrank. The panel now
+  keeps it (`Sources/MenuPanel.swift`, moved out of `main.swift`) and fits itself again on every
+  open. `make test` builds the real panel from made-up screens, 10,000 points off every screen,
+  and checks its height against the menu's: two screens, one unplugged while open and while
+  closed, plugged back in, a notice coming and going (#21). `make renders` draws the one-screen
+  menu (`one-screen-light.png`, `one-screen-dark.png`).
+
 ## 0.3.0 — 2026-11-22
 
 Curtain's own identity, Linen & Dusk, finished: frosted linen with dusk blue by day, twilight

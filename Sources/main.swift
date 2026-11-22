@@ -5,13 +5,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-let version = "0.3.0"
-
-/// Curtain's menu: a panel that always opens fully on screen, just under the menu bar.
-/// (NSPopover places itself off-screen when a menu bar manager has moved our icon.)
-final class MenuPanel: NSPanel {
-  override var canBecomeKey: Bool { true }
-}
+let version = "0.3.1"
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: NSStatusItem!
@@ -49,31 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func makePanel() -> MenuPanel {
-    let controller = NSHostingController(rootView: PopoverView(screens: .shared, keys: .shared, presence: presence))
-    controller.sizingOptions = .preferredContentSize
-    let effect = Theme.glass(blending: .behindWindow)
-    let host = controller.view
-    host.translatesAutoresizingMaskIntoConstraints = false
-    effect.addSubview(host)
-    NSLayoutConstraint.activate([
-      host.leadingAnchor.constraint(equalTo: effect.leadingAnchor), host.trailingAnchor.constraint(equalTo: effect.trailingAnchor),
-      host.topAnchor.constraint(equalTo: effect.topAnchor), host.bottomAnchor.constraint(equalTo: effect.bottomAnchor),
-    ])
-    let panel = MenuPanel(contentRect: NSRect(origin: .zero, size: host.fittingSize),
-                          styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-    panel.isOpaque = false
-    panel.backgroundColor = .clear
-    panel.hasShadow = true
-    panel.level = .popUpMenu
-    panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
-    panel.isReleasedWhenClosed = false
-    panel.contentView = effect
-    // The panel fits the menu as its content changes: a monitor unplugged takes its row away and
-    // the panel shrinks with it, instead of leaving bare glass above and below (#4).
-    presence.resized = { [weak panel] size in
-      guard let panel, size.height > 0, panel.contentLayoutRect.size != size else { return }
-      panel.setContentSize(size)
-    }
+    let panel = MenuPanel.make(showing: PopoverView(screens: .shared, keys: .shared, presence: presence), presence: presence)
     // Content grows or shrinks (a notice appears, a row goes): keep the top edge under the menu bar.
     NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: panel, queue: .main) { [weak self] _ in
       self?.place()
@@ -171,6 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     anchor = point
     refuge = nil
     Screens.shared.notice = nil
+    panel.fit() // a size change SwiftUI never reported can't outlive a reopen (#21)
     place()
     // Fades in, drifting down into place (just the fade with Reduce Motion).
     let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
