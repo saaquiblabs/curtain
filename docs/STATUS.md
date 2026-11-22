@@ -144,7 +144,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
    each tile glowing with its brightness and a curtain sliding over it when off; verbs on every
    button; hover shows the result; "Turn back on" banner after turning off. Planned with the
    owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22, done:
-   owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23), desk map (#24, 0.4.0), Disconnect as its own
+   owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23, done: owner picked bezelled monitors with drapes from both sides, the same drapes on the rows, drapes 720 ms as the one exception to the 250 ms rule; page linked on #23), desk map (#24, 0.4.0), Disconnect as its own
    button (#25), hover results (#26), Turn back on banner (#27). Decisions are on #20.
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.
