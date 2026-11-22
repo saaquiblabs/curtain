@@ -70,7 +70,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   (0.2.2 → 0.2.3, local tarballs) gave the same designated requirement as `make app`; after the
   upgrade Curtain was reopened and still trusted (its event tap was live); uninstall quit it and
   left nothing running or in /Applications; Spotlight finds /Applications/Curtain.app. Bumping a
-  version: new tag, then `version` and `sha256` in the cask.
+  version: new tag, then `version` and `sha256` in the cask. **From 0.4.0 `make app` builds
+  `build/app.noindex/Curtain.app`** (Spotlight skips `.noindex` folders, so only
+  /Applications/Curtain.app shows): at the 0.4.0 bump the cask's `app` line must point there too.
 - **Apple screens' rows follow macOS's brightness reports** (#11):
   `DisplayServicesRegisterForBrightnessChangeNotifications` calls back on every change, from any
   process (verified with a second process). Curtain's own writes come back too, late; values it
@@ -111,7 +113,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - Colour profiles were set to the panels' own factory profiles on 2026-11-21 (Lenovo
   "L27h-4A", MacBook "Color LCD"); they had been Display P3 / Adobe RGB overrides.
 - The owner's menu bar is full: a menu bar manager hides Curtain's icon. `open
-  build/Curtain.app --args --show` opens the menu at launch.
+  build/app.noindex/Curtain.app --args --show` opens the menu at launch.
 - Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
   on, dimmed in software, dimmed in software at 100%, off, unplugged, Accessibility notice, and
   `hover`/`hover-off` with every control drawn as if under the pointer) into `build/renders/`, touching no

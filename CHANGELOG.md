@@ -17,6 +17,10 @@ The first part of step 3, a menu you understand by looking (#20).
   now two drapes close from both sides and meet in the middle, as on the map. They take 720 ms
   with a gentle start and a soft landing: slower than everything else in the menu (under 250 ms),
   by the owner's choice. With Reduce Motion they fade instead.
+- **Spotlight shows one Curtain.** `make app` now builds into `build/app.noindex/`, a folder
+  Spotlight skips, so a Mac that builds Curtain from source (or runs `make run` to test) no longer
+  lists a second Curtain.app next to the one in /Applications. The Homebrew cask points at the new
+  path from 0.4.0.
 - Where each tile goes is plain geometry from the screens' bounds (`Sources/DeskLayout.swift`),
   tested in `make test`: the owner's desk, a monitor left of and above the main screen, three
   monitors too wide for the panel, two stacked screens, and an unplugged screen keeping its side

@@ -70,7 +70,7 @@ and opens it again.
 ```bash
 git clone https://github.com/saaquiblabs/curtain.git
 cd curtain
-make app          # builds build/Curtain.app
+make app          # builds build/app.noindex/Curtain.app
 make run          # builds it and opens it
 make install      # copies it to /usr/local (PREFIX=/Applications for Spotlight)
 ```
@@ -101,18 +101,18 @@ tccutil reset Accessibility com.saaquiblabs.curtain     # the Accessibility entr
 defaults delete com.saaquiblabs.curtain                 # its settings
 ```
 
-Built from source? Delete `build/Curtain.app` (or the copy `make install` made), and the signing
+Built from source? Delete `build/app.noindex/Curtain.app` (or the copy `make install` made), and the signing
 keychain `~/Library/Keychains/curtain-signing.keychain-db` if you don't build it again.
 
 ## Build
 
 ```bash
-make app          # build/Curtain.app, signed with the local certificate
+make app          # build/app.noindex/Curtain.app, signed with the local certificate
 make test         # logic tests (touch no display)
 make renders      # pictures of the real menu from made-up screens, in build/renders
 make screenshots  # refreshes docs/screenshots and docs/img/social-preview.png from the renders
 make icon         # redraws Resources/AppIcon.icns from Tools/app-icon
-open build/Curtain.app --args --show   # opens the menu in a floating panel
+open build/app.noindex/Curtain.app --args --show   # opens the menu in a floating panel
 ```
 
 The first `make app` makes a self-signed "Curtain Local Signing" certificate in its own keychain
