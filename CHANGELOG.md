@@ -9,6 +9,10 @@ The rest of step 3, a menu you understand by looking (#20).
   treats the monitor as unplugged and moves its windows to your other screen. A disconnected row
   says so and offers **Reconnect**. The MacBook never gets Disconnect, not even greyed out: macOS
   would switch off its keyboard and trackpad. The right-click menu is gone (#25).
+- **Disconnect keeps your place.** If the menu is open on the screen you disconnect, it moves to
+  the same spot across the screen that's left (left stays left, right stays right), and the pointer
+  stays on the same spot on the menu instead of jumping to the far edge. Reconnect brings both back
+  to where they were, and the menu stays open through the change (#25).
 - **A blink instead of a blackout.** Disconnect, Reconnect and turning everything back on fade
   every screen out for 0.15 s and straight back in for 0.15 s, where they used to fade out for
   0.3 s, hold black for 1.2 s and take 0.5 s to come back. The owner tried all three on the real
