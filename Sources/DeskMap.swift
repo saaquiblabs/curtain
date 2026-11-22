@@ -6,13 +6,33 @@
 
 import SwiftUI
 
-/// The screen whose tile or row is under the pointer, so the other one lights up too.
+/// The screen whose tile or row is under the pointer, so the other one lights up too, and the
+/// control under the pointer, so its tile can show what it would do (#26).
 final class LitScreen: ObservableObject {
   @Published var id: CGDirectDisplayID?
+  @Published var result: HoverResult?
 
   func hover(_ screen: CGDirectDisplayID, _ inside: Bool) {
     if inside { id = screen } else if id == screen { id = nil }
   }
+
+  /// The pointer entered or left a control. Leaving clears only that control's result, so moving
+  /// straight from one button to the next doesn't blank the next one's.
+  func hover(_ control: HoverResult, _ inside: Bool) {
+    if inside { result = control } else if result?.control == control.control { result = nil }
+  }
+}
+
+/// What the control under the pointer would do: shown halfway on its screen's tile (every tile
+/// for Quit), never on a real screen, and said in one line under the map (#26).
+struct HoverResult: Equatable {
+  /// Which control: its screen and its kind, so leaving it clears only its own result.
+  var control: String
+  /// The tile it reaches (nil: Quit, every tile).
+  var screen: CGDirectDisplayID?
+  /// Nil when the control is disabled: the line says why, the tile shows nothing.
+  var preview: TilePreview.Preview?
+  var line: String
 }
 
 struct DeskMap: View {
@@ -53,26 +73,29 @@ private struct DeskTile: View {
   var body: some View {
     let gone = screen.curtained, off = screen.blackedOut, isLit = lit.id == screen.id
     let laptop = screen.isBuiltin
+    let result = lit.result
+    let look = TilePreview.look(off: off, disconnected: gone, brightness: screen.brightness,
+                                preview: result?.preview, aimed: result?.screen == screen.id)
     let shape = laptop ? Corners(top: Theme.Radius.laptopTop, bottom: Theme.Radius.laptopBottom)
                        : Corners(top: Theme.Radius.monitor, bottom: Theme.Radius.monitor)
     ZStack {
       ZStack {
         shape.fill(Theme.bezel)
         shape.strokeBorder(Theme.bezelEdge, lineWidth: 1)
-        glass(off: off)
+        glass(look: look, off: off)
           .padding(.horizontal, Theme.Size.bezel)
           .padding(.top, Theme.Size.bezel)
           .padding(.bottom, laptop ? Theme.Size.laptopChin : Theme.Size.bezel)
       }
-      .shadow(Theme.tileGlow(off ? 0 : screen.brightness))
-      .opacity(gone ? 0 : 1)
+      .shadow(Theme.tileGlow(off ? 0 : look.brightness))
+      .opacity(look.shown)
       shape.strokeBorder(Theme.tileOutline, style: StrokeStyle(lineWidth: Theme.Size.outlineWidth, dash: Theme.Size.outlineDash))
-        .opacity(gone ? 1 : 0)
+        .opacity(1 - look.shown)
       shape.inset(by: -Theme.Size.ringGap).strokeBorder(Theme.tileRing, lineWidth: Theme.Size.ringWidth)
         .opacity(isLit ? 1 : 0)
     }
     .frame(width: size.width, height: size.height)
-    .overlay(alignment: .top) { base(laptop: laptop).offset(y: size.height).opacity(gone ? 0 : 1) }
+    .overlay(alignment: .top) { base(laptop: laptop).offset(y: size.height).opacity(look.shown) }
     .overlay(alignment: .top) {
       Text(screen.name)
         .font(Theme.Font.caption)
@@ -84,16 +107,20 @@ private struct DeskTile: View {
     .contentShape(Rectangle())
     .onHover { lit.hover(screen.id, $0) }
     .animation(Theme.Motion.rowHover, value: isLit)
+    // A preview comes and goes quickly; a real change (the screen turned off, disconnected)
+    // keeps its own motion, which wins when both happen at once (a click ends the preview).
+    .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.preview, value: result)
     .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.tileGone, value: gone)
   }
 
   /// The glass: a dusk wallpaper, light along its top, darkened as the screen dims, and the drapes.
-  private func glass(off: Bool) -> some View {
+  private func glass(look: TilePreview.Look, off: Bool) -> some View {
     ZStack(alignment: .top) {
       LinearGradient(colors: Theme.wallpaper, startPoint: Theme.wallpaperStart, endPoint: Theme.wallpaperEnd)
       Theme.screenSheen.frame(height: Theme.Size.sheen)
-      Theme.screenDim.opacity((1 - screen.brightness) * Theme.screenDimMax)
-      Drapes(drawn: off, reduceMotion: reduceMotion, folds: Theme.Size.tileFolds, shadow: Theme.tileCurtainShadow)
+      Theme.screenDim.opacity((1 - look.brightness) * Theme.screenDimMax)
+      Drapes(closed: look.closed, real: off, reduceMotion: reduceMotion, folds: Theme.Size.tileFolds,
+             shadow: Theme.tileCurtainShadow)
     }
     .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.glass, style: .continuous))
   }
@@ -147,8 +174,13 @@ struct Corners: InsettableShape {
 /// The drapes across a screen that's off, on its row and its tile: two pleated panels that close
 /// from the edges and meet in the middle, their folds opening as they go, and gather back when the
 /// screen comes on (a fade with Reduce Motion). Each is one flattened layer so it moves smoothly.
+/// On a tile they can stop halfway, previewing Turn off or Turn on (#26).
 struct Drapes: View {
-  var drawn: Bool
+  /// How far closed: 0 open, 1 closed, half while a button's result is previewed.
+  var closed: Double
+  /// Whether the screen is really off. Turning it off or on takes the drapes' own 720 ms; a
+  /// preview coming or going takes the tile's quicker motion.
+  var real: Bool
   var reduceMotion: Bool
   /// How wide the pleats are, against a row's.
   var folds: CGFloat = 1
@@ -169,15 +201,16 @@ struct Drapes: View {
 
   private func drape(half: CGFloat, from edge: HorizontalAlignment, shadow: Theme.Shadow) -> some View {
     let anchor: UnitPoint = edge == .leading ? .leading : .trailing
+    let drawn = closed > 0
     return Pleats(folds: folds, alignment: edge == .leading ? .leading : .trailing)
       .drawingGroup()
       .frame(width: half)
-      .scaleEffect(x: drawn || reduceMotion ? 1 : Theme.Size.gathered, anchor: anchor)
+      .scaleEffect(x: reduceMotion ? 1 : max(Theme.Size.gathered, closed), anchor: anchor)
       .shadow(shadow)
-      .animation(Theme.Motion.drapes, value: drawn)
+      .animation(Theme.Motion.drapes, value: real)
       // Solid while it moves: it shows as it starts to close, and goes once it has opened. With
-      // Reduce Motion it doesn't move, it fades.
-      .opacity(drawn ? 1 : 0)
+      // Reduce Motion it doesn't move, it fades (halfway for a preview).
+      .opacity(reduceMotion ? closed : drawn ? 1 : 0)
       .animation(reduceMotion ? Theme.Motion.reduced : drawn ? Theme.Motion.drapesShow : Theme.Motion.drapesHide, value: drawn)
       .frame(maxWidth: .infinity, alignment: edge == .leading ? .leading : .trailing)
   }

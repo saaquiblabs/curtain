@@ -31,16 +31,33 @@ expect(Wording.deskMap([("L27h-4A", .on), ("MacBook", .off)]), "L27h-4A on, MacB
 expect(Wording.deskMap([("L27h-4A", .disconnected), ("MacBook", .on)]), "L27h-4A disconnected, MacBook on",
        "a disconnected screen is named as disconnected, not off")
 
-expect(Wording.disconnectHelp(screen: "L27h-4A", other: "MacBook", onlyOneOn: false),
-       "Disconnect L27h-4A: macOS treats it as unplugged and moves its windows to MacBook. Every screen blinks black for a moment.",
-       "Disconnect says what it does and where the windows go (#25)")
-expect(Wording.disconnectHelp(screen: "L27h-4A", other: "MacBook", onlyOneOn: true),
-       "L27h-4A is the only screen on, so it stays connected. Turn another screen on first.",
+// One line per button under the map, saying its result (#26). Short enough for one line.
+expect(Wording.turnOffLine(screen: "L27h-4A", onlyOneOn: false), "Turns L27h-4A black at once. Its windows stay on it.",
+       "Turn off says the screen goes black and its windows stay")
+expect(Wording.turnOffLine(screen: "MacBook", onlyOneOn: true), "MacBook is the only screen on, so it stays on.",
+       "Turn off on the last screen on says why it can't")
+expect(Wording.disconnectLine(screen: "L27h-4A", other: "MacBook", onlyOneOn: false),
+       "Disconnects L27h-4A; windows move to MacBook, screens blink.",
+       "Disconnect says where the windows go and warns of the blink (#25)")
+expect(Wording.disconnectLine(screen: "L27h-4A", other: "MacBook", onlyOneOn: true),
+       "L27h-4A is the only screen on, so it stays connected.",
        "Disconnect on the last screen on says why it can't")
-expect(Wording.turnOffHelp(screen: "L27h-4A", onlyOneOn: false), "Turn L27h-4A black instantly. Windows stay on it.",
-       "Turn off no longer mentions right-click: Disconnect is its own button")
-expect(Wording.reconnectHelp(screen: "L27h-4A"), "Reconnect L27h-4A. Every screen blinks black for a moment.",
+expect(Wording.turnOnLine(screen: "L27h-4A"), "Turns L27h-4A back on, its windows as they were.",
+       "Turn on says the windows are still there")
+expect(Wording.reconnectLine(screen: "L27h-4A"), "Reconnects L27h-4A. Every screen blinks for a moment.",
        "Reconnect warns of the blink")
+expect(Wording.brightnessLine(screen: "L27h-4A", to: 0.6), "Sets L27h-4A to 60%.",
+       "the slider says the brightness under the pointer")
+expect(Wording.brightnessLine(screen: "L27h-4A", to: 0.555), "Sets L27h-4A to 56%.",
+       "rounded like the slider's own percent")
+expect(Wording.quitLine, "Quits Curtain; every screen comes back on.", "Quit says every screen comes back on")
+for line in [Wording.turnOffLine(screen: "L27h-4A", onlyOneOn: false),
+             Wording.disconnectLine(screen: "L27h-4A", other: "MacBook", onlyOneOn: false),
+             Wording.disconnectLine(screen: "L27h-4A", other: "MacBook", onlyOneOn: true),
+             Wording.reconnectLine(screen: "L27h-4A"), Wording.quitLine] where line.count > 62 {
+  failures += 1
+  print("FAIL  too long for one line under the map (\(line.count) characters): \(line)")
+}
 expect(Wording.offLine(disconnected: true, other: "MacBook"), "Disconnected. Its windows moved to MacBook.",
        "a disconnected row says disconnected, not unplugged")
 

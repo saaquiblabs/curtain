@@ -16,6 +16,28 @@ struct Fixture {
   var contrast = false
   /// Light up this screen's tile and row on the desk map, as the pointer over either does (#24).
   var lit: ((Screens) -> Screen?)? = nil
+  /// The control under the pointer: its result previewed on the map and said under it (#26).
+  var result: ((Screens) -> HoverResult?)? = nil
+}
+
+/// The pointer over a row's button: its tile previews the result, its row lights up (#26).
+func pointing(at kind: RowButtons.Kind, onlyOneOn: Bool = false, of pick: @escaping (Screens) -> Screen) -> Fixture.Pointing {
+  Fixture.Pointing(lit: pick, result: { screens in
+    let screen = pick(screens)
+    let other = screens.all.first { $0.id != screen.id }?.name ?? ""
+    return ScreenRow.result(kind, screen: screen, other: other, onlyOneOn: onlyOneOn)
+  })
+}
+
+extension Fixture {
+  struct Pointing {
+    var lit: (Screens) -> Screen?
+    var result: (Screens) -> HoverResult?
+  }
+
+  init(name: String, screens: @escaping () -> Screens, pointing: Pointing) {
+    self.init(name: name, screens: screens, lit: pointing.lit, result: pointing.result)
+  }
 }
 
 // The owner's desk as macOS arranges it (CGDisplayBounds, points): the L27h-4A on the left, the
@@ -52,6 +74,26 @@ let fixtures: [Fixture] = [
           keys: { Keys(preview: true) }, contrast: true),
   Fixture(name: "contrast-off", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) }, contrast: true),
   Fixture(name: "contrast-disconnected", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) }, contrast: true),
+  // Hover shows the result on the tile only, halfway, and says it in one line under the map (#26).
+  Fixture(name: "preview-turn-off", screens: { Screens(preview: [macBook(), lenovo()]) },
+          pointing: pointing(at: .turnOff) { $0.all.last! }),
+  Fixture(name: "preview-turn-on", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) },
+          pointing: pointing(at: .turnOn) { $0.all.last! }),
+  Fixture(name: "preview-disconnect", screens: { Screens(preview: [macBook(), lenovo()]) },
+          pointing: pointing(at: .disconnect) { $0.all.last! }),
+  Fixture(name: "preview-reconnect", screens: { Screens(preview: [macBook(), lenovo(curtained: true)]) },
+          pointing: pointing(at: .reconnect) { $0.all.last! }),
+  // The pointer at 90% along the Lenovo's bar, which is at 45%: its tile glows as at 90%.
+  Fixture(name: "preview-slider", screens: { Screens(preview: [macBook(), lenovo()]) },
+          lit: { $0.all.last }, result: { ScreenRow.brightnessResult(screen: $0.all.last!, to: 0.9) }),
+  // The MacBook's Turn off while it's the only screen on: the line says why, the tile shows nothing.
+  Fixture(name: "preview-only-on", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) },
+          pointing: pointing(at: .turnOff, onlyOneOn: true) { $0.all.first! }),
+  // Quit: the screen that's off comes halfway back.
+  Fixture(name: "preview-quit", screens: { Screens(preview: [macBook(), lenovo(blackedOut: true)]) },
+          result: { _ in .quit }),
+  // One screen, no map: the line sits above the row.
+  Fixture(name: "preview-one-screen", screens: { Screens(preview: [macBook()]) }, result: { _ in .quit }),
 ]
 
 let appearances: [(String, NSAppearance.Name)] = [("light", .aqua), ("dark", .darkAqua)]
@@ -159,6 +201,7 @@ MainActor.assumeIsolated {
       do {
         let screens = fixture.screens(), lit = LitScreen()
         lit.id = fixture.lit?(screens)?.id
+        lit.result = fixture.result?(screens)
         try render(PopoverView(screens: screens, keys: fixture.keys(), lit: lit).environment(\.hoverPreview, fixture.hover),
                    appearance: appearance, to: url,
                    spoken: label == "light" && !fixture.hover && !fixture.contrast ? out.appendingPathComponent("\(fixture.name)-voiceover.txt") : nil)

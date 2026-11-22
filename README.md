@@ -43,7 +43,9 @@ Macs Curtain dims monitors in software instead (turning screens off works on bot
 
 With two screens or more, the menu opens on a **map of your desk**: each screen drawn where it
 really sits, as bright as it really is, with drapes closed over it when it's off and a dashed
-outline when it's disconnected. Hover a screen on the map and its row lights up.
+outline when it's disconnected. Hover a screen on the map and its row lights up. Hover a
+button and the map shows what it will do, halfway, with one line saying it (only on the map,
+never on a real screen).
 
 Quitting, logging out or stopping Curtain in any way puts every screen back on, at the
 brightness it had.

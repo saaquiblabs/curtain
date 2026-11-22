@@ -23,22 +23,29 @@ enum Wording {
     "\(screen) brightness"
   }
 
-  /// What each row button says it does, under the pointer (#25). `other`: a screen that stays on.
-  static func turnOffHelp(screen: String, onlyOneOn: Bool) -> String {
-    onlyOneOn ? "\(screen) is the only screen on, so it stays on. Turn another screen on first."
-              : "Turn \(screen) black instantly. Windows stay on it."
+  /// The line under the desk map while a control is under the pointer, saying its result (#26).
+  /// One short line each, so it fits under the map. (They were tooltips until 0.5.0.)
+  static func turnOffLine(screen: String, onlyOneOn: Bool) -> String {
+    onlyOneOn ? "\(screen) is the only screen on, so it stays on."
+              : "Turns \(screen) black at once. Its windows stay on it."
   }
 
-  static func disconnectHelp(screen: String, other: String, onlyOneOn: Bool) -> String {
-    onlyOneOn ? "\(screen) is the only screen on, so it stays connected. Turn another screen on first."
-              : "Disconnect \(screen): macOS treats it as unplugged and moves its windows to \(other). Every screen blinks black for a moment."
+  /// `other`: a screen that stays on, where the windows go.
+  static func disconnectLine(screen: String, other: String, onlyOneOn: Bool) -> String {
+    onlyOneOn ? "\(screen) is the only screen on, so it stays connected."
+              : "Disconnects \(screen); windows move to \(other), screens blink."
   }
 
-  static func turnOnHelp(screen: String) -> String { "Turn \(screen) back on" }
+  static func turnOnLine(screen: String) -> String { "Turns \(screen) back on, its windows as they were." }
 
-  static func reconnectHelp(screen: String) -> String {
-    "Reconnect \(screen). Every screen blinks black for a moment."
+  static func reconnectLine(screen: String) -> String { "Reconnects \(screen). Every screen blinks for a moment." }
+
+  /// The slider: the brightness under the pointer, rounded like the slider's own percent.
+  static func brightnessLine(screen: String, to value: Double) -> String {
+    "Sets \(screen) to \(Int((value * 100).rounded()))%."
   }
+
+  static let quitLine = "Quits Curtain; every screen comes back on."
 
   /// The line in place of the slider while a screen is off or disconnected.
   static func offLine(disconnected: Bool, other: String) -> String {

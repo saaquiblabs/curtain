@@ -19,7 +19,10 @@ struct PopoverView: View {
     let mapShown = screens.all.count > 1
     VStack(alignment: .leading, spacing: 14) {
       header
-      if mapShown { DeskMap(screens: screens, lit: lit) }
+      VStack(spacing: 6) {
+        if mapShown { DeskMap(screens: screens, lit: lit) }
+        HoverLine(lit: lit)
+      }
       VStack(spacing: 10) {
         ForEach(screens.all) { ScreenRow(screen: $0, screens: screens, lit: lit, linked: mapShown) }
       }
@@ -59,6 +62,8 @@ struct PopoverView: View {
       Rectangle().hidden().preference(key: MenuSize.self, value: proxy.size)
     })
     .onPreferenceChange(MenuSize.self) { presence.resized?($0) }
+    // A closing menu hears no pointer leaving, so a preview could still be up when it reopens.
+    .onChange(of: presence.shown) { _ in lit.result = nil }
     .foregroundStyle(Theme.text)
     .background(MenuSurface())
   }
@@ -91,7 +96,7 @@ struct PopoverView: View {
       .accessibilityAddTraits(.isStaticText)
       .accessibilityLabel(Wording.spokenKeys(Keys.shortcutLabel) + " turns other screens off / on")
       Spacer()
-      QuitButton()
+      QuitButton(lit: lit)
     }
     .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
   }
@@ -303,26 +308,24 @@ struct ScreenRow: View {
         let lastOn = !screen.isOff && !screens.canTurnOff(screen)
         ForEach(RowButtons.buttons(isBuiltin: screen.isBuiltin, turnedOff: screen.blackedOut,
                                    disconnected: screen.curtained), id: \.self) { kind in
+          let result = ScreenRow.result(kind, screen: screen, other: otherName, onlyOneOn: lastOn)
           switch kind {
           case .disconnect:
-            PillButton(title: "Disconnect", systemImage: "cable.connector.slash", prominent: false,
-                       help: Wording.disconnectHelp(screen: screen.name, other: otherName, onlyOneOn: lastOn)) {
+            PillButton(title: "Disconnect", systemImage: "cable.connector.slash", prominent: false, result: result, lit: lit) {
               screens.setCurtain(screen, closed: true)
             }
             .disabled(lastOn)
           case .turnOff:
-            PillButton(title: "Turn off", systemImage: "power", prominent: false,
-                       help: Wording.turnOffHelp(screen: screen.name, onlyOneOn: lastOn)) {
+            PillButton(title: "Turn off", systemImage: "power", prominent: false, result: result, lit: lit) {
               screens.setQuickOff(screen, off: true)
             }
             .disabled(lastOn)
           case .turnOn:
-            PillButton(title: "Turn on", systemImage: "power", prominent: true, help: Wording.turnOnHelp(screen: screen.name)) {
+            PillButton(title: "Turn on", systemImage: "power", prominent: true, result: result, lit: lit) {
               screens.setQuickOff(screen, off: false)
             }
           case .reconnect:
-            PillButton(title: "Reconnect", systemImage: "cable.connector", prominent: true,
-                       help: Wording.reconnectHelp(screen: screen.name)) {
+            PillButton(title: "Reconnect", systemImage: "cable.connector", prominent: true, result: result, lit: lit) {
               screens.setCurtain(screen, closed: false)
             }
           }
@@ -335,7 +338,11 @@ struct ScreenRow: View {
       } else {
         BrightnessSlider(value: Binding(get: { screen.brightness },
                                         set: { screens.setBrightness(screen, $0) }),
-                         minimum: screen.minimum, label: Wording.sliderLabel(screen: screen.name))
+                         minimum: screen.minimum, label: Wording.sliderLabel(screen: screen.name)) { pointed in
+          // The tile's glow follows the pointer along the bar (#26).
+          let result = ScreenRow.brightnessResult(screen: screen, to: pointed ?? screen.brightness)
+          lit.hover(result, pointed != nil)
+        }
       }
     }
     .padding(12)
@@ -343,7 +350,7 @@ struct ScreenRow: View {
       ZStack {
         shape.fill(isLit ? Theme.rowHover : Theme.row)
           .shadow(isLit ? Theme.rowShadowHover : Theme.rowShadow)
-        Drapes(drawn: screen.isOff, reduceMotion: reduceMotion).clipShape(shape)
+        Drapes(closed: screen.isOff ? 1 : 0, real: screen.isOff, reduceMotion: reduceMotion).clipShape(shape)
       }
     )
     .overlay(shape.strokeBorder(isLit && linked ? Theme.rowEdgeLit : Theme.rowEdge, lineWidth: 1))
@@ -358,6 +365,50 @@ struct ScreenRow: View {
   private var otherName: String {
     screens.all.first { $0.id != screen.id && !$0.isOff }?.name ?? "your other screen"
   }
+
+  /// What a row button would do: its line under the map, and its tile's preview unless it's
+  /// disabled (the only screen on) (#26). `make renders` draws each one.
+  static func result(_ kind: RowButtons.Kind, screen: Screen, other: String, onlyOneOn: Bool) -> HoverResult {
+    let (preview, line): (TilePreview.Preview?, String)
+    switch kind {
+    case .disconnect:
+      (preview, line) = (onlyOneOn ? nil : .disconnect,
+                         Wording.disconnectLine(screen: screen.name, other: other, onlyOneOn: onlyOneOn))
+    case .turnOff:
+      (preview, line) = (onlyOneOn ? nil : .turnOff, Wording.turnOffLine(screen: screen.name, onlyOneOn: onlyOneOn))
+    case .turnOn: (preview, line) = (.turnOn, Wording.turnOnLine(screen: screen.name))
+    case .reconnect: (preview, line) = (.reconnect, Wording.reconnectLine(screen: screen.name))
+    }
+    return HoverResult(control: "\(screen.id) \(kind)", screen: screen.id, preview: preview, line: line)
+  }
+
+  static func brightnessResult(screen: Screen, to value: Double) -> HoverResult {
+    HoverResult(control: "\(screen.id) slider", screen: screen.id, preview: .brightness(value),
+                line: Wording.brightnessLine(screen: screen.name, to: value))
+  }
+}
+
+/// The line under the desk map: what the control under the pointer would do (#26). Its room is
+/// kept while nothing is under the pointer, so the menu doesn't jump. VoiceOver hears the same
+/// line as each control's hint instead.
+struct HoverLine: View {
+  @ObservedObject var lit: LitScreen
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  var body: some View {
+    Text(lit.result?.line ?? " ")
+      .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
+      .lineLimit(1).truncationMode(.middle)
+      .frame(maxWidth: .infinity)
+      .opacity(lit.result == nil ? 0 : 1)
+      .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.preview, value: lit.result == nil)
+      .accessibilityHidden(true)
+  }
+}
+
+/// Quit's result: every tile that's off or disconnected comes halfway back (#26).
+extension HoverResult {
+  static let quit = HoverResult(control: "quit", screen: nil, preview: .quit, line: Wording.quitLine)
 }
 
 /// A small labelled button: what it does is written on it.
@@ -365,11 +416,15 @@ struct PillButton: View {
   var title: String
   var systemImage: String
   var prominent: Bool
-  var help: String
+  /// What it would do, shown on its tile and under the map while it's under the pointer (#26).
+  var result: HoverResult
+  @ObservedObject var lit: LitScreen
   var action: () -> Void
 
   var body: some View {
-    Button(action: action) {
+    // A click ends the preview: the real change takes over, and the button that takes this one's
+    // place (Turn on for Turn off) waits for the pointer to come back before it previews.
+    Button { lit.result = nil; action() } label: {
       Label(title, systemImage: systemImage)
         .font(Theme.Font.button)
         .labelStyle(.titleAndIcon)
@@ -377,7 +432,8 @@ struct PillButton: View {
         .fixedSize()
     }
     .buttonStyle(PillStyle(prominent: prominent))
-    .help(help)
+    .onHover { lit.hover(result, $0) }
+    .accessibilityHint(result.line)
   }
 }
 
@@ -425,6 +481,8 @@ struct BrightnessSlider: View {
   var minimum: Double
   /// What VoiceOver calls it: names its screen.
   var label: String
+  /// The brightness under the pointer as it moves along the bar, nil once it leaves (#26).
+  var pointing: (Double?) -> Void = { _ in }
   @StateObject private var hover = Hover()
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.hoverPreview) private var hoverPreview
@@ -470,6 +528,12 @@ struct BrightnessSlider: View {
       .contentShape(Capsule())
       .clickable()
       .onHover { hover.isHovered = $0 }
+      .onContinuousHover { phase in
+        switch phase {
+        case .active(let at): pointing(max(minimum, min(1, (at.x - height / 2) / max(1, travel))))
+        case .ended: pointing(nil)
+        }
+      }
       .animation(Theme.Motion.hover, value: hovered)
       .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
         let target = max(minimum, min(1, (drag.location.x - height / 2) / max(1, travel)))
@@ -565,6 +629,8 @@ struct LinkButton: View {
 
 /// Quit, in the footer: brightens on a faint pill under the pointer.
 struct QuitButton: View {
+  /// Quit's result shows on the map: every screen that's off comes halfway back (#26).
+  @ObservedObject var lit: LitScreen
   @StateObject private var hover = Hover()
   @Environment(\.hoverPreview) private var hoverPreview
 
@@ -577,8 +643,9 @@ struct QuitButton: View {
       .background(Capsule().fill(hovered ? Theme.quitHover : .clear))
       .contentShape(Capsule())
       .clickable()
-      .onHover { hover.isHovered = $0 }
+      .onHover { hover.isHovered = $0; lit.hover(.quit, $0) }
       .animation(Theme.Motion.hover, value: hovered)
+      .accessibilityHint(Wording.quitLine)
       .keyboardShortcut("q")
   }
 }
