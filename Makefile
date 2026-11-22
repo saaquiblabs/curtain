@@ -81,7 +81,8 @@ theme-check:
 	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/main.swift \
 	  || { echo "theme-check: visual values above belong in Sources/Theme.swift"; exit 1; }
 
-# Logic tests: plain executables built with only the sources they check. Touch no display.
+# Logic tests: plain executables built with only the sources they check. Touch no display (the
+# menu-panel test draws the real panel from made-up screens, 10,000 points off every screen).
 test:
 	@mkdir -p build
 	$(SWIFTC) $(FLAGS) Sources/MenuToggle.swift Tests/menu-toggle/main.swift -o build/test-menu-toggle
@@ -98,3 +99,5 @@ test:
 	build/test-fonts
 	$(SWIFTC) $(FLAGS) Sources/Wording.swift Tests/wording/main.swift -o build/test-wording
 	build/test-wording
+	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/menu-panel/main.swift -o build/test-menu-panel
+	build/test-menu-panel

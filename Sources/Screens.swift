@@ -109,6 +109,10 @@ final class Screens: ObservableObject {
     all = screens
   }
 
+  /// Swaps a made-up set's screens, as a monitor plugged in or out would (Tests/menu-panel).
+  /// Only for sets made with `init(preview:)`.
+  func replacePreview(with screens: [Screen]) { all = screens }
+
   func start() {
     // Every launch starts with all screens on. A screen left unplugged by a crash or force quit
     // isn't listed by macOS any more, so plug it back in by its remembered ID.
