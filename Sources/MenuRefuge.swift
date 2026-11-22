@@ -20,10 +20,24 @@ enum MenuRefuge {
   }
 
   /// Whether the pointer jumps to the menu after the menu moved: only when it was left on a screen
-  /// you can't see (or on no known screen), where you'd lose it (#8, #29).
-  static func pointerFollows(menuMoved: Bool, pointerOn: UInt32?, screensOn: [UInt32]) -> Bool {
-    guard menuMoved else { return false }
+  /// you can't see (or on no known screen), where you'd lose it (#8, #29). Not when that screen
+  /// was disconnected: macOS already brings the pointer onto a screen that's left (#25).
+  static func pointerFollows(menuMoved: Bool, pointerOn: UInt32?, screensOn: [UInt32], pointerOnDisconnected: Bool = false) -> Bool {
+    guard menuMoved, !pointerOnDisconnected else { return false }
     guard let pointerOn else { return true }
     return !screensOn.contains(pointerOn)
+  }
+
+  /// Where the menu's middle sits across a screen when Disconnect takes away its screen (#25,
+  /// owner's pick): 0 at the left edge, 1 at the right, kept as a fraction because macOS moves
+  /// every screen's coordinates when the main screen goes. Screen as (minX, width) of its visible area.
+  static func across(midX: Double, of screen: (minX: Double, width: Double)) -> Double {
+    guard screen.width > 0 else { return 0.5 }
+    return min(max((midX - screen.minX) / screen.width, 0), 1)
+  }
+
+  /// The same place across another screen: left stays left, right stays right.
+  static func sameSpot(midX: Double, from old: (minX: Double, width: Double), to new: (minX: Double, width: Double)) -> Double {
+    new.minX + across(midX: midX, of: old) * new.width
   }
 }

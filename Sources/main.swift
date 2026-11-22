@@ -75,6 +75,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// The display the menu moved to because the screen it was on got turned off (#8). It stays
   /// there, top right under the menu bar, until the menu next opens.
   private var refuge: CGDirectDisplayID?
+  /// How far across the refuge the menu's middle sits when Disconnect moved it (#25), 0 to 1: the
+  /// same spot it had on the screen that went. A fraction, not a point: macOS shifts every screen's
+  /// coordinates when the main screen goes. Nil after Turn off: top right, as before.
+  private var refugeAcross: CGFloat?
 
   /// Just under the menu bar, centred on the anchor, kept inside the screen. Never on a screen
   /// that's turned off: its black cover sits above everything, this menu included, so the menu
@@ -97,18 +101,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if let target = MenuRefuge.destination(menuOn: screen?.displayID, screensOn: screensOn, pointerOn: pointerOn,
                                            menuBarOn: NSScreen.screens.first?.displayID),
        let onScreen = Screens.nsScreen(target) {
+      // Disconnect (#25, owner's pick): the menu keeps its spot across the screen. Turn off: top right.
+      let menuOn = screen?.displayID
+      let disconnected = Screens.shared.all.first { $0.id == menuOn }?.curtained ?? false
+      refugeAcross = nil
+      if disconnected, let old = screen?.visibleFrame {
+        refugeAcross = MenuRefuge.across(midX: panel.frame.midX, of: (old.minX, old.width))
+      }
       refuge = target
       screen = onScreen
       point = topRight
       moved = true
     }
     guard let visible = screen?.visibleFrame else { return }
+    if refuge != nil, let across = refugeAcross { point = NSPoint(x: visible.minX + across * visible.width, y: 0) }
     let x = min(max(point.x - size.width / 2, visible.minX + 8), visible.maxX - size.width - 8)
     panel.setFrameTopLeftPoint(NSPoint(x: x, y: visible.maxY - 6))
     guard isOpen, moved else { return }
     panel.alphaValue = 0
     fadeIn()
-    if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn) { movePointer(to: panel.frame) }
+    let pointerOnDisconnected = Screens.shared.all.first { $0.id == pointerOn }?.curtained ?? false
+    if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn,
+                                 pointerOnDisconnected: pointerOnDisconnected) { movePointer(to: panel.frame) }
   }
 
   /// Screens changed: an open menu on a screen that was just turned off moves (place).
@@ -146,6 +160,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func openMenu(at point: NSPoint? = nil) {
     anchor = point
     refuge = nil
+    refugeAcross = nil
     Screens.shared.notice = nil
     panel.fit()
     place()

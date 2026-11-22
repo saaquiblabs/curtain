@@ -50,5 +50,22 @@ follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: nil, screensOn: [l
 follows(MenuRefuge.pointerFollows(menuMoved: false, pointerOn: macBook, screensOn: [lenovo]), false,
         "the menu didn't move: the pointer is left alone")
 
+follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: lenovo, screensOn: [macBook], pointerOnDisconnected: true), false,
+        "Lenovo disconnected with the menu and pointer on it: macOS moves the pointer, Curtain doesn't (#25)")
+
+// Disconnect: the menu keeps its spot across the screen (#25). Owner's desk on this Mac: the
+// Lenovo (main, 2560 pt wide at x 0) and the MacBook (1512 pt wide, to its right at x 2560).
+func spot(_ actual: Double, _ expected: Double, _ what: String) {
+  if abs(actual - expected) < 0.001 { print("ok    \(what)") } else { failures += 1; print("FAIL  \(what): got \(actual), expected \(expected)") }
+}
+let lenovoArea = (minX: 0.0, width: 2560.0), macBookArea = (minX: 2560.0, width: 1512.0)
+spot(MenuRefuge.sameSpot(midX: 2560, from: lenovoArea, to: macBookArea), 4072, "a menu at the Lenovo's right edge lands at the MacBook's")
+spot(MenuRefuge.sameSpot(midX: 640, from: lenovoArea, to: macBookArea), 2938, "a menu a quarter across the Lenovo lands a quarter across the MacBook")
+spot(MenuRefuge.sameSpot(midX: 1280, from: lenovoArea, to: macBookArea), 3316, "the middle stays the middle")
+spot(MenuRefuge.sameSpot(midX: -50, from: lenovoArea, to: macBookArea), 2560, "a menu past the old screen's edge lands at the new one's edge")
+spot(MenuRefuge.sameSpot(midX: 100, from: (minX: 0, width: 0), to: macBookArea), 3316, "an old screen with no width: the middle of the new one")
+
+spot(MenuRefuge.across(midX: 2560, of: lenovoArea), 1, "kept as a fraction: the right edge is 1, whatever the coordinates become")
+
 print(failures == 0 ? "all passed" : "\(failures) failed")
 if failures > 0 { exit(1) }
