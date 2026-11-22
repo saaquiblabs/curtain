@@ -29,7 +29,7 @@ enum Fonts {
   }
 
   /// The text roles that use a bundled face. (The header's mark, row icons and keycaps stay on the
-  /// system font: SF Symbols and ⌃⌥⌘ aren't in Manrope.)
+  /// system font: SF Symbols and ⌃⌥ aren't in Manrope.)
   enum Role: CaseIterable {
     case wordmark, title, body, caption, button, numeric, summary
 

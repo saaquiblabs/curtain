@@ -1,7 +1,28 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-11-22
 
+Curtain's own identity, Linen & Dusk, finished: frosted linen with dusk blue by day, twilight
+with afterglow at night. The menu's new look (linen panel with a fine weave, raised rows, a sheer
+brightness bar whose knob carries the sun, Turn off / Turn on pills, outlined switches, keycaps,
+a pleated curtain across a row that's off) already went out in 0.2.2 without a line here (#4);
+this release adds Curtain's own type, pointer feedback, and makes it read well to VoiceOver and
+with Increase Contrast.
+
+- **The shortcut is now ⌃⌥C** (Control+Option+C): three keys instead of four, Control and
+  Option side by side under one hand, and almost no app uses it. ⌃⌥⌘C no longer does anything.
+- **VoiceOver says what the menu shows**: each brightness slider names its screen ("L27h-4A
+  brightness, 45 percent") instead of two sliders both saying "Brightness", the shortcut reads
+  "Control Option C turns other screens off / on" instead of three symbols, the screen icons and
+  the header's curtain stay quiet (the names beside them say it), and the menu bar icon says
+  whether a screen is off ("Curtain, 1 of 2 screens off"), as its closed curtain shows.
+  `make renders` writes what VoiceOver reaches in each state to `build/renders/*-voiceover.txt`
+  and fails if a button, switch or slider loses its name.
+- **Increase Contrast**: `make renders` also draws the menu with its contrast colours
+  (`contrast-on`, `contrast-off`, light and dark): darker text, solid edges and outlines, a
+  near-solid panel.
+- **The menu fits its content and fades out**: it shrinks when a monitor's row goes, and closing
+  rises and fades in 150 ms (#4).
 - **Every control answers the pointer**: the pointing hand over Turn off / Turn on, the slider,
   the switches, Quit and the Accessibility link (the arrow stays over text and over a Turn off
   you can't use). Under the pointer, Turn off turns dusk blue (afterglow at night), Turn on

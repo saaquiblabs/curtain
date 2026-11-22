@@ -9,15 +9,19 @@ import SwiftUI
 enum Theme {
   // MARK: Colours
 
+  /// Draws every colour as Increase Contrast would. Only for `make renders`: macOS won't give an
+  /// offscreen window the high-contrast appearances, so the pictures can't get them otherwise.
+  static var previewIncreaseContrast = false
+
   /// A colour that follows the appearance it's drawn in (light/dark, and Increase Contrast).
   private static func dynamic(_ light: NSColor, _ dark: NSColor,
                               contrastLight: NSColor? = nil, contrastDark: NSColor? = nil) -> Color {
     Color(nsColor: NSColor(name: nil) { appearance in
       switch appearance.bestMatch(from: [.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua]) {
-      case .darkAqua?: return dark
+      case .darkAqua?: return previewIncreaseContrast ? contrastDark ?? dark : dark
       case .accessibilityHighContrastAqua?: return contrastLight ?? light
       case .accessibilityHighContrastDarkAqua?: return contrastDark ?? dark
-      default: return light
+      default: return previewIncreaseContrast ? contrastLight ?? light : light
       }
     })
   }
@@ -143,7 +147,7 @@ enum Theme {
     static let button = bundled(.button, fallback: .system(size: 11, weight: .semibold))
     static let numeric = bundled(.numeric, fallback: .system(size: 11, weight: .semibold).monospacedDigit())
     static let summary = bundled(.summary, fallback: .system(size: 10).monospacedDigit())
-    // SF Symbols and the ⌃⌥⌘ keycaps stay on the system font: Manrope doesn't draw them.
+    // SF Symbols and the ⌃⌥ keycaps stay on the system font: Manrope doesn't draw them.
     static let mark = SwiftUI.Font.system(size: 15, weight: .medium)
     static let icon = SwiftUI.Font.system(size: 12)
     static let keycap = SwiftUI.Font.system(size: 9.5, weight: .medium)

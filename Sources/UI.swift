@@ -63,6 +63,7 @@ struct PopoverView: View {
     HStack(spacing: 8) {
       Image(systemName: screens.all.contains(where: \.isOff) ? "curtains.closed" : "curtains.open")
         .font(Theme.Font.mark).foregroundStyle(Theme.accent)
+        .accessibilityHidden(true) // the summary beside it says the same in words
       Text("Curtain").font(Theme.Font.wordmark)
       Spacer()
       Text(summary).font(Theme.Font.summary).foregroundStyle(Theme.textSecondary)
@@ -70,17 +71,21 @@ struct PopoverView: View {
   }
 
   private var summary: String {
-    let off = screens.all.filter(\.isOff).count
-    let total = screens.all.count
-    return off == 0 ? "\(total) screen\(total == 1 ? "" : "s") on" : "\(off) of \(total) off"
+    Wording.summary(off: screens.all.filter(\.isOff).count, total: screens.all.count)
   }
 
   private var footer: some View {
     HStack(spacing: 6) {
-      HStack(spacing: 2) {
-        ForEach(Array(Keys.shortcutLabel.enumerated()), id: \.offset) { Keycap(symbol: String($0.element)) }
+      HStack(spacing: 6) {
+        HStack(spacing: 2) {
+          ForEach(Array(Keys.shortcutLabel.enumerated()), id: \.offset) { Keycap(symbol: String($0.element)) }
+        }
+        Text("turns other screens off / on")
       }
-      Text("turns other screens off / on")
+      // One line for VoiceOver, keys as words: "Control Option C turns other screens off / on".
+      .accessibilityElement(children: .ignore)
+      .accessibilityAddTraits(.isStaticText)
+      .accessibilityLabel(Wording.spokenKeys(Keys.shortcutLabel) + " turns other screens off / on")
       Spacer()
       QuitButton()
     }
@@ -272,6 +277,7 @@ struct ScreenRow: View {
           .foregroundStyle(screen.isOff ? Theme.textSecondary : Theme.accent)
           .frame(width: Theme.Size.badge, height: Theme.Size.badge)
           .background(Circle().fill(screen.isOff ? Theme.badgeOff : Theme.badge))
+          .accessibilityHidden(true) // the screen's name follows
         VStack(alignment: .leading, spacing: 1) {
           Text(screen.name).font(Theme.Font.title).lineLimit(1)
           if screen.control == .software && !screen.isOff {
@@ -316,7 +322,7 @@ struct ScreenRow: View {
       } else {
         BrightnessSlider(value: Binding(get: { screen.brightness },
                                         set: { screens.setBrightness(screen, $0) }),
-                         minimum: screen.minimum)
+                         minimum: screen.minimum, label: Wording.sliderLabel(screen: screen.name))
       }
     }
     .padding(12)
@@ -440,6 +446,8 @@ struct PillStyle: ButtonStyle {
 struct BrightnessSlider: View {
   @Binding var value: Double
   var minimum: Double
+  /// What VoiceOver calls it: names its screen.
+  var label: String
   @StateObject private var hover = Hover()
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.hoverPreview) private var hoverPreview
@@ -497,11 +505,11 @@ struct BrightnessSlider: View {
       })
     }
     .frame(height: Theme.Size.slider)
-    .accessibilityElement()
-    .accessibilityLabel("Brightness")
-    .accessibilityValue("\(Int((value * 100).rounded())) percent")
-    .accessibilityAdjustableAction { direction in
-      value = max(minimum, min(1, value + (direction == .increment ? 0.0625 : -0.0625)))
+    // VoiceOver sees an ordinary slider: its screen's name, the percent the bar shows, and
+    // VO-arrows step it by 1/16 like the brightness keys.
+    .accessibilityRepresentation {
+      Slider(value: $value, in: minimum...1, step: 0.0625) { Text(label) }
+        .accessibilityValue("\(Int((value * 100).rounded())) percent")
     }
   }
 }

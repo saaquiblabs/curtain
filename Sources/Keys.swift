@@ -108,9 +108,11 @@ final class Keys: ObservableObject {
     return nil
   }
 
-  // MARK: Shortcut: ⌃⌥⌘C draws or opens the curtain
+  // MARK: Shortcut: ⌃⌥C draws or opens the curtain
 
-  static let shortcutLabel = "⌃⌥⌘C"
+  /// Control+Option+C (owner, #6): three keys, Control and Option side by side under one hand,
+  /// and almost no app uses it (⌥⌘C is Finder's and Chrome's).
+  static let shortcutLabel = "⌃⌥C"
 
   private func registerShortcut() {
     var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
@@ -119,7 +121,7 @@ final class Keys: ObservableObject {
       return noErr
     }, 1, &spec, nil, nil)
     let id = EventHotKeyID(signature: OSType(0x4352_544E), id: 1) // "CRTN"
-    RegisterEventHotKey(UInt32(kVK_ANSI_C), UInt32(controlKey | optionKey | cmdKey), id,
+    RegisterEventHotKey(UInt32(kVK_ANSI_C), UInt32(controlKey | optionKey), id,
                         GetApplicationEventTarget(), 0, &hotKey)
   }
 }
