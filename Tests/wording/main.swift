@@ -26,5 +26,10 @@ expect(Wording.menuBarIcon(off: 1, total: 2), "Curtain, 1 of 2 screens off",
 expect(Wording.sliderLabel(screen: "L27h-4A"), "L27h-4A brightness",
        "each slider names its screen, so two sliders don't both read just Brightness")
 
+expect(Wording.deskMap([("L27h-4A", .on), ("MacBook", .off)]), "L27h-4A on, MacBook off",
+       "VoiceOver reads the desk map as one line, screen by screen (#24)")
+expect(Wording.deskMap([("L27h-4A", .disconnected), ("MacBook", .on)]), "L27h-4A disconnected, MacBook on",
+       "a disconnected screen is named as disconnected, not off")
+
 if failures > 0 { print("\(failures) failed"); exit(1) }
 print("all passed")

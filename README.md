@@ -13,8 +13,8 @@ brightness slider, plus a curtain to switch any of them off. Free, open source, 
 anywhere. A Saaquib Labs tool. MIT.
 
 <p align="center">
-  <img src="docs/screenshots/on-light.png" width="372" alt="Curtain's menu by day: the Curtain wordmark and '2 screens on'; a row for the Built-in Retina Display at 72% and one for the L27h-4A monitor at 45%, each with a Turn off button and a brightness slider; then switches for Follow the Mac, Brightness keys and Open at login, and the ⌃⌥C shortcut beside Quit.">
-  <img src="docs/screenshots/off-dark.png" width="372" alt="Curtain's menu at night, with the L27h-4A turned off: its row is drawn as a closed curtain with a glowing Turn on button and the line 'Off. Its windows are still there, hidden.' The header says '1 of 2 off'.">
+  <img src="docs/screenshots/on-light.png" width="372" alt="Curtain's menu by day: the Curtain wordmark and '2 screens on'; a map of the desk with the L27h-4A monitor on the left and the MacBook to its right, each drawn as a small screen as bright as the real one; a row for the MacBook at 72% and one for the L27h-4A at 45%, each with a Turn off button and a brightness slider; then switches for Follow the Mac, Brightness keys and Open at login, and the ⌃⌥C shortcut beside Quit.">
+  <img src="docs/screenshots/off-dark.png" width="372" alt="Curtain's menu at night, with the L27h-4A turned off: drapes are closed over its screen on the desk map and across its row with a glowing Turn on button and the line 'Off. Its windows are still there, hidden.' The header says '1 of 2 off'.">
 </p>
 
 ```bash
@@ -39,6 +39,10 @@ Macs Curtain dims monitors in software instead (turning screens off works on bot
    macOS brightness indicator.
 4. **Follow the Mac.** Your monitors follow your MacBook's brightness as it changes.
 5. **⌃⌥C** (Control+Option+C) turns off every screen except the one you're working on, or turns them all back on.
+
+With two screens or more, the menu opens on a **map of your desk**: each screen drawn where it
+really sits, as bright as it really is, with drapes closed over it when it's off and a dashed
+outline when it's unplugged. Hover a screen on the map and its row lights up.
 
 Quitting, logging out or stopping Curtain in any way puts every screen back on, at the
 brightness it had.

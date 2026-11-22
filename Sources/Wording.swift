@@ -22,4 +22,12 @@ enum Wording {
   static func sliderLabel(screen: String) -> String {
     "\(screen) brightness"
   }
+
+  /// What a screen's tile on the desk map shows.
+  enum TileState: String { case on, off, disconnected }
+
+  /// The desk map's VoiceOver line, its screens in reading order: "L27h-4A on, MacBook off" (#24).
+  static func deskMap(_ screens: [(name: String, state: TileState)]) -> String {
+    screens.map { "\($0.name) \($0.state.rawValue)" }.joined(separator: ", ")
+  }
 }
