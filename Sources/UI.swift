@@ -300,30 +300,36 @@ struct ScreenRow: View {
         }
         .layoutPriority(1)
         Spacer(minLength: 4)
-        if screen.isOff {
-          PillButton(title: "Turn on", systemImage: "power", prominent: true,
-                     help: "Turn \(screen.name) back on") {
-            if screen.curtained { screens.setCurtain(screen, closed: false) } else { screens.setQuickOff(screen, off: false) }
-          }
-        } else {
-          let lastOn = !screens.canTurnOff(screen)
-          PillButton(title: "Turn off", systemImage: "power", prominent: false,
-                     help: lastOn ? "\(screen.name) is the only screen on, so it stays on. Turn another screen on first."
-                                  : "Turn \(screen.name) black instantly. Windows stay on it." + (screen.isBuiltin ? "" : " Right-click to unplug it instead.")) {
-            screens.setQuickOff(screen, off: true)
-          }
-          .disabled(lastOn)
-          .contextMenu {
-            if !screen.isBuiltin {
-              Button("Unplug: move its windows to \(otherName) (every screen goes black for a few seconds)") {
-                screens.setCurtain(screen, closed: true)
-              }
+        let lastOn = !screen.isOff && !screens.canTurnOff(screen)
+        ForEach(RowButtons.buttons(isBuiltin: screen.isBuiltin, turnedOff: screen.blackedOut,
+                                   disconnected: screen.curtained), id: \.self) { kind in
+          switch kind {
+          case .disconnect:
+            PillButton(title: "Disconnect", systemImage: "cable.connector.slash", prominent: false,
+                       help: Wording.disconnectHelp(screen: screen.name, other: otherName, onlyOneOn: lastOn)) {
+              screens.setCurtain(screen, closed: true)
+            }
+            .disabled(lastOn)
+          case .turnOff:
+            PillButton(title: "Turn off", systemImage: "power", prominent: false,
+                       help: Wording.turnOffHelp(screen: screen.name, onlyOneOn: lastOn)) {
+              screens.setQuickOff(screen, off: true)
+            }
+            .disabled(lastOn)
+          case .turnOn:
+            PillButton(title: "Turn on", systemImage: "power", prominent: true, help: Wording.turnOnHelp(screen: screen.name)) {
+              screens.setQuickOff(screen, off: false)
+            }
+          case .reconnect:
+            PillButton(title: "Reconnect", systemImage: "cable.connector", prominent: true,
+                       help: Wording.reconnectHelp(screen: screen.name)) {
+              screens.setCurtain(screen, closed: false)
             }
           }
         }
       }
       if screen.isOff {
-        Text(screen.curtained ? "Unplugged. Its windows moved to \(otherName)." : "Off. Its windows are still there, hidden.")
+        Text(Wording.offLine(disconnected: screen.curtained, other: otherName))
           .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
           .frame(maxWidth: .infinity, minHeight: Theme.Size.slider, alignment: .leading)
       } else {

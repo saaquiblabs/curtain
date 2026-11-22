@@ -31,5 +31,18 @@ expect(Wording.deskMap([("L27h-4A", .on), ("MacBook", .off)]), "L27h-4A on, MacB
 expect(Wording.deskMap([("L27h-4A", .disconnected), ("MacBook", .on)]), "L27h-4A disconnected, MacBook on",
        "a disconnected screen is named as disconnected, not off")
 
+expect(Wording.disconnectHelp(screen: "L27h-4A", other: "MacBook", onlyOneOn: false),
+       "Disconnect L27h-4A: macOS treats it as unplugged and moves its windows to MacBook. Every screen blinks black for a moment.",
+       "Disconnect says what it does and where the windows go (#25)")
+expect(Wording.disconnectHelp(screen: "L27h-4A", other: "MacBook", onlyOneOn: true),
+       "L27h-4A is the only screen on, so it stays connected. Turn another screen on first.",
+       "Disconnect on the last screen on says why it can't")
+expect(Wording.turnOffHelp(screen: "L27h-4A", onlyOneOn: false), "Turn L27h-4A black instantly. Windows stay on it.",
+       "Turn off no longer mentions right-click: Disconnect is its own button")
+expect(Wording.reconnectHelp(screen: "L27h-4A"), "Reconnect L27h-4A. Every screen blinks black for a moment.",
+       "Reconnect warns of the blink")
+expect(Wording.offLine(disconnected: true, other: "MacBook"), "Disconnected. Its windows moved to MacBook.",
+       "a disconnected row says disconnected, not unplugged")
+
 if failures > 0 { print("\(failures) failed"); exit(1) }
 print("all passed")

@@ -31,10 +31,11 @@ Macs Curtain dims monitors in software instead (turning screens off works on bot
    says so in the screen's row.
 2. **Turn a screen off.** Click **Turn off** and the screen fades to black in half a second, with
    no flash on your other screen. Its windows stay where they are; **Turn on** brings it back.
-   Right-click **Turn off** on a monitor to **Unplug** it instead: macOS treats it as unplugged,
-   moves its windows to your other screen and lets the monitor sleep (every screen goes black for
-   a few seconds while macOS rearranges them; Curtain fades through it). Curtain never lets you
-   switch off your last screen, and keeps an unplugged screen unplugged after sleep or unlock.
+   Or click **Disconnect** on a monitor: macOS treats it as unplugged, moves its windows to your
+   other screen and lets the monitor sleep (every screen blinks black for a moment while macOS
+   rearranges them); **Reconnect** brings it back. The MacBook screen has no Disconnect: macOS
+   would switch off its keyboard and trackpad. Curtain never lets you switch off your last screen,
+   and keeps a disconnected screen disconnected after sleep or unlock.
 3. **Brightness keys for monitors.** F1/F2 change the screen under the pointer, with the native
    macOS brightness indicator.
 4. **Follow the Mac.** Your monitors follow your MacBook's brightness as it changes.
@@ -42,7 +43,7 @@ Macs Curtain dims monitors in software instead (turning screens off works on bot
 
 With two screens or more, the menu opens on a **map of your desk**: each screen drawn where it
 really sits, as bright as it really is, with drapes closed over it when it's off and a dashed
-outline when it's unplugged. Hover a screen on the map and its row lights up.
+outline when it's disconnected. Hover a screen on the map and its row lights up.
 
 Quitting, logging out or stopping Curtain in any way puts every screen back on, at the
 brightness it had.
@@ -124,10 +125,10 @@ Accessibility permission survives rebuilds. `Tools/check-signing.sh` checks that
 **Turn off** fades the screen's colours to black, covers it with a black window that blocks
 clicks, and turns its backlight down where it can. Nothing is rearranged, so nothing flashes.
 
-**Unplug** calls `CGSConfigureDisplayEnabled`, an undocumented macOS function that tells macOS to
+**Disconnect** calls `CGSConfigureDisplayEnabled`, an undocumented macOS function that tells macOS to
 treat a display as unplugged. Apps like BetterDisplay and Lunar sell the same feature as part of a
 paid plan. Because the function is undocumented, Curtain looks it up when it starts: if a future
-macOS removes it, Unplug stops working and the rest of the app keeps going.
+macOS removes it, Disconnect stops working and the rest of the app keeps going.
 
 ## Credits
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0 — unreleased
+
+The rest of step 3, a menu you understand by looking (#20).
+
+- **Disconnect is its own button.** Monitor rows now show **Disconnect** beside Turn off, where
+  before it hid behind a right-click on Turn off (as "Unplug"). It does what Unplug did: macOS
+  treats the monitor as unplugged and moves its windows to your other screen. A disconnected row
+  says so and offers **Reconnect**. The MacBook never gets Disconnect, not even greyed out: macOS
+  would switch off its keyboard and trackpad. The right-click menu is gone (#25).
+- **A blink instead of a blackout.** Disconnect, Reconnect and turning everything back on fade
+  every screen out for 0.15 s and straight back in for 0.15 s, where they used to fade out for
+  0.3 s, hold black for 1.2 s and take 0.5 s to come back. The owner tried all three on the real
+  desk and picked this one (#22).
+- Which row gets which button is tested in `make test`, with each button's line in
+  `Sources/Wording.swift`; `make renders` draws the rows with Disconnect and the disconnected
+  row with Reconnect.
+
 ## 0.4.2 — 2026-11-22
 
 - **Fix: installing failed on some Macs with "Curtain Local Signing: no identity found".** On
