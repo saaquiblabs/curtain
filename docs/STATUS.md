@@ -70,9 +70,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   (0.2.2 → 0.2.3, local tarballs) gave the same designated requirement as `make app`; after the
   upgrade Curtain was reopened and still trusted (its event tap was live); uninstall quit it and
   left nothing running or in /Applications; Spotlight finds /Applications/Curtain.app. Bumping a
-  version: new tag, then `version` and `sha256` in the cask. **From 0.4.0 `make app` builds
+  version: new tag, then `version` and `sha256` in the cask. **From 0.4.1 `make app` builds
   `build/app.noindex/Curtain.app`** (Spotlight skips `.noindex` folders, so only
-  /Applications/Curtain.app shows): at the 0.4.0 bump the cask's `app` line must point there too.
+  /Applications/Curtain.app shows): the cask's `app` line points there from 0.4.1.
 - **Apple screens' rows follow macOS's brightness reports** (#11):
   `DisplayServicesRegisterForBrightnessChangeNotifications` calls back on every change, from any
   process (verified with a second process). Curtain's own writes come back too, late; values it
