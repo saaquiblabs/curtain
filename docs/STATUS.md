@@ -1,20 +1,21 @@
 # Status — 2026-11-22
 
-Curtain 0.2.2 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.2.2) and in Homebrew
+Curtain 0.3.0 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.3.0) and in Homebrew
 (`brew install saaquiblabs/tap/curtain`), and running on
 the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable). Read
 `CHANGELOG.md` for what each version did and `README.md` for the five features.
 
 ## The product, as agreed with the owner
 - Five features only: brightness per screen, turn a screen off, brightness keys for monitors,
-  Follow the Mac, one shortcut (⌃⌥⌘C). Nothing else unless the owner asks.
+  Follow the Mac, one shortcut (⌃⌥C, Control+Option+C; was ⌃⌥⌘C until 0.3.0). Nothing else unless the owner asks.
 - The owner is visual: every control must show what a click will do before it's clicked
   (labelled buttons, hover hints, the screen's state written in its row). Premium, its own
   identity: Linen & Dusk (owner's pick on #3), built into the menu in #4. Every colour, font
   role, radius, surface and timing lives in `Sources/Theme.swift`; `make theme-check` fails if a
   view picks its own. Custom fonts (Newsreader Italic wordmark, Manrope everything else) are bundled in
   `Resources/Fonts` and registered at launch by `Sources/Fonts.swift` (#5; system font fallback,
-  logged once; `make test` and `make renders` fail if a role misses its real face); release 0.3.0 in #6.
+  logged once; `make test` and `make renders` fail if a role misses its real face). Released as 0.3.0 (#6);
+  polish after that is small 0.3.x tickets.
 - Small steps, one release each, each with a CHANGELOG entry.
 
 ## Decisions made (candidates for ADRs)
@@ -105,8 +106,14 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   `hover`/`hover-off` with every control drawn as if under the pointer) into `build/renders/`, touching no
   display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
   initialisers build fake ones. Offscreen capture draws stray ticks on stroked capsules, so
-  capsule outlines are filled rings (`CapsuleOutline`). It can't draw Increase Contrast (macOS
-  won't give an offscreen window those appearances): check that on a real Mac. It can't show the
+  capsule outlines are filled rings (`CapsuleOutline`). macOS won't give an offscreen window the
+  Increase Contrast appearances, so `Theme.previewIncreaseContrast` makes every colour take its
+  contrast variant for the `contrast-*` renders (the real thing is still worth a look on a real
+  Mac: macOS also cuts transparency then). It also writes `*-voiceover.txt`: every element
+  VoiceOver reaches, read from the real accessibility tree. SwiftUI builds that tree only after
+  an assistive app asks, so the tool sets `AXManualAccessibility` and `AXEnhancedUserInterface`
+  on itself first (both needed); the run fails if a control loses its name or a slider its
+  percent. VoiceOver wording lives in `Sources/Wording.swift` (tested in `make test`). It can't show the
   cursor either, and this terminal can't move the pointer (no Accessibility): the owner checks the
   hand cursor on their desk.
 - Testing behaviour: drive `Screens.shared` from a scratch `main.swift` compiled with every source except

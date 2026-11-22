@@ -5,7 +5,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-let version = "0.2.2"
+let version = "0.3.0"
 
 /// Curtain's menu: a panel that always opens fully on screen, just under the menu bar.
 /// (NSPopover places itself off-screen when a menu bar manager has moved our icon.)
@@ -35,7 +35,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     statusItem.button?.target = self
     watcher = Screens.shared.$all.receive(on: RunLoop.main).sink { [weak self] all in
       let drawn = all.contains(where: \.isOff)
-      let image = NSImage(systemSymbolName: drawn ? "curtains.closed" : "curtains.open", accessibilityDescription: "Curtain")
+      let image = NSImage(systemSymbolName: drawn ? "curtains.closed" : "curtains.open",
+                          accessibilityDescription: Wording.menuBarIcon(off: all.filter(\.isOff).count, total: all.count))
       image?.isTemplate = true
       self?.statusItem.button?.image = image
       self?.leaveTurnedOffScreen()
