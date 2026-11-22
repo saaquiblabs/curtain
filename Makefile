@@ -101,3 +101,5 @@ test:
 	build/test-wording
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/menu-panel/main.swift -o build/test-menu-panel
 	build/test-menu-panel
+	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/never-dark/main.swift -o build/test-never-dark
+	build/test-never-dark

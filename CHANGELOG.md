@@ -11,6 +11,20 @@
   and checks its height against the menu's: two screens, one unplugged while open and while
   closed, plugged back in, a notice coming and going (#21). `make renders` draws the one-screen
   menu (`one-screen-light.png`, `one-screen-dark.png`).
+- **Curtain never leaves every screen black.** On the 0.3.1 branch: Turn off the MacBook, then
+  unplug the Lenovo's cable, and the MacBook stayed black with nothing to click (only ⌃⌥C
+  brought it back). Turn off and Unplug refused to darken the last screen, but a screen leaving
+  on its own was never checked. Now, after every screen change (cable out, lid closed, wake,
+  unlock), if every screen left is turned off or unplugged, all of them come back on, backlights
+  and colours included (`Sources/NeverDark.swift`). `make test` replays the owner's case on
+  made-up screens, plus an unplugged and a turned-off screen together, and the lid closing on a
+  turned-off monitor (#29).
+- **The pointer follows the menu off a turned-off Lenovo.** Turning off the screen the menu is on
+  moves the menu to a screen that's on, and the pointer, now invisible on the black screen, jumps
+  to it. That worked from the MacBook but not from the Lenovo: a software-dimmed monitor's row
+  loses its "Dimmed by Curtain until it quits" line when it turns off, the menu shrinks, and that
+  resize moved the menu before Curtain heard the screens change, so the pointer check never ran.
+  The move is now handled wherever it happens; when the pointer follows is tested (#29).
 
 ## 0.3.0 — 2026-11-22
 

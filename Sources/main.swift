@@ -78,37 +78,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   /// Just under the menu bar, centred on the anchor, kept inside the screen. Never on a screen
   /// that's turned off: its black cover sits above everything, this menu included, so the menu
-  /// goes to a screen that's on, where that row reads Off with Turn on ready (#8).
+  /// goes to a screen that's on, where that row reads Off with Turn on ready (#8). An open menu
+  /// that moves fades in there, and the pointer, left invisible on the black screen, jumps to it.
+  ///
+  /// The move is handled here, whoever calls: turning a screen off can also resize the menu (a
+  /// software-dimmed monitor's row loses its "Dimmed by Curtain" line), and that resize places
+  /// the menu before the screens change is heard. Checked only there, the pointer stayed behind
+  /// on the black Lenovo (#29).
   private func place() {
     let size = panel.frame.size
     let topRight = NSPoint(x: CGFloat.greatestFiniteMagnitude, y: 0)
     let underClick = anchor.flatMap { click in NSScreen.screens.first { $0.frame.minX <= click.x && click.x <= $0.frame.maxX } }
     var screen = refuge.flatMap(Screens.nsScreen) ?? underClick ?? NSScreen.main
     var point = refuge == nil ? anchor ?? topRight : topRight
-    if let target = MenuRefuge.destination(menuOn: screen?.displayID,
-                                           screensOn: Screens.shared.all.filter { !$0.isOff }.map(\.id),
-                                           pointerOn: Screens.shared.screenUnderPointer()?.id,
+    let screensOn = Screens.shared.all.filter { !$0.isOff }.map(\.id)
+    let pointerOn = Screens.shared.screenUnderPointer()?.id
+    var moved = false
+    if let target = MenuRefuge.destination(menuOn: screen?.displayID, screensOn: screensOn, pointerOn: pointerOn,
                                            menuBarOn: NSScreen.screens.first?.displayID),
        let onScreen = Screens.nsScreen(target) {
       refuge = target
       screen = onScreen
       point = topRight
+      moved = true
     }
     guard let visible = screen?.visibleFrame else { return }
     let x = min(max(point.x - size.width / 2, visible.minX + 8), visible.maxX - size.width - 8)
     panel.setFrameTopLeftPoint(NSPoint(x: x, y: visible.maxY - 6))
-  }
-
-  /// Screens changed: if the open menu's screen was just turned off, it moves to one that's on
-  /// and fades in there. The pointer, left invisible on the black screen, jumps to the menu.
-  private func leaveTurnedOffScreen() {
-    guard isOpen else { return }
-    let before = refuge
-    place()
-    guard refuge != before else { return }
+    guard isOpen, moved else { return }
     panel.alphaValue = 0
     fadeIn()
-    if Screens.shared.screenUnderPointer()?.isOff ?? true { movePointer(to: panel.frame) }
+    if MenuRefuge.pointerFollows(menuMoved: moved, pointerOn: pointerOn, screensOn: screensOn) { movePointer(to: panel.frame) }
+  }
+
+  /// Screens changed: an open menu on a screen that was just turned off moves (place).
+  private func leaveTurnedOffScreen() {
+    guard isOpen else { return }
+    place()
   }
 
   /// Puts the pointer in the middle of `frame` (AppKit coordinates, origin bottom left of the

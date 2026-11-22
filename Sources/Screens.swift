@@ -95,6 +95,8 @@ final class Screens: ObservableObject {
   /// Black windows covering quick-off screens, and running gamma fades.
   private var covers: [CGDirectDisplayID: NSWindow] = [:]
   private var fades: [CGDirectDisplayID: Timer] = [:]
+  /// A made-up set (`init(preview:)`): never touches a backlight, colour curve or display list.
+  private var isPreview = false
 
   private init() {
     followMac = defaults.bool(forKey: "followMac")
@@ -106,12 +108,17 @@ final class Screens: ObservableObject {
   init(preview screens: [Screen]) {
     followMac = false
     openAtLogin = false
+    isPreview = true
     all = screens
   }
 
-  /// Swaps a made-up set's screens, as a monitor plugged in or out would (Tests/menu-panel).
+  /// Swaps a made-up set's screens, as a monitor plugged in or out would (Tests/menu-panel,
+  /// Tests/never-dark), then checks what `refresh()` checks: a screen you can see is left.
   /// Only for sets made with `init(preview:)`.
-  func replacePreview(with screens: [Screen]) { all = screens }
+  func replacePreview(with screens: [Screen]) {
+    all = screens
+    keepAScreenOn()
+  }
 
   func start() {
     // Every launch starts with all screens on. A screen left unplugged by a crash or force quit
@@ -305,6 +312,7 @@ final class Screens: ObservableObject {
   }
 
   private func applyGamma(_ screen: Screen, scale: CGGammaValue? = nil) {
+    guard !isPreview else { return }
     if screen.calibration == nil {
       // Captured before Curtain ever changes the curve, so this is the true calibration.
       var r = [CGGammaValue](repeating: 0, count: 256), g = r, b = r
@@ -416,6 +424,7 @@ final class Screens: ObservableObject {
   /// The backlight follows quick off where Curtain can reach it: MacBook and Apple screens, and
   /// monitors that take DDC. The black curve and cover do the rest.
   private func setBacklight(_ screen: Screen, _ value: Double) {
+    guard !isPreview else { return }
     switch screen.control {
     case .apple: setAppleBrightness(screen, value)
     case .ddc: queueDDC(screen, UInt16((value * Double(screen.ddcMax)).rounded()))
@@ -505,19 +514,28 @@ final class Screens: ObservableObject {
       offScreens[screen.id] = nil
       screen.curtained = false
     }
+    guard !isPreview else { return }
     _ = Self.withFade { Self.configure(unplugged.map(\.id), enabled: true) } // one fade for all
     scheduleRefresh()
   }
 
-  /// Keeps screens unplugged when macOS plugs them back in (wake, unlock, replug), and plugs them
-  /// all back in if nothing else is left on, such as when the MacBook lid closes.
+  /// Never every screen dark (#29): after any change (a monitor unplugged, the lid closed, wake,
+  /// unlock), if every screen left is turned off or unplugged, all of them come back on,
+  /// backlights and colours included. Turn off and Unplug only check this when pressed.
+  @discardableResult
+  private func keepAScreenOn() -> Bool {
+    guard NeverDark.mustTurnAllOn(screensOff: all.map(\.isOff)) else { return false }
+    openAll()
+    return true
+  }
+
+  /// Keeps screens unplugged when macOS plugs them back in (wake, unlock, replug), and turns
+  /// every screen back on if none you can see is left (keepAScreenOn).
   private func enforceCurtains() {
+    if keepAScreenOn() { return }
     let wanted = Set(curtained.keys)
     let on = all.filter { !$0.curtained }
-    if on.isEmpty {
-      if !offScreens.isEmpty { openAll() }
-      return
-    }
+    if on.isEmpty { return }
     // Only unplug again if some other screen stays on, so you're never left in the dark.
     guard on.contains(where: { !wanted.contains($0.uuid) && !$0.blackedOut }) else { return }
     for screen in on where wanted.contains(screen.uuid) { setCurtain(screen, closed: true) }

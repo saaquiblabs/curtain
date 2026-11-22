@@ -18,4 +18,12 @@ enum MenuRefuge {
     }
     return screensOn.first
   }
+
+  /// Whether the pointer jumps to the menu after the menu moved: only when it was left on a screen
+  /// you can't see (or on no known screen), where you'd lose it (#8, #29).
+  static func pointerFollows(menuMoved: Bool, pointerOn: UInt32?, screensOn: [UInt32]) -> Bool {
+    guard menuMoved else { return false }
+    guard let pointerOn else { return true }
+    return !screensOn.contains(pointerOn)
+  }
 }
