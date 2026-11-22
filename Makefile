@@ -27,6 +27,8 @@ icon:
 	rm -rf build/AppIcon.iconset
 	build/app-icon build/AppIcon.iconset
 	iconutil -c icns build/AppIcon.iconset -o Resources/AppIcon.icns
+	@mkdir -p docs/img
+	cp build/AppIcon.iconset/icon_256x256.png docs/img/curtain-256.png
 
 # Signed with this Mac's own Curtain certificate (Tools/signing-identity.sh makes it the first
 # time; no Apple account needed), so the Accessibility permission survives rebuilds (#11). Ad hoc
@@ -40,7 +42,7 @@ run: app
 	-pkill -x curtain
 	open "$(APP)"
 
-.PHONY: app icon sign run install uninstall clean renders theme-check test
+.PHONY: app icon sign run install uninstall clean renders screenshots theme-check test
 install: app
 	rm -rf "$(PREFIX)/Curtain.app"
 	cp -R "$(APP)" "$(PREFIX)/Curtain.app"
@@ -56,6 +58,18 @@ renders: theme-check
 	@mkdir -p build
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tools/render-menu/main.swift -o build/render-menu
 	build/render-menu build/renders
+
+# The README's pictures (#15): three of the renders, light and dark, copied where GitHub can show
+# them, plus the 1280x640 social preview (uploaded by hand in the repo's Settings).
+screenshots: renders
+	@mkdir -p docs/screenshots
+	for look in light dark; do \
+	  cp build/renders/on-$$look.png docs/screenshots/on-$$look.png; \
+	  cp build/renders/software-$$look.png docs/screenshots/dimmed-$$look.png; \
+	  cp build/renders/off-$$look.png docs/screenshots/off-$$look.png; \
+	done
+	$(SWIFTC) $(FLAGS) Tools/social-preview/main.swift -o build/social-preview
+	build/social-preview docs/img/curtain-256.png docs/screenshots docs/img/social-preview.png
 
 # The menu's look lives only in Sources/Theme.swift: fail if a view picks its own colour, font,
 # corner radius or timing.
