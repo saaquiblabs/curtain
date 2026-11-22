@@ -50,6 +50,11 @@ struct PopoverView: View {
     .blur(radius: presence.shown || reduceMotion ? 0 : Theme.Motion.openBlur)
     .scaleEffect(presence.shown || reduceMotion ? 1 : Theme.Motion.openScale, anchor: .top)
     .frame(width: Theme.Size.panelWidth)
+    // The menu's own size, so the panel can fit it as rows come and go (a monitor unplugged).
+    .background(GeometryReader { proxy in
+      Rectangle().hidden().preference(key: MenuSize.self, value: proxy.size)
+    })
+    .onPreferenceChange(MenuSize.self) { presence.resized?($0) }
     .foregroundStyle(Theme.text)
     .background(MenuSurface())
   }
@@ -83,9 +88,17 @@ struct PopoverView: View {
   }
 }
 
-/// Whether the menu is showing; the app flips it as the panel opens.
+/// Whether the menu is showing; the app flips it as the panel opens and closes. `resized` hears
+/// the menu's size whenever its content changes, so the panel can fit it (not published: setting
+/// it redraws nothing).
 final class MenuPresence: ObservableObject {
   @Published var shown = true
+  var resized: ((CGSize) -> Void)?
+}
+
+private struct MenuSize: PreferenceKey {
+  static var defaultValue = CGSize.zero
+  static func reduce(value: inout CGSize, nextValue: () -> CGSize) { value = nextValue() }
 }
 
 /// One key of a shortcut, drawn as a small raised keycap.

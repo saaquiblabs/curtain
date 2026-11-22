@@ -163,6 +163,10 @@ enum Theme {
     static let openBlur: CGFloat = 4
     static let openScale: CGFloat = 0.98
     static let openContent = Animation.easeOut(duration: 0.2)
+    /// The menu closes: the same in reverse, a little quicker, rising as it fades.
+    static let close = 0.15
+    static let closeDrift: CGFloat = 4
+    static let closeContent = Animation.easeIn(duration: 0.15)
     /// Turning a screen off or on: the sheer slides across the row.
     static let veil = Animation.timingCurve(0.22, 1, 0.36, 1, duration: 0.24) // fast start, long soft landing
     /// The slider glides to a click far from its edge.
@@ -178,6 +182,7 @@ enum Theme {
     /// With Reduce Motion: a plain fade, no movement.
     static let reduced = Animation.easeOut(duration: 0.12)
     static let reducedOpen = 0.12
+    static let reducedClose = 0.1
   }
 
   // MARK: Depth
