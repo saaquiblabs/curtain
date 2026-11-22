@@ -12,9 +12,10 @@ Each chat implements exactly one GitHub issue (usually via `/implement #N`), so 
 
 - **No new issues while the open ones are being worked down.** The set is capped (under 10). New
   findings go as a comment on the closest open issue, or into that issue's scope; only the owner
-  lifts the cap.
-- **Every issue sits under an umbrella** as a GitHub sub-issue, never as a loose issue. Umbrellas
-  today: #1 (Curtain's own identity) and #6 (Ship 0.3.0).
+  lifts the cap. 2026-11-22: lifted once for step 3 (umbrella #20 + #21–#27).
+- **Every issue sits under an umbrella** as a GitHub sub-issue, never as a loose issue. Umbrella
+  today: #20 (Step 3, a menu you understand by looking). Closed: #1 (identity, owner signed off
+  2026-11-22) and #6 (Ship 0.3.0).
 - **Every issue and umbrella has a severity label**: `severity:critical` (broken or unsafe),
   `severity:high` (core feature fails, can't install or find Curtain), `severity:medium` (works but
   feels unfinished), `severity:low` (polish, can wait). Work goes highest severity first.
