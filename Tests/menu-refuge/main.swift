@@ -34,5 +34,21 @@ expect(MenuRefuge.destination(menuOn: macBook, screensOn: [], pointerOn: macBook
 expect(MenuRefuge.destination(menuOn: nil, screensOn: [lenovo], pointerOn: lenovo, menuBarOn: lenovo),
        lenovo, "a menu on no known screen goes to one that's on")
 
+// The pointer follows the menu when the menu moved and the pointer is left on a black screen (#29).
+// Owner's desk: Lenovo (menu bar) and MacBook. Whichever screen goes off, the pointer comes along.
+func follows(_ actual: Bool, _ expected: Bool, _ what: String) {
+  if actual == expected { print("ok    \(what)") } else { failures += 1; print("FAIL  \(what): got \(actual)") }
+}
+follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: macBook, screensOn: [lenovo]), true,
+        "MacBook turned off with the menu and pointer on it: the pointer follows the menu to the Lenovo")
+follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: lenovo, screensOn: [macBook]), true,
+        "Lenovo turned off with the menu and pointer on it: the pointer follows the menu to the MacBook")
+follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: third, screensOn: [lenovo, third]), false,
+        "the pointer already on a screen that's on stays where it is")
+follows(MenuRefuge.pointerFollows(menuMoved: true, pointerOn: nil, screensOn: [lenovo]), true,
+        "a pointer on no known screen follows the menu")
+follows(MenuRefuge.pointerFollows(menuMoved: false, pointerOn: macBook, screensOn: [lenovo]), false,
+        "the menu didn't move: the pointer is left alone")
+
 print(failures == 0 ? "all passed" : "\(failures) failed")
 if failures > 0 { exit(1) }
