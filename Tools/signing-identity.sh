@@ -39,5 +39,13 @@ CFG
   security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$PASSWORD" "$KEYCHAIN" >/dev/null
   echo "signing-identity: made \"$NAME\" in $KEYCHAIN" >&2
 fi
+# codesign --keychain only finds the identity when the keychain is also on the user's search
+# list, at least on macOS 26 (#37: "no identity found", install failed). Add it, keeping the
+# existing keychains in their order. It then shows in Keychain Access as curtain-signing.
+if ! security list-keychains -d user | grep -qF "$KEYCHAIN"; then
+  eval "set -- $(security list-keychains -d user | tr '\n' ' ')"
+  security list-keychains -d user -s "$@" "$KEYCHAIN" \
+    || echo "signing-identity: couldn't add $KEYCHAIN to the keychain search list" >&2
+fi
 security unlock-keychain -p "$PASSWORD" "$KEYCHAIN"
 echo "$KEYCHAIN"
