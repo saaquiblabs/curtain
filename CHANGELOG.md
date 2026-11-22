@@ -18,13 +18,18 @@
   unlock), if every screen left is turned off or unplugged, all of them come back on, backlights
   and colours included (`Sources/NeverDark.swift`). `make test` replays the owner's case on
   made-up screens, plus an unplugged and a turned-off screen together, and the lid closing on a
-  turned-off monitor (#29).
+  turned-off monitor (#29). It comes back at once: Curtain checks the moment macOS says a screen
+  went, instead of after its usual 0.4 s wait, and skips the fade-in.
 - **The pointer follows the menu off a turned-off Lenovo.** Turning off the screen the menu is on
   moves the menu to a screen that's on, and the pointer, now invisible on the black screen, jumps
   to it. That worked from the MacBook but not from the Lenovo: a software-dimmed monitor's row
   loses its "Dimmed by Curtain until it quits" line when it turns off, the menu shrinks, and that
   resize moved the menu before Curtain heard the screens change, so the pointer check never ran.
   The move is now handled wherever it happens; when the pointer follows is tested (#29).
+- **Allow Accessibility opens one window per click.** It used to show macOS's own dialog and open
+  System Settings at the same moment, then only Settings on the next try. Now the first click
+  shows macOS's dialog (which lists Curtain and has its own button to Settings), and later clicks
+  open System Settings at Accessibility (`Sources/PermissionAsk.swift`, tested) (#29).
 
 ## 0.3.0 — 2026-11-22
 

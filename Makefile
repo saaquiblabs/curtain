@@ -95,6 +95,8 @@ test:
 	build/test-quit-note
 	$(SWIFTC) $(FLAGS) Sources/Pointer.swift Tests/pointer/main.swift -o build/test-pointer
 	build/test-pointer
+	$(SWIFTC) $(FLAGS) Sources/PermissionAsk.swift Tests/permission-ask/main.swift -o build/test-permission-ask
+	build/test-permission-ask
 	$(SWIFTC) $(FLAGS) Sources/Fonts.swift Tests/fonts/main.swift -o build/test-fonts
 	build/test-fonts
 	$(SWIFTC) $(FLAGS) Sources/Wording.swift Tests/wording/main.swift -o build/test-wording
