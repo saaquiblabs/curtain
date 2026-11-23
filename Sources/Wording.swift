@@ -62,6 +62,11 @@ enum Wording {
     "\(bannerLine(names: names)). Turn back on, or press \(spokenKeys(keys))."
   }
 
+  /// The banner's Turn back on button, for VoiceOver: the shortcut shown beside it.
+  static func bannerHint(keys: String) -> String {
+    "\(spokenKeys(keys)) turns every screen back on too."
+  }
+
   /// What a screen's tile on the desk map shows.
   enum TileState: String { case on, off, disconnected }
 

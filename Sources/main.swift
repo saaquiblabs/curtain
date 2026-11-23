@@ -15,7 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var escapeKey: Any?
   private let presence = MenuPresence()
   private var toggle = MenuToggle()
-  private var banner: TurnBackOnBanner!
+  private let banner = TurnBackOnBanner(screens: .shared)
   private var isOpen = false
 
   func applicationDidFinishLaunching(_: Notification) {
@@ -24,7 +24,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     Keys.shared.start()
     panel = makePanel()
     // After Turn off, a banner on the screen you're on offers to undo it, menu open or not (#27).
-    banner = TurnBackOnBanner(screens: .shared)
     Screens.shared.didTurnOff = { [weak self] ids in self?.banner.show(justOff: ids) }
     closeWhenMovingOn()
     Screens.shared.willReconfigure = { [weak self] id, disconnecting in

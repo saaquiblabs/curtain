@@ -451,12 +451,10 @@ final class Screens: ObservableObject {
   }
 
   /// Turn off, as you ask for it (a row's button or ⌃⌥C): those screens fade to black, then the
-  /// Turn back on banner offers to undo it (#27). Returns the screens it turned off.
-  @discardableResult
-  func turnOff(_ screens: [Screen]) -> [CGDirectDisplayID] {
+  /// Turn back on banner offers to undo it (#27).
+  func turnOff(_ screens: [Screen]) {
     let off = screens.filter { !$0.isOff && setQuickOff($0, off: true) }.map(\.id)
     if !off.isEmpty { didTurnOff?(off) }
-    return off
   }
 
   /// Whether a screen's colour curve is still fading (Tests/never-dark).

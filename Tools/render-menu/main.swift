@@ -211,7 +211,8 @@ MainActor.assumeIsolated {
         exit(1)
       }
     }
-  }  // The Turn back on banner after Turn off (#27): one screen named, and two (a third monitor).
+  }
+  // The Turn back on banner after Turn off (#27): one screen named, and two (a third monitor).
   for (name, names) in [("banner", ["L27h-4A"]), ("banner-two", ["L27h-4A", "Dell U2723QE"])] {
     for (label, appearance) in appearances {
       let url = out.appendingPathComponent("\(name)-\(label).png")
