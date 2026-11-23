@@ -317,7 +317,7 @@ struct ScreenRow: View {
             .disabled(lastOn)
           case .turnOff:
             PillButton(title: "Turn off", systemImage: "power", prominent: false, result: result, lit: lit) {
-              screens.setQuickOff(screen, off: true)
+              screens.turnOff([screen])
             }
             .disabled(lastOn)
           case .turnOn:

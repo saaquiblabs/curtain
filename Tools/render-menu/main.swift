@@ -211,5 +211,18 @@ MainActor.assumeIsolated {
         exit(1)
       }
     }
+  }  // The Turn back on banner after Turn off (#27): one screen named, and two (a third monitor).
+  for (name, names) in [("banner", ["L27h-4A"]), ("banner-two", ["L27h-4A", "Dell U2723QE"])] {
+    for (label, appearance) in appearances {
+      let url = out.appendingPathComponent("\(name)-\(label).png")
+      Theme.previewIncreaseContrast = false
+      do {
+        try render(BannerView(line: Wording.bannerLine(names: names)), appearance: appearance, to: url)
+        print("rendered \(url.path)")
+      } catch {
+        print("failed \(url.path): \(error)")
+        exit(1)
+      }
+    }
   }
 }
