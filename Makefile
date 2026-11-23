@@ -81,7 +81,7 @@ screenshots: renders
 # The menu's look lives only in Sources/Theme.swift: fail if a view picks its own colour, font,
 # corner radius or timing.
 theme-check:
-	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/DeskMap.swift Sources/main.swift Sources/MenuPanel.swift \
+	@! grep -nE 'Color[.(]|\.(secondary|tertiary|quaternary|primary|white|black)\b|duration:|\.font\(\.|\.system\(|cornerRadius: [0-9]|\.tint\(' Sources/UI.swift Sources/DeskMap.swift Sources/main.swift Sources/MenuPanel.swift Sources/Banner.swift \
 	  || { echo "theme-check: visual values above belong in Sources/Theme.swift"; exit 1; }
 
 # Logic tests: plain executables built with only the sources they check. Touch no display (the
@@ -110,6 +110,8 @@ test:
 	build/test-row-buttons
 	$(SWIFTC) $(FLAGS) Sources/TilePreview.swift Tests/tile-preview/main.swift -o build/test-tile-preview
 	build/test-tile-preview
+	$(SWIFTC) $(FLAGS) Sources/TurnBackOn.swift Sources/Wording.swift Tests/turn-back-on/main.swift -o build/test-turn-back-on
+	build/test-turn-back-on
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/menu-panel/main.swift -o build/test-menu-panel
 	build/test-menu-panel
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/never-dark/main.swift -o build/test-never-dark

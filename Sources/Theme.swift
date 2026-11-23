@@ -231,6 +231,9 @@ enum Theme {
     static let ringWidth: CGFloat = 1.5, ringGap: CGFloat = 3
     static let tileFolds: CGFloat = 0.36   // a tile's pleats are this much narrower than a row's
     static let drapeOverlap: CGFloat = 0.505 // each drape covers just over half, so they meet with no seam
+    // The Turn back on banner (#27): this far above the bottom of the screen (the Dock's top, if
+    // it shows), centred.
+    static let bannerLift: CGFloat = 64
   }
 
   // MARK: Motion (all under 250 ms but the drapes; Reduce Motion swaps movement for a short fade)
@@ -267,6 +270,9 @@ enum Theme {
     static let hover = Animation.easeOut(duration: 0.12)
     static let rowHover = Animation.easeOut(duration: 0.15)
     static let swap = Animation.easeOut(duration: 0.16)
+    /// The Turn back on banner (#27) fades in rising this far, and fades out sinking back; the
+    /// menu's open and close timings. With Reduce Motion, just the fade.
+    static let bannerRise: CGFloat = 8
     /// With Reduce Motion: a plain fade, no movement.
     static let reduced = Animation.easeOut(duration: 0.12)
     static let reducedOpen = 0.12

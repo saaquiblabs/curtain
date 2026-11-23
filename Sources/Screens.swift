@@ -74,6 +74,9 @@ final class Screens: ObservableObject {
   /// back (false), with its id, while the menu and pointer are still where you left them (#25:
   /// the menu remembers that spot for Reconnect, and stays open through the change).
   var willReconfigure: ((CGDirectDisplayID, _ disconnecting: Bool) -> Void)?
+  /// Called after Turn off (the button or ⌃⌥C) with the screens it just turned off, so the Turn
+  /// back on banner can show (#27).
+  var didTurnOff: (([CGDirectDisplayID]) -> Void)?
 
   @Published var followMac: Bool { didSet { defaults.set(followMac, forKey: "followMac"); updateFollowTimer() } }
   @Published var openAtLogin: Bool {
@@ -447,6 +450,15 @@ final class Screens: ObservableObject {
     return true
   }
 
+  /// Turn off, as you ask for it (a row's button or ⌃⌥C): those screens fade to black, then the
+  /// Turn back on banner offers to undo it (#27). Returns the screens it turned off.
+  @discardableResult
+  func turnOff(_ screens: [Screen]) -> [CGDirectDisplayID] {
+    let off = screens.filter { !$0.isOff && setQuickOff($0, off: true) }.map(\.id)
+    if !off.isEmpty { didTurnOff?(off) }
+    return off
+  }
+
   /// Whether a screen's colour curve is still fading (Tests/never-dark).
   func isFading(_ screen: Screen) -> Bool { fades[screen.id] != nil }
 
@@ -537,7 +549,7 @@ final class Screens: ObservableObject {
       openAll()
     } else {
       let keep = screenUnderPointer() ?? all.first { $0.isBuiltin } ?? all.first
-      for screen in all where screen.id != keep?.id { setQuickOff(screen, off: true) }
+      turnOff(all.filter { $0.id != keep?.id })
     }
   }
 

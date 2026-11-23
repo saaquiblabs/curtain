@@ -115,6 +115,12 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   glow at the pointer's brightness; Quit reaches every tile), `HoverLine` says it under the map
   (above the row with one screen). Tooltips are gone; the lines are VoiceOver hints. A click
   clears the preview so the real change takes over with its own motion.
+- **Turn back on banner** (#27, built for 0.5.0): `Screens.turnOff(_:)` is the one way the row's
+  Turn off and ⌃⌥C turn screens off; it calls `didTurnOff`, and `TurnBackOnBanner`
+  (`Sources/Banner.swift`) shows a non-activating panel at the bottom centre of the screen under
+  the pointer. Where, what it names and when it goes is `Sources/TurnBackOn.swift` (tested): 6 s,
+  held while the pointer is on it and 2 s after it leaves, gone at once when its screens are back
+  on. Never key, so the menu stays open; its view takes the first click (`acceptsFirstMouse`).
 
 ## Learned the hard way (keep)
 - The owner's Lenovo answers DDC reads but ignores every write (brightness, contrast); likely
@@ -130,7 +136,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - Pictures of the menu: `make renders` draws the real menu from made-up screens (light and dark ×
   on, dimmed in software, dimmed in software at 100%, off, disconnected, Accessibility notice, and
   `hover`/`hover-off` with every control drawn as if under the pointer, `preview-*` with one
-  control's result on the map, #26) into `build/renders/`, touching no
+  control's result on the map, #26, and `banner*` for the Turn back on banner, #27) into `build/renders/`, touching no
   display (`Tools/render-menu`). The menu takes its `Screens`/`Keys` from outside; `.preview`
   initialisers build fake ones. Offscreen capture draws stray ticks on stroked capsules, so
   capsule outlines are filled rings (`CapsuleOutline`). macOS won't give an offscreen window the
@@ -169,7 +175,7 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
    button; hover shows the result; "Turn back on" banner after turning off. Planned with the
    owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22, done:
    owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23, done: owner picked bezelled monitors with drapes from both sides, the same drapes on the rows, drapes 720 ms as the one exception to the 250 ms rule; page linked on #23), desk map (#24, 0.4.0, built), Disconnect as its own
-   button (#25, built for 0.5.0), hover results (#26, built for 0.5.0), Turn back on banner (#27). Decisions are on #20.
+   button (#25, built for 0.5.0), hover results (#26, built for 0.5.0), Turn back on banner (#27, built for 0.5.0). Decisions are on #20.
    #25–#27 ship together as 0.5.0 (owner, 2026-11-22, noted on #20).
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.

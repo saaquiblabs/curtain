@@ -52,6 +52,16 @@ enum Wording {
     disconnected ? "Disconnected. Its windows moved to \(other)." : "Off. Its windows are still there, hidden."
   }
 
+  /// The Turn back on banner's line (#27): "L27h-4A is off", or "2 screens are off".
+  static func bannerLine(names: [String]) -> String {
+    names.count == 1 ? "\(names[0]) is off" : "\(names.count) screens are off"
+  }
+
+  /// What VoiceOver announces as the banner shows.
+  static func bannerSpoken(names: [String], keys: String) -> String {
+    "\(bannerLine(names: names)). Turn back on, or press \(spokenKeys(keys))."
+  }
+
   /// What a screen's tile on the desk map shows.
   enum TileState: String { case on, off, disconnected }
 
