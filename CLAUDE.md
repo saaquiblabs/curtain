@@ -15,8 +15,9 @@ Each chat implements exactly one GitHub issue (usually via `/implement #N`), so 
   lifts the cap. 2026-11-22: lifted once for step 3 (umbrella #20 + #21–#27).
   2026-11-22: lifted once more for #29 (critical: never leave every screen black; no v0.3.1 tag until it's fixed).
   2026-11-22: lifted once more for #37 (high: install fails on macOS 26, codesign finds no identity; hotfix 0.4.2).
+  2026-11-23: lifted once more for step 6 (umbrella #41 + #42, Curtain's page at curtain.saaquiblabs.com).
 - **Every issue sits under an umbrella** as a GitHub sub-issue, never as a loose issue. Umbrella
-  today: #20 (Step 3, a menu you understand by looking). Closed: #1 (identity, owner signed off
+  today: #20 (Step 3, a menu you understand by looking) and #41 (Step 6, Curtain on the web). Closed: #1 (identity, owner signed off
   2026-11-22) and #6 (Ship 0.3.0).
 - **Every issue and umbrella has a severity label**: `severity:critical` (broken or unsafe),
   `severity:high` (core feature fails, can't install or find Curtain), `severity:medium` (works but
