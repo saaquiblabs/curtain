@@ -27,11 +27,9 @@ struct BannerView: View {
           .fixedSize()
       }
       .buttonStyle(PillStyle(prominent: true))
-      .accessibilityHint(Wording.spokenKeys(Keys.shortcutLabel) + " turns every screen back on too")
-      HStack(spacing: 2) {
-        ForEach(Array(Keys.shortcutLabel.enumerated()), id: \.offset) { Keycap(symbol: String($0.element)) }
-      }
-      .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
+      .accessibilityHint(Wording.bannerHint(keys: Keys.shortcutLabel))
+      ShortcutKeys()
+        .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
       .accessibilityHidden(true) // the button's hint says it
     }
     .padding(.leading, 14).padding(.trailing, 12).padding(.vertical, 10)
@@ -54,6 +52,8 @@ final class TurnBackOnBanner {
   private var timer: Timer?
   private var watcher: AnyCancellable?
   private var hiding = false
+  /// The display it was put on.
+  private var shownOn: CGDirectDisplayID?
 
   init(screens: Screens) {
     self.screens = screens
@@ -67,31 +67,42 @@ final class TurnBackOnBanner {
 
   /// Turn off just turned `ids` off: show the banner on the screen you're on.
   func show(justOff ids: [CGDirectDisplayID]) {
+    // Still fading out counts as showing: its screens stay named, so Turn back on brings them all.
     let stillOff = screens.all.filter(\.blackedOut).map(\.id)
-    named = TurnBackOn.named(showing: isShowing ? named : [], justOff: ids, stillOff: stillOff)
+    let named = TurnBackOn.named(showing: panel != nil ? self.named : [], justOff: ids, stillOff: stillOff)
+    let names = named.compactMap { id in screens.all.first { $0.id == id }?.name }
     let screensOn = screens.all.filter { !$0.isOff }.map(\.id)
-    guard let target = TurnBackOn.screen(pointerOn: screens.screenUnderPointer()?.id, screensOn: screensOn,
+    guard !names.isEmpty,
+          let target = TurnBackOn.screen(pointerOn: screens.screenUnderPointer()?.id, screensOn: screensOn,
                                          menuBarOn: NSScreen.screens.first?.displayID),
           let onScreen = Screens.nsScreen(target) else { return }
-    let names = named.compactMap { id in screens.all.first { $0.id == id }?.name }
+    self.named = named
     let view = BannerView(line: Wording.bannerLine(names: names),
                           turnBackOn: { [weak self] in self?.turnBackOn() },
                           hovered: { [weak self] in self?.pointer(on: $0) })
 
+    // One view for the banner's life, its words swapped: a new view under a resting pointer would
+    // never hear it arrive, and the banner would fade out under it.
     let panel = self.panel ?? Self.makePanel()
-    (panel.contentView?.subviews.first as? BannerHost)?.removeFromSuperview()
-    let host = BannerHost(rootView: view)
+    let host: BannerHost
+    if let shown = panel.contentView?.subviews.first as? BannerHost {
+      host = shown
+      host.rootView = view
+    } else {
+      host = BannerHost(rootView: view)
+      panel.contentView!.addSubview(host)
+    }
     let size = host.fittingSize
-    let effect = panel.contentView!
     host.frame = NSRect(origin: .zero, size: size)
-    effect.addSubview(host)
     let visible = onScreen.visibleFrame
     let settled = NSRect(x: visible.midX - size.width / 2, y: visible.minY + Theme.Size.bannerLift,
                          width: size.width, height: size.height)
     let wasShowing = isShowing
+    shownOn = target
     self.panel = panel
     hiding = false
-    shownAt = now; pointerLeftAt = nil; pointerOnIt = false
+    shownAt = now; pointerLeftAt = nil
+    pointerOnIt = wasShowing && settled.contains(NSEvent.mouseLocation)
     if wasShowing {
       panel.setFrame(settled, display: true) // a second Turn off: the same banner, its words updated
       panel.alphaValue = 1
@@ -106,7 +117,7 @@ final class TurnBackOnBanner {
         if !reduceMotion { panel.animator().setFrame(settled, display: true) }
       }
     }
-    NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested, userInfo: [
+    NSAccessibility.post(element: panel, notification: .announcementRequested, userInfo: [
       .announcement: Wording.bannerSpoken(names: names, keys: Keys.shortcutLabel),
       .priority: NSAccessibilityPriorityLevel.high.rawValue,
     ])
@@ -124,13 +135,15 @@ final class TurnBackOnBanner {
     check()
   }
 
-  /// Hides it when its time is up, its screens are back on, or its screen went; otherwise checks
-  /// again when its time would be up.
+  /// Hides it when its time is up, its screens are back on, or its screen went dark or away
+  /// (macOS would carry it to another screen, somewhere off its place); otherwise checks again
+  /// when its time would be up.
   private func check() {
     guard isShowing, let panel else { return }
     timer?.invalidate(); timer = nil
     let stillOff = named.filter { id in screens.all.contains { $0.id == id && $0.blackedOut } }.count
-    guard panel.screen != nil,
+    guard let onScreen = panel.screen?.displayID, onScreen == shownOn,
+          screens.all.contains(where: { $0.id == onScreen && !$0.isOff }),
           TurnBackOn.showing(shownAt: shownAt, now: now, pointerLeftAt: pointerLeftAt,
                              pointerOnIt: pointerOnIt, stillOff: stillOff) else { return hide() }
     guard !pointerOnIt else { return } // leaving it checks again

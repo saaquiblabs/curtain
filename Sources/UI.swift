@@ -86,9 +86,7 @@ struct PopoverView: View {
   private var footer: some View {
     HStack(spacing: 6) {
       HStack(spacing: 6) {
-        HStack(spacing: 2) {
-          ForEach(Array(Keys.shortcutLabel.enumerated()), id: \.offset) { Keycap(symbol: String($0.element)) }
-        }
+        ShortcutKeys()
         Text("turns other screens off / on")
       }
       // One line for VoiceOver, keys as words: "Control Option C turns other screens off / on".
@@ -126,6 +124,15 @@ struct Keycap: View {
       .frame(minWidth: Theme.Size.keycap, minHeight: Theme.Size.keycap)
       .background(shape.fill(Theme.pill).shadow(Theme.pillShadow))
       .overlay(shape.strokeBorder(Theme.rowEdge, lineWidth: 1))
+  }
+}
+
+/// The ⌃⌥C shortcut as keycaps (the footer, and the Turn back on banner).
+struct ShortcutKeys: View {
+  var body: some View {
+    HStack(spacing: 2) {
+      ForEach(Array(Keys.shortcutLabel.enumerated()), id: \.offset) { Keycap(symbol: String($0.element)) }
+    }
   }
 }
 

@@ -62,5 +62,7 @@ check(Wording.bannerLine(names: ["L27h-4A", "Dell"]), "2 screens are off", "two 
 check(Wording.bannerSpoken(names: ["L27h-4A"], keys: "⌃⌥C"),
       "L27h-4A is off. Turn back on, or press Control Option C.", "what VoiceOver says")
 
+check(Wording.bannerHint(keys: "⌃⌥C"), "Control Option C turns every screen back on too.", "the button's VoiceOver hint")
+
 print(failures == 0 ? "all passed" : "\(failures) failed")
 if failures > 0 { exit(1) }
