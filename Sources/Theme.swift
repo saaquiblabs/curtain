@@ -255,6 +255,8 @@ enum Theme {
     static let drapesHide = drapesShow.delay(0.71)
     /// A tile fading to its outline as its screen is unplugged, and back.
     static let tileGone = Animation.easeOut(duration: 0.2)
+    /// A tile showing what the control under the pointer would do, halfway, and its line (#26).
+    static let preview = Animation.easeOut(duration: 0.2)
     /// The slider glides to a click far from its edge.
     static let slider = Animation.easeOut(duration: 0.12)
     static let sliderJump = 0.08

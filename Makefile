@@ -108,6 +108,8 @@ test:
 	build/test-desk-layout
 	$(SWIFTC) $(FLAGS) Sources/RowButtons.swift Tests/row-buttons/main.swift -o build/test-row-buttons
 	build/test-row-buttons
+	$(SWIFTC) $(FLAGS) Sources/TilePreview.swift Tests/tile-preview/main.swift -o build/test-tile-preview
+	build/test-tile-preview
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/menu-panel/main.swift -o build/test-menu-panel
 	build/test-menu-panel
 	$(SWIFTC) $(FLAGS) $(filter-out Sources/main.swift,$(wildcard Sources/*.swift)) Tests/never-dark/main.swift -o build/test-never-dark

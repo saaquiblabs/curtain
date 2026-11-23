@@ -17,6 +17,17 @@ The rest of step 3, a menu you understand by looking (#20).
   every screen out for 0.15 s and straight back in for 0.15 s, where they used to fade out for
   0.3 s, hold black for 1.2 s and take 0.5 s to come back. The owner tried all three on the real
   desk and picked this one (#22).
+- **Hover shows what a button will do, on the map only.** With the pointer on Turn off, that
+  screen's drapes half-close on its tile; on Turn on they half-open; on Disconnect the tile
+  half-fades to its outline, and on Reconnect it half-comes back. Along a brightness bar the tile's
+  glow follows the pointer, and on Quit every screen that's off comes halfway back. Halfway, so it
+  never looks like the real thing, and never on a real screen. One line under the map says the
+  result, for example Quit: "Quits Curtain; every screen comes back on." It replaces the tooltips,
+  which took a second to appear; VoiceOver hears the same line as each control's hint. A disabled
+  button (the only screen on) says why and previews nothing. With one screen the line sits above
+  its row. Previews take 0.2 s, a fade with Reduce Motion; the lines live in `Sources/Wording.swift`
+  and what each tile shows in `Sources/TilePreview.swift`, both tested in `make test`, and `make
+  renders` draws every preview (`preview-*.png`) (#26).
 - Which row gets which button is tested in `make test`, with each button's line in
   `Sources/Wording.swift`; `make renders` draws the rows with Disconnect and the disconnected
   row with Reconnect.
