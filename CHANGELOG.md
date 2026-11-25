@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.1 — 2026-11-25
+
+- **Disconnect and Reconnect keep the menu under Curtain's icon.** Disconnect used to put a menu
+  opened near the right of a wide monitor at the far right of the MacBook, away from the icon, and
+  Reconnect could leave it in the middle of the monitor. Menu bar icons sit the same distance from
+  the right edge on every screen, so the menu now keeps that distance instead of its place as a
+  fraction across the screen: under the icon on the MacBook, under it again on the monitor. And it
+  is placed again once macOS has finished laying the screens out (a returning monitor first comes
+  back at a temporary place, then every screen moves), with the pointer keeping its spot on the
+  menu. Tested in `make test` with the owner's desk; checked on the desk (#25).
+
 ## 0.5.0 — 2026-11-25
 
 The rest of step 3, a menu you understand by looking (#20).

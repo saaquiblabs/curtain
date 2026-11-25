@@ -5,7 +5,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-let version = "0.5.0"
+let version = "0.5.1"
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: NSStatusItem!
