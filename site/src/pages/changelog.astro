@@ -83,16 +83,18 @@ const chev = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M
       document.querySelectorAll('.cl-list details').forEach((d) => (d.open = open));
       btn.setAttribute('aria-pressed', open); btn.textContent = open ? 'Collapse all' : 'Expand all';
     });
-    // A #v0.4.0 link opens the version it names.
-    const openHash = () => {
-      const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-      if (!el) return; el.querySelector('details').open = true; el.scrollIntoView({ block: 'start' });
+    // A ?v=0.4.0 link (or an old #v0.4.0 one) opens the version it names; the layout then drops
+    // it from the address bar (no #… in URLs, owner 2026-11-25).
+    const openNamed = () => {
+      const v = new URLSearchParams(location.search).get('v');
+      const el = document.getElementById(v ? `v${v}` : decodeURIComponent(location.hash.slice(1)));
+      if (el) { el.querySelector('details').open = true; el.scrollIntoView({ block: 'start' }); }
     };
-    openHash(); addEventListener('hashchange', openHash);
+    openNamed(); addEventListener('hashchange', openNamed);
     // Copy link, without folding the version it sits in.
     document.querySelectorAll('.cl-share').forEach((b) => b.addEventListener('click', async (e) => {
       e.preventDefault(); e.stopPropagation();
-      try { await navigator.clipboard.writeText(`${location.origin}/changelog#${b.dataset.id}`); } catch { return; }
+      try { await navigator.clipboard.writeText(`${location.origin}/changelog?v=${b.dataset.id.slice(1)}`); } catch { return; }
       const t = b.querySelector('.t'); t.textContent = 'Copied'; setTimeout(() => (t.textContent = 'Copy link'), 1600);
     }));
   })();
