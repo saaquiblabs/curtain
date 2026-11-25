@@ -234,6 +234,7 @@ enum Theme {
     // The Turn back on banner (#27): this far above the bottom of the screen (the Dock's top, if
     // it shows), centred.
     static let bannerLift: CGFloat = 64
+    static let bannerClosePadding: CGFloat = 5 // the × button: a small round pill
   }
 
   // MARK: Motion (all under 250 ms but the drapes; Reduce Motion swaps movement for a short fade)
@@ -253,9 +254,6 @@ enum Theme {
     /// Turning a screen off or on: the drapes close from both sides, on its row and its tile. The
     /// one motion over 250 ms, by the owner's choice on #23: 720 ms, a gentle start, a soft landing.
     static let drapes = Animation.timingCurve(0.45, 0.05, 0.25, 1, duration: 0.72)
-    /// The drapes appear at once as they start to close, and go once they've opened.
-    static let drapesShow = Animation.linear(duration: 0.01)
-    static let drapesHide = drapesShow.delay(0.71)
     /// A tile fading to its outline as its screen is unplugged, and back.
     static let tileGone = Animation.easeOut(duration: 0.2)
     /// A tile showing what the control under the pointer would do, halfway, and its line (#26).

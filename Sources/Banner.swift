@@ -1,6 +1,7 @@
 // The Turn back on banner (#27): after Turn off, a small banner floats for about 6 s on the
-// screen you're on, even if the menu closes: "L27h-4A is off · Turn back on · ⌃⌥C". Where it goes
-// and when it goes is Sources/TurnBackOn.swift; its look comes from Theme like the menu's.
+// screen you're on, even if the menu closes: "L27h-4A is off · Turn back on · ⌃⌥C · ×". Esc or the
+// × closes it, and it can be dragged anywhere (owner, after the desk test). Where it goes and when
+// it goes is Sources/TurnBackOn.swift; its look comes from Theme like the menu's.
 
 import AppKit
 import Combine
@@ -10,8 +11,11 @@ import SwiftUI
 struct BannerView: View {
   var line: String
   var turnBackOn: () -> Void = {}
+  var close: () -> Void = {}
   /// The pointer came onto the banner (true) or left it.
   var hovered: (Bool) -> Void = { _ in }
+  /// A drag on the banner: true while it moves, false when it's let go.
+  var dragged: (Bool) -> Void = { _ in }
 
   var body: some View {
     HStack(spacing: 10) {
@@ -31,11 +35,21 @@ struct BannerView: View {
       ShortcutKeys()
         .font(Theme.Font.caption).foregroundStyle(Theme.textSecondary)
       .accessibilityHidden(true) // the button's hint says it
+      Button(action: close) {
+        Image(systemName: "xmark")
+          .font(Theme.Font.caption.weight(.semibold))
+          .padding(Theme.Size.bannerClosePadding)
+      }
+      .buttonStyle(PillStyle(prominent: false))
+      .accessibilityLabel(Wording.bannerClose)
+      .accessibilityHint(Wording.bannerCloseHint)
     }
     .padding(.leading, 14).padding(.trailing, 12).padding(.vertical, 10)
     .background(MenuSurface())
     .fixedSize()
     .onHover(perform: hovered)
+    // Moved by NSEvent's pointer, not the gesture's points: those move with the window.
+    .gesture(DragGesture(minimumDistance: 2).onChanged { _ in dragged(true) }.onEnded { _ in dragged(false) })
   }
 }
 
@@ -52,8 +66,13 @@ final class TurnBackOnBanner {
   private var timer: Timer?
   private var watcher: AnyCancellable?
   private var hiding = false
-  /// The display it was put on.
+  /// The display it was put on, or dragged to.
   private var shownOn: CGDirectDisplayID?
+  /// Where a drag started: the pointer and the banner's origin.
+  private var dragFrom: (pointer: NSPoint, origin: NSPoint)?
+  /// It was dragged: a second Turn off updates its words where it is.
+  private var moved = false
+  private var escMonitors: [Any] = []
 
   init(screens: Screens) {
     self.screens = screens
@@ -79,7 +98,9 @@ final class TurnBackOnBanner {
     self.named = named
     let view = BannerView(line: Wording.bannerLine(names: names),
                           turnBackOn: { [weak self] in self?.turnBackOn() },
-                          hovered: { [weak self] in self?.pointer(on: $0) })
+                          close: { [weak self] in self?.hide() },
+                          hovered: { [weak self] in self?.pointer(on: $0) },
+                          dragged: { [weak self] in self?.drag($0) })
 
     // One view for the banner's life, its words swapped: a new view under a resting pointer would
     // never hear it arrive, and the banner would fade out under it.
@@ -95,10 +116,14 @@ final class TurnBackOnBanner {
     let size = host.fittingSize
     host.frame = NSRect(origin: .zero, size: size)
     let visible = onScreen.visibleFrame
-    let settled = NSRect(x: visible.midX - size.width / 2, y: visible.minY + Theme.Size.bannerLift,
+    let centred = NSRect(x: visible.midX - size.width / 2, y: visible.minY + Theme.Size.bannerLift,
                          width: size.width, height: size.height)
     let wasShowing = isShowing
-    shownOn = target
+    if !wasShowing { moved = false }
+    let settled = wasShowing && moved
+      ? NSRect(origin: NSPoint(x: panel.frame.midX - size.width / 2, y: panel.frame.minY), size: size)
+      : centred
+    if !(wasShowing && moved) { shownOn = target }
     self.panel = panel
     hiding = false
     shownAt = now; pointerLeftAt = nil
@@ -110,6 +135,7 @@ final class TurnBackOnBanner {
       panel.setFrame(reduceMotion ? settled : settled.offsetBy(dx: 0, dy: -Theme.Motion.bannerRise), display: false)
       panel.alphaValue = 0
       panel.orderFrontRegardless()
+      watchEsc()
       NSAnimationContext.runAnimationGroup { context in
         context.duration = reduceMotion ? Theme.Motion.reducedOpen : Theme.Motion.open
         context.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -127,6 +153,44 @@ final class TurnBackOnBanner {
   private func turnBackOn() {
     for id in named { if let screen = screens.all.first(where: { $0.id == id }) { screens.setQuickOff(screen, off: false) } }
     hide()
+  }
+
+  /// Follows the pointer while dragged; it then belongs to the screen it was dropped on.
+  private func drag(_ moving: Bool) {
+    guard isShowing, let panel else { return }
+    let pointer = NSEvent.mouseLocation
+    if moving {
+      let from = dragFrom ?? (pointer, panel.frame.origin)
+      dragFrom = from
+      moved = true
+      panel.setFrameOrigin(NSPoint(x: from.origin.x + pointer.x - from.pointer.x,
+                                   y: from.origin.y + pointer.y - from.pointer.y))
+    } else {
+      dragFrom = nil
+    }
+    shownOn = panel.screen?.displayID ?? shownOn
+  }
+
+  /// Esc closes it while it shows: heard in other apps with Accessibility (as the brightness keys
+  /// are), and in Curtain's own menu always. It's only listened to, never taken from the app.
+  private func watchEsc() {
+    guard escMonitors.isEmpty else { return }
+    let esc: (NSEvent) -> Bool = { event in
+      event.keyCode == 53 && event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty
+    }
+    if let global = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] event in
+      if esc(event) { self?.hide() }
+    }) { escMonitors.append(global) }
+    if let local = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] event in
+      guard esc(event), self?.isShowing == true else { return event }
+      self?.hide()
+      return event // the menu hears Esc too
+    }) { escMonitors.append(local) }
+  }
+
+  private func stopEsc() {
+    escMonitors.forEach(NSEvent.removeMonitor)
+    escMonitors = []
   }
 
   private func pointer(on: Bool) {
@@ -158,6 +222,8 @@ final class TurnBackOnBanner {
     guard isShowing, let panel else { return }
     hiding = true
     timer?.invalidate(); timer = nil
+    stopEsc()
+    dragFrom = nil
     NSAnimationContext.runAnimationGroup({ context in
       context.duration = reduceMotion ? Theme.Motion.reducedClose : Theme.Motion.close
       context.timingFunction = CAMediaTimingFunction(name: .easeIn)
@@ -166,6 +232,7 @@ final class TurnBackOnBanner {
     }, completionHandler: { [weak self] in
       guard let self, self.hiding else { return } // shown again meanwhile
       panel.orderOut(nil)
+      self.moved = false
       self.panel = nil
       self.hiding = false
     })

@@ -200,19 +200,40 @@ struct Drapes: View {
   }
 
   private func drape(half: CGFloat, from edge: HorizontalAlignment, shadow: Theme.Shadow) -> some View {
-    let anchor: UnitPoint = edge == .leading ? .leading : .trailing
-    let drawn = closed > 0
-    return Pleats(folds: folds, alignment: edge == .leading ? .leading : .trailing)
+    Pleats(folds: folds, alignment: edge == .leading ? .leading : .trailing)
       .drawingGroup()
       .frame(width: half)
-      .scaleEffect(x: reduceMotion ? 1 : max(Theme.Size.gathered, closed), anchor: anchor)
-      .shadow(shadow)
-      .animation(Theme.Motion.drapes, value: real)
-      // Solid while it moves: it shows as it starts to close, and goes once it has opened. With
-      // Reduce Motion it doesn't move, it fades (halfway for a preview).
-      .opacity(reduceMotion ? closed : drawn ? 1 : 0)
-      .animation(reduceMotion ? Theme.Motion.reduced : drawn ? Theme.Motion.drapesShow : Theme.Motion.drapesHide, value: drawn)
+      .modifier(Gather(closed: closed, reduceMotion: reduceMotion,
+                       anchor: edge == .leading ? .leading : .trailing, shadow: shadow))
+      .animation(reduceMotion ? Theme.Motion.reduced : Theme.Motion.drapes, value: real)
       .frame(maxWidth: .infinity, alignment: edge == .leading ? .leading : .trailing)
+  }
+
+  /// One drape gathered to how far it's closed. Solid while it moves, and gone the moment it has
+  /// fully opened, whichever motion carries it: the drapes' 720 ms for a real Turn on, the
+  /// preview's 0.2 s when the pointer leaves a button (#26: it used to linger, then cut). With
+  /// Reduce Motion it doesn't move, it fades (halfway for a preview).
+  private struct Gather: ViewModifier, Animatable {
+    var closed: Double
+    var reduceMotion: Bool
+    var anchor: UnitPoint
+    var shadow: Theme.Shadow
+
+    var animatableData: Double {
+      get { closed }
+      set { closed = newValue }
+    }
+
+    func body(content: Content) -> some View {
+      if reduceMotion {
+        content.shadow(shadow).opacity(closed)
+      } else {
+        content
+          .scaleEffect(x: max(Theme.Size.gathered, closed), anchor: anchor)
+          .shadow(shadow)
+          .opacity(closed > 0.001 ? 1 : 0)
+      }
+    }
   }
 
   /// Folds side by side, each lit on its left and shaded on its right, gathered at the drape's edge.

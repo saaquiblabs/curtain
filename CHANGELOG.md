@@ -27,14 +27,17 @@ The rest of step 3, a menu you understand by looking (#20).
   button (the only screen on) says why and previews nothing. With one screen the line sits above
   its row. Previews take 0.2 s, a fade with Reduce Motion; the lines live in `Sources/Wording.swift`
   and what each tile shows in `Sources/TilePreview.swift`, both tested in `make test`, and `make
-  renders` draws every preview (`preview-*.png`) (#26).
+  renders` draws every preview (`preview-*.png`). Moving off a button, the half-drawn drapes open in
+  the same 0.2 s; before the desk test they waited 0.7 s and then vanished at once (#26).
 - **Turn back on, right where you are.** After Turn off (the button or ⌃⌥C), a small banner floats
   near the bottom of the screen you're on for about 6 s, even if the menu closes: "L27h-4A is off ·
   Turn back on · ⌃⌥C" ("2 screens are off" when ⌃⌥C turned off several). Turn back on brings them
   back; ⌃⌥C still does too. It stays while the pointer is on it, so it never fades out under your
   click, and goes at once if you turn the screen back on some other way. It fades in rising a
   touch in 0.2 s (a plain fade with Reduce Motion), never takes focus from the app you're in, and
-  VoiceOver announces it. Where it goes and when it goes are tested in `make test`
+  VoiceOver announces it. Esc or its × closes it (Esc in other apps needs the Accessibility
+  permission the brightness keys use), and you can drag it anywhere; it stays where you drop it
+  until it goes. Where it goes and when it goes are tested in `make test`
   (`Sources/TurnBackOn.swift`); `make renders` draws it light and dark (`banner*.png`) (#27).
 - Which row gets which button is tested in `make test`, with each button's line in
   `Sources/Wording.swift`; `make renders` draws the rows with Disconnect and the disconnected

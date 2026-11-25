@@ -67,6 +67,10 @@ enum Wording {
     "\(spokenKeys(keys)) turns every screen back on too."
   }
 
+  /// The banner's × button, for VoiceOver.
+  static let bannerClose = "Close"
+  static let bannerCloseHint = "Escape closes it too. Drag the banner to move it."
+
   /// What a screen's tile on the desk map shows.
   enum TileState: String { case on, off, disconnected }
 
