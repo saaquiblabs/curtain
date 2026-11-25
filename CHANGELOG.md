@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 — unreleased
+## 0.5.0 — 2026-11-25
 
 The rest of step 3, a menu you understand by looking (#20).
 
