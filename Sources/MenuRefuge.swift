@@ -29,17 +29,21 @@ enum MenuRefuge {
     return !screensOn.contains(pointerOn)
   }
 
-  /// Where the menu's middle sits across a screen when Disconnect takes away its screen (#25,
-  /// owner's pick): 0 at the left edge, 1 at the right, kept as a fraction because macOS moves
-  /// every screen's coordinates when the main screen goes. Screen as (minX, width) of its visible area.
-  static func across(midX: Double, of screen: (minX: Double, width: Double)) -> Double {
-    guard screen.width > 0 else { return 0.5 }
-    return min(max((midX - screen.minX) / screen.width, 0), 1)
+  /// How far the menu's middle sits from the right edge of its screen when Disconnect takes that
+  /// screen away (#25). The menu opens under Curtain's icon, and macOS draws the menu bar icons the
+  /// same distance from the right edge on every screen, so this distance is where the icon is,
+  /// whatever the screen's width. (A fraction across the screen, the first take, put a menu opened
+  /// near the right of a wide monitor at the far right of the MacBook, away from the icon: owner,
+  /// 2026-11-25.) Kept as a distance, not a point: macOS moves every screen's coordinates when the
+  /// main screen goes. Screen as (minX, width) of its visible area.
+  static func fromRight(midX: Double, of screen: (minX: Double, width: Double)) -> Double {
+    min(max(screen.minX + screen.width - midX, 0), screen.width)
   }
 
-  /// The same place across another screen: left stays left, right stays right.
-  static func sameSpot(midX: Double, from old: (minX: Double, width: Double), to new: (minX: Double, width: Double)) -> Double {
-    new.minX + across(midX: midX, of: old) * new.width
+  /// The menu's middle on another screen, the same distance from its right edge: under the icon
+  /// there too. Kept on that screen.
+  static func underIcon(fromRight: Double, on screen: (minX: Double, width: Double)) -> Double {
+    min(max(screen.minX + screen.width - fromRight, screen.minX), screen.minX + screen.width)
   }
 
   /// Where the pointer goes so it keeps its spot on the menu after Disconnect or Reconnect moved
