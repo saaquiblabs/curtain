@@ -32,8 +32,12 @@ const columns: [string, { label: string; href: string }[]][] = [
   (() => {
     const wm = document.querySelector('.wm'), svg = wm.querySelector('svg'), text = svg.querySelector('text'), lamp = wm.querySelector('.lamp');
     const home = () => { lamp.style.setProperty('--sx', wm.clientWidth * .52 + 'px'); lamp.style.setProperty('--sy', wm.clientHeight * .55 + 'px'); };
-    const fit = () => { if (!wm.clientWidth) return; const b = text.getBBox(); svg.setAttribute('viewBox', `${b.x - 4} ${b.y + b.height * .06} ${b.width + 8} ${b.height * .86}`); home(); };
-    document.fonts.ready.then(() => new ResizeObserver(fit).observe(wm));
+    // Fit to the letters' ink, measured on a canvas in the same face: getBBox gives the font's line
+    // box, which in Newsreader Italic is shorter than the C and the i's dot and narrower than the n.
+    const ink = () => { const c = document.createElement('canvas').getContext('2d'); c.font = 'italic 400 320px Newsreader'; c.letterSpacing = '-6px'; const m = c.measureText('Curtain');
+      return { l: -m.actualBoundingBoxLeft, r: m.actualBoundingBoxRight, t: -m.actualBoundingBoxAscent, b: m.actualBoundingBoxDescent }; };
+    const fit = () => { if (!wm.clientWidth) return; const k = ink(), p = 8; svg.setAttribute('viewBox', `${k.l - p} ${k.t - p} ${k.r - k.l + 2 * p} ${k.b - k.t + 2 * p}`); home(); };
+    document.fonts.load('italic 400 320px Newsreader').then(() => new ResizeObserver(fit).observe(wm));
     let q = 0, x = 0, y = 0;
     wm.addEventListener('pointermove', (e) => { const r = wm.getBoundingClientRect(); x = e.clientX - r.left; y = e.clientY - r.top; wm.classList.add('live');
       if (!q) q = requestAnimationFrame(() => { q = 0; lamp.style.setProperty('--sx', x + 'px'); lamp.style.setProperty('--sy', y + 'px'); }); });
