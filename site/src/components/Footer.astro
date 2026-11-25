@@ -1,0 +1,13 @@
+---
+// Footer, on every page: the links, the studio, and what the site counts.
+import { analytics, footer, repo, studio } from "../site";
+
+const year = new Date().getFullYear();
+const here = Astro.url.pathname.replace(/\/$/, "") || "/";
+const links = [...footer, { label: "Report a problem", href: `${repo}/issues` }, { label: "MIT licence", href: `${repo}/blob/main/LICENSE` }];
+---
+
+<footer class="sft"><div class="wrap in">
+  <nav aria-label="Footer"><ul>{links.map((l) => <li><a href={l.href} aria-current={l.href === here ? "page" : undefined}>{l.label}</a></li>)}</ul></nav>
+  <p class="legal"><a href={studio.href}><span class="s-mask"></span> A {studio.label} tool · © {year}</a>{analytics.websiteId && <span>Visits counted by our own Umami. No cookies.</span>}</p>
+</div></footer>

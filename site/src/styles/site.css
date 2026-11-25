@@ -1,0 +1,95 @@
+/* Curtain's page in the app's own look, Linen & Dusk (Sources/Theme.swift, docs/identity): linen
+   and dusk blue by day, twilight and afterglow at night, following the visitor's light or dark
+   setting like the app follows macOS. Every page uses this file through Base.astro; Astro inlines it
+   (astro.config.mjs), so nothing blocks the first paint.
+   Fonts: the app's two, self-hosted latin subsets (SIL OFL 1.1), /fonts/LICENSES.txt. */
+@font-face{font-family:'Newsreader';font-style:italic;font-weight:400;font-display:swap;src:url(/fonts/Newsreader-italic-400.woff2) format('woff2')}
+/* optional, not swap: a late swap reflows long text (D-Tox measured the layout shift). Preloaded, so it's nearly always there. */
+@font-face{font-family:'Manrope';font-style:normal;font-weight:400 700;font-display:optional;src:url(/fonts/Manrope-normal-400-700.woff2) format('woff2')}
+
+:root{
+  color-scheme:light dark;
+  /* Linen (light): the app's linen, ink and dusk blue. --acc-text is the deeper dusk for small text. */
+  --bg:#FAFAF7;--bg2:#F2F2EC;--surf:#FFFFFF;--line:rgb(42 47 59 / .09);--line2:rgb(42 47 59 / .16);
+  --text:#2A2F3B;--t2:#5E6679;
+  --acc:#5D6FA6;--acc-text:#4E5F93;--acc-rgb:93 111 166;--on-acc:#FFFFFF;--sheer:#C9D3EA;
+  --weave:rgb(60 70 90 / .028);--shadow:rgb(40 52 80 / .14);
+  --disp:"Newsreader",ui-serif,Georgia,serif;--sans:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --wrap:1120px;--gut:clamp(16px,4vw,40px);--ease:cubic-bezier(.3,.7,.2,1);
+}
+@media (prefers-color-scheme:dark){:root{
+  /* Dusk (dark): twilight, never pure black, with afterglow as the accent. */
+  --bg:#1D2130;--bg2:#222738;--surf:#272C3E;--line:rgb(255 255 255 / .08);--line2:rgb(255 255 255 / .14);
+  --text:#E9EAF0;--t2:#AEB3C6;
+  --acc:#E8B98F;--acc-text:#F0C9A6;--acc-rgb:232 185 143;--on-acc:#24293A;--sheer:#3A4260;
+  --weave:rgb(255 255 255 / .022);--shadow:rgb(0 0 0 / .45);
+}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;color:var(--text);font:400 17px/1.65 var(--sans);overflow-x:clip;
+  /* the app panel's fine weave */
+  background:repeating-linear-gradient(0deg,var(--weave) 0 1px,transparent 1px 4px),repeating-linear-gradient(90deg,var(--weave) 0 1px,transparent 1px 4px),var(--bg)}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+main{display:block}
+main:focus{outline:none}
+h1,h2,h3,p{margin:0}
+h1,h2{font-family:var(--disp);font-style:italic;font-weight:400;text-wrap:balance}
+h1{font-size:clamp(44px,6.4vw,80px);line-height:1.02;letter-spacing:-.015em}
+h2{font-size:clamp(32px,4vw,50px);line-height:1.08;letter-spacing:-.01em}
+h3{font-size:19px;line-height:1.3;font-weight:650}
+code,kbd{font:.88em var(--mono)}
+kbd{display:inline-block;min-width:1.7em;padding:.05em .4em;border-radius:6px;border:1px solid var(--line2);background:var(--surf);text-align:center;font-family:var(--sans);font-weight:600;box-shadow:0 1px 0 var(--line2)}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--gut)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:6px}
+.skip{position:absolute;left:16px;top:-100px;z-index:100;padding:8px 14px;border-radius:999px;background:var(--text);color:var(--bg);text-decoration:none}
+.skip:focus{top:16px}
+.lead{font-size:clamp(17px,1.5vw,20px);color:var(--t2);line-height:1.55;text-wrap:pretty}
+.label{font:600 13px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--acc-text)}
+.prose{max-width:44rem;display:grid;gap:14px;color:var(--t2)}
+.prose h2{color:var(--text);margin-bottom:4px}
+.prose b,.prose strong{color:var(--text);font-weight:600}
+.prose a,.lead a{color:var(--text);text-decoration:underline;text-decoration-color:rgb(var(--acc-rgb) / .7);text-underline-offset:.2em;text-decoration-thickness:1px}
+.prose a:hover,.lead a:hover{text-decoration-color:var(--acc)}
+
+/* Buttons: the app's pills. Solid in the accent (Turn on), ghost with a thin outline (Turn off). */
+.btn,.ghost{display:inline-flex;align-items:center;gap:.55em;padding:.85em 1.35em;border-radius:999px;font:600 15px/1 var(--sans);white-space:nowrap;text-decoration:none;transition:transform .2s var(--ease),box-shadow .2s,background-color .2s,border-color .2s,color .2s}
+.btn{background:var(--acc);color:var(--on-acc);box-shadow:0 4px 14px -4px rgb(var(--acc-rgb) / .6)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px -6px rgb(var(--acc-rgb) / .8)}
+.ghost{border:1px solid var(--line2);background:var(--surf);color:var(--text)}
+.ghost:hover{border-color:rgb(var(--acc-rgb) / .7);color:var(--acc-text)}
+.btn.sm,.ghost.sm{padding:.65em 1.05em;font-size:14px}
+.btn svg,.ghost svg{width:16px;height:16px;flex:none}
+
+/* The copyable install line. */
+.brew{display:flex;align-items:center;gap:10px;max-width:100%;padding:8px 8px 8px 18px;border-radius:16px;border:1px solid var(--line2);background:var(--surf);box-shadow:0 10px 30px -18px var(--shadow)}
+.brew code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:15px;color:var(--text);scrollbar-width:none}
+.brew code::before{content:"$ ";color:var(--t2)}
+.brew button{flex:none;border:0;cursor:pointer}
+
+/* header */
+.hbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border-bottom:1px solid transparent;transition:border-color .3s}
+.hbar.stuck{border-color:var(--line)}
+.hbar .in{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px}
+.brand{display:inline-flex;align-items:center;gap:10px;font:italic 400 26px/1 var(--disp);color:var(--text);text-decoration:none}
+.brand img{width:30px;height:30px}
+.hbar nav{display:flex;gap:28px;font-size:15px;color:var(--t2)}
+.hbar nav a{text-decoration:none}.hbar nav a:hover{color:var(--text)}
+.hbar .right{display:flex;gap:10px;align-items:center}
+
+/* footer */
+.sft{border-top:1px dashed var(--line2);margin-top:clamp(72px,9vw,120px);padding:32px 0 40px;font-size:14.5px;color:var(--t2)}
+.sft .in{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 32px;align-items:center}
+.sft ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px 24px;margin:0;padding:0}
+.sft a{text-decoration:none}.sft a:hover,.sft a[aria-current=page]{color:var(--text)}
+.sft .legal{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px}
+.s-mask{display:inline-block;width:13px;height:13px;background:currentColor;-webkit-mask:url(/brand/symbol-flat.svg) center/contain no-repeat;mask:url(/brand/symbol-flat.svg) center/contain no-repeat;vertical-align:-1px}
+
+/* A page's opening on the inner pages (Privacy, What's new, 404). */
+.head{display:grid;gap:16px;padding-block:clamp(40px,6vw,80px) clamp(32px,4vw,48px)}
+
+@media (max-width:860px){.hbar nav{display:none}}
+@media (max-width:480px){.hbar .gh{display:none}.brew code{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}html{scroll-behavior:auto}}

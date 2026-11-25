@@ -10,7 +10,7 @@
 
 **How much light each screen lets in.** Curtain sits in your menu bar and gives every screen a
 brightness slider, plus a curtain to switch any of them off. Free, open source, sends nothing
-anywhere. A Saaquib Labs tool. MIT.
+anywhere. A Saaquib Labs tool. MIT. **[curtain.saaquiblabs.com](https://curtain.saaquiblabs.com)**
 
 <sub>A few of these are paid extras in other display apps; here they're all included.
 <a href="#free-all-of-it">See which</a>.</sub>

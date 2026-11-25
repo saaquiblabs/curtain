@@ -1,0 +1,49 @@
+---
+// What's new: CHANGELOG.md itself, read at build time (src/changelog.mjs), so it can't drift from
+// the file. Layout from D-Tox's site/src/pages/changelog.astro.
+import Base from "../layouts/Base.astro";
+import { pages } from "../seo";
+import { repo } from "../site";
+import { parseChangelog } from "../changelog.mjs";
+import md from "../../../CHANGELOG.md?raw";
+
+const versions = parseChangelog(md, repo);
+const day = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+---
+
+<Base {...pages["/changelog"]}>
+  <article class="wrap cl">
+    <header class="head">
+      <p class="label">What’s new</p>
+      <h1>Every version, newest first.</h1>
+      <p class="lead">From <a href={`${repo}/blob/main/CHANGELOG.md`}>CHANGELOG.md</a>; the code behind each one is <a href={`${repo}/tags`}>on GitHub</a>. Update with <code>brew upgrade</code>.</p>
+    </header>
+
+    <ol class="list">
+      {versions.map((v) => (
+        <li id={`v${v.version}`}>
+          <div class="meta">
+            <h2 class="v">{v.version}</h2>
+            <time datetime={v.date}>{day(v.date)}</time>
+          </div>
+          <div class="body prose">
+            {v.blocks.map((b) => b.type === "p" ? <p set:html={b.html} /> : <ul>{b.items.map((i) => <li set:html={i} />)}</ul>)}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </article>
+</Base>
+
+<style>
+  .list { list-style: none; margin: 0; padding: 0; display: grid; }
+  .list > li { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 32px; padding: 36px 0; border-top: 1px dashed var(--line2); }
+  .list > li:first-child { border-top: 0; padding-top: 0; }
+  .meta { display: grid; gap: 6px; align-content: start; font-size: 14px; color: var(--t2); }
+  .v { font-size: 36px; line-height: 1; margin: 0; }
+  .body { font-size: 16px; }
+  .body ul { margin: 0; padding-left: 1.1em; display: grid; gap: 10px; }
+  .body li::marker { color: var(--acc); }
+  .body code { overflow-wrap: anywhere; }
+  @media (max-width: 640px) { .list > li { grid-template-columns: 1fr; gap: 12px; } }
+</style>
