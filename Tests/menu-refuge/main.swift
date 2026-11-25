@@ -65,19 +65,23 @@ at(MenuRefuge.pointer(offset: CGPoint(x: 300, y: 120), menu: CGRect(x: 2000, y: 
                       screen: CGRect(x: 0, y: 0, width: 2560, height: 1440)),
    CGPoint(x: 2300, y: 1280), "Reconnect: back on the Lenovo, the same spot on the menu")
 
-// Disconnect: the menu keeps its spot across the screen (#25). Owner's desk on this Mac: the
-// Lenovo (main, 2560 pt wide at x 0) and the MacBook (1512 pt wide, to its right at x 2560).
+// Disconnect: the menu stays under Curtain's icon (#25; owner, 2026-11-25). Owner's desk on this
+// Mac: the Lenovo (main, 2560 pt wide at x 0) and the MacBook (1470 pt wide, to its right at x
+// 2560). The icon sits the same distance from the right edge on both.
 func spot(_ actual: Double, _ expected: Double, _ what: String) {
   if abs(actual - expected) < 0.001 { print("ok    \(what)") } else { failures += 1; print("FAIL  \(what): got \(actual), expected \(expected)") }
 }
-let lenovoArea = (minX: 0.0, width: 2560.0), macBookArea = (minX: 2560.0, width: 1512.0)
-spot(MenuRefuge.sameSpot(midX: 2560, from: lenovoArea, to: macBookArea), 4072, "a menu at the Lenovo's right edge lands at the MacBook's")
-spot(MenuRefuge.sameSpot(midX: 640, from: lenovoArea, to: macBookArea), 2938, "a menu a quarter across the Lenovo lands a quarter across the MacBook")
-spot(MenuRefuge.sameSpot(midX: 1280, from: lenovoArea, to: macBookArea), 3316, "the middle stays the middle")
-spot(MenuRefuge.sameSpot(midX: -50, from: lenovoArea, to: macBookArea), 2560, "a menu past the old screen's edge lands at the new one's edge")
-spot(MenuRefuge.sameSpot(midX: 100, from: (minX: 0, width: 0), to: macBookArea), 3316, "an old screen with no width: the middle of the new one")
-
-spot(MenuRefuge.across(midX: 2560, of: lenovoArea), 1, "kept as a fraction: the right edge is 1, whatever the coordinates become")
+let lenovoArea = (minX: 0.0, width: 2560.0), macBookArea = (minX: 2560.0, width: 1470.0)
+// The menu opened under the icon, 300 pt from the Lenovo's right edge (its middle at 2260).
+let fromRight = MenuRefuge.fromRight(midX: 2260, of: lenovoArea)
+spot(fromRight, 300, "the menu under the icon: 300 pt from the Lenovo's right edge")
+spot(MenuRefuge.underIcon(fromRight: fromRight, on: macBookArea), 3730, "Disconnect: 300 pt from the MacBook's right edge, under its icon, not at the far right")
+spot(MenuRefuge.underIcon(fromRight: fromRight, on: lenovoArea), 2260, "Reconnect: back under the Lenovo's icon, not in the middle")
+// macOS moves every screen's coordinates when the main screen goes; the distance doesn't care.
+spot(MenuRefuge.underIcon(fromRight: fromRight, on: (minX: 0, width: 1470)), 1170, "the MacBook as main at x 0: still 300 pt from its right edge")
+spot(MenuRefuge.underIcon(fromRight: 2000, on: macBookArea), 2560, "further from the edge than the new screen is wide: kept on it, at its left edge")
+spot(MenuRefuge.fromRight(midX: 2700, of: lenovoArea), 0, "a middle past the right edge counts as at the edge")
+spot(MenuRefuge.fromRight(midX: -50, of: lenovoArea), 2560, "a middle past the left edge counts as the whole width")
 
 print(failures == 0 ? "all passed" : "\(failures) failed")
 if failures > 0 { exit(1) }
