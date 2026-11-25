@@ -21,3 +21,19 @@ test("the README links to the page", () => {
 test("the page names the macOS the README needs", () => {
   assert.ok(readme.includes(`**Needs:** ${fact("needs")}`), `README: Needs: ${fact("needs")}`);
 });
+
+test("the pages name no other apps (owner's rule on #42)", () => {
+  const others = /Vorssaint|BetterDisplay|Lunar|MonitorControl|DisplayBuddy|Monitorian/i;
+  for (const p of ["index", "privacy", "404"]) {
+    const src = read(`../src/pages/${p}.astro`);
+    assert.doesNotMatch(src, others, `${p}.astro names another app`);
+  }
+});
+
+test("the page explains Turn off against Disconnect, with Lenovo's published figures", () => {
+  const page = read("../src/pages/index.astro");
+  assert.match(page, /id="which"/, "a Turn off or Disconnect section");
+  assert.match(page, /21\.7 W/, "Lenovo's typical figure");
+  assert.match(page, /0\.5 W/, "Lenovo's sleep figure");
+  assert.match(page, /psref\.lenovo\.com/, "the source is linked");
+});
