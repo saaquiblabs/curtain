@@ -1,17 +1,20 @@
 ---
-// 404: from D-Tox's site/src/pages/404.astro. Not indexed; the sitemap leaves it out (astro.config.mjs).
+// 404: ported from D-Tox's 404.astro. Not indexed; the sitemap leaves it out (astro.config.mjs).
 import Base from "../layouts/Base.astro";
+import "../styles/page.css";
 ---
 
 <Base title="Page not found" description="This page doesn't exist or has moved." noindex>
-  <section class="wrap head">
-    <p class="label">404</p>
-    <h1>The curtain's closed here.</h1>
-    <p class="lead">This page doesn't exist, or it has moved.</p>
-    <p class="ctas"><a class="btn" href="/">Back home</a> <a class="ghost" href="/changelog">What’s new</a></p>
+  <section class="wrap page">
+    <div class="head">
+      <p class="kick">404</p>
+      <h1>This page is <em>off.</em></h1>
+      <p class="lead">It doesn't exist, or it has moved. Its windows aren't here either.</p>
+      <p class="ctas"><a class="btn" href="/">Back to Curtain</a><a class="ghost" href="/changelog">What’s new</a></p>
+    </div>
   </section>
 </Base>
 
 <style>
-  .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
 </style>

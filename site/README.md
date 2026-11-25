@@ -13,7 +13,7 @@ npm run dev                  # http://localhost:4321
 npm run typecheck            # astro check
 npm test                     # unit tests (node --test): the changelog reader, page vs README
 npm run verify               # the gate: tests, build, links, Lighthouse (~1 min)
-npm run pictures             # refresh public/shots etc. from `make renders` (Mac only)
+npm run pictures             # refresh public/menu etc. from `make renders` (Mac only)
 npm run sync-brand           # refresh the Saaquib Labs mark (needs your access to saaquiblabs)
 ```
 
@@ -28,8 +28,8 @@ npm run sync-brand           # refresh the Saaquib Labs mark (needs your access 
   <version> — <date>`, paragraphs, `- ` lists, `**bold**`, `` `code` ``, `#n`); keep to them.
 - **Look:** Linen & Dusk, the app's (`Sources/Theme.swift`): light or dark from the visitor's
   setting. One stylesheet, `src/styles/site.css`, inlined into each page. Fonts are the app's,
-  Manrope and Newsreader Italic, self-hosted latin subsets (OFL, `public/fonts/LICENSES.txt`).
-- **Pictures:** `public/shots/*.webp` (light and dark), `og.png` and the icons come from the app's
+  Manrope (variable) and Newsreader at 400, roman and italic, self-hosted latin subsets (OFL, `public/fonts/LICENSES.txt`).
+- **Pictures:** `public/menu/*.webp` (light and dark, the renders' own names), `og.png` and the icons come from the app's
   renders and `docs/img`. Openship has no Swift, so they're committed; after a UI change run
   `make renders` at the root, then `npm run pictures`, look at them, commit.
 - **Brand:** `public/brand/symbol-flat.svg` is a copy from the `saaquiblabs` repo, pinned in

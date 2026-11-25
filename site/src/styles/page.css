@@ -1,0 +1,22 @@
+/* Pages other than the main one (Privacy, What's new, 404): a lit opening panel, then prose. Ported
+   from D-Tox's site/src/styles/base.css, in Linen & Dusk. */
+.page{display:grid;gap:clamp(48px,6vw,80px);padding-top:clamp(16px,3vw,32px)}
+.head{position:relative;isolation:isolate;overflow:hidden;display:grid;gap:18px;justify-items:start;
+  padding:clamp(48px,7vw,96px) clamp(24px,5vw,72px);border-radius:clamp(24px,3vw,40px);
+  background:radial-gradient(60% 80% at 10% 0%,rgb(var(--acc-rgb) / .16),transparent 70%),var(--surf);
+  border:1px solid var(--line);box-shadow:var(--shadow)}
+.head h1{font-size:clamp(44px,6vw,80px)}
+.head .lead{max-width:38rem}
+.head .lead a{color:var(--text);text-decoration-color:rgb(var(--acc-rgb) / .6);text-underline-offset:.2em}
+/* drapes tied back at the panel's sides, as on the menu's icon */
+.head::before,.head::after{content:"";position:absolute;top:0;bottom:0;width:clamp(40px,7vw,96px);z-index:-1;opacity:.75;
+  background:linear-gradient(90deg,transparent,rgb(0 0 0 / .06)),repeating-linear-gradient(90deg,var(--drape-a) 0 9px,var(--drape-b) 14px,var(--drape-a) 19px);
+  -webkit-mask:linear-gradient(180deg,#000 30%,transparent 95%);mask:linear-gradient(180deg,#000 30%,transparent 95%)}
+.head::before{right:0;clip-path:polygon(0 0,100% 0,100% 100%,70% 100%,40% 55%)}
+.head::after{right:clamp(40px,7vw,96px);width:clamp(20px,3vw,40px);opacity:.4;clip-path:polygon(0 0,100% 0,100% 60%)}
+.prose{max-width:46rem;display:grid;gap:14px;color:var(--t2)}
+.prose h2{color:var(--text);font-size:clamp(30px,3.2vw,42px);margin-bottom:4px}
+.prose b,.prose strong{color:var(--text);font-weight:650}
+.prose a{color:var(--text);text-decoration-color:rgb(var(--acc-rgb) / .6);text-underline-offset:.2em;text-decoration-thickness:1px}
+.prose a:hover{text-decoration-color:var(--acc)}
+.card{border-radius:22px;background:var(--surf);border:1px solid var(--line);box-shadow:var(--shadow);padding:6px 28px}

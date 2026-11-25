@@ -1,149 +1,379 @@
 ---
-// The home page (#42). Leads with Turn off, windows stay (owner's pick, 2026-11-25); names no other
-// app. Every claim here is in the README: change both together.
+// Curtain's page. Leads with Turn off, windows stay (owner's pick on #42, 2026-11-25); names no
+// other apps. Built on D-Tox's product page: a serif headline with an italic accent, a sticky
+// story that swaps the product as you scroll, a lit footer. Pictures are the real menu from
+// `make renders` (site/scripts/menu-pictures.sh). The desk under ⌃⌥C is drawn in CSS with the
+// menu's drapes: two panels meeting in the middle in 720 ms, as on the map (CHANGELOG 0.4.0).
 import Base from "../layouts/Base.astro";
-import Shot from "../components/Shot.astro";
+import Brew from "../components/Brew.astro";
+import Menu from "../components/Menu.astro";
 import { pages } from "../seo";
-import { brew, needs, repo, source } from "../site";
+import { needs, repo } from "../site";
+import { readChangelog } from "../changelog.mjs";
+
+const latest = readChangelog(repo)[0];
+
+const steps = [
+  { pic: "off", h: "Dark in half a second.", alt: "The menu at night with the L27h-4A turned off: drapes closed over its tile on the desk map and across its row, which says “Off. Its windows are still there, hidden.” beside a glowing Turn on button.",
+    p: "Turn off fades the screen to black and draws the drapes across its row and its tile. Nothing is rearranged, so nothing flashes, and every window waits exactly where it was." },
+  { pic: "lit", h: "Your desk, as it really is.", alt: "The menu with both screens on; the pointer rests on the L27h-4A's tile on the desk map, and the tile and its row light up together.",
+    p: "With two screens or more the menu opens on a map of them, placed as macOS arranges them and each as bright as the real one. Point at a screen and its row lights up." },
+  { pic: "preview-turn-off", h: "See it before you click.", alt: "The pointer on the L27h-4A's Turn off button: its tile on the map is half-covered by drapes, and a line under the map says “Turns L27h-4A black at once. Its windows stay on it.”",
+    p: "Point at a button and the map shows its result halfway, with one line saying what will happen. Only on the map, never on a real screen." },
+  { pic: "disconnected", h: "Unplugged, without the cable.", alt: "The L27h-4A disconnected: a dashed outline where its tile was on the map, and its row offers Reconnect.",
+    p: "Disconnect makes macOS treat a monitor as unplugged: its windows move to your other screen and the monitor sleeps. Reconnect brings it back, along with the menu and your pointer." },
+  { pic: "preview-slider", h: "Real brightness, every screen.", alt: "Both screens on, the pointer along the L27h-4A's brightness bar; its tile on the map glows to match.",
+    p: "A slider per monitor sets its actual backlight. Monitors that won't listen are dimmed in software instead, and the row says so. Follow the Mac makes them track your MacBook." },
+  { pic: "preview-quit", h: "Quit puts everything back.", alt: "The pointer on Quit: the L27h-4A's drapes half open on the map, and the line “Quits Curtain; every screen comes back on.”",
+    p: "Quit, log out or stop Curtain any way at all, and every screen comes back on at the brightness it had. It never lets you switch off your last screen." },
+];
+
+const details = [
+  { h: "Turn back on, right where you are", p: "After Turn off, a small banner floats on the screen you’re on for a few seconds, even with the menu closed. It never takes focus from the app you’re in.", icon: "M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4" },
+  { h: "Brightness keys for monitors", p: "F1 and F2 change the screen under your pointer, with the Mac’s own brightness indicator.", icon: "M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" },
+  { h: "Remembers through sleep", p: "A disconnected screen stays disconnected after sleep or unlock, until you say otherwise.", icon: "M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" },
+  { h: "Never your last screen", p: "Turn off steps aside on the only screen that’s on, and says why when you point at it. The MacBook never offers Disconnect: macOS would switch off its keyboard and trackpad.", icon: "M12 3 4 6v6c0 4.4 3.4 8 8 9 4.6-1 8-4.6 8-9V6l-8-3Z" },
+  { h: "Made for everyone", p: "VoiceOver reads every screen, slider and switch. With Reduce Motion the drapes fade; Increase Contrast strengthens every edge.", icon: "M12 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM5 8l7 1.5L19 8M12 9.5V15m0 0-3 6m3-6 3 6" },
+  { h: "Light by day, dusk at night", p: "Frosted linen in light mode, twilight with an afterglow in dark, following your Mac.", icon: "M12 3v18M12 3a9 9 0 0 1 0 18" },
+];
 ---
 
 <Base {...pages["/"]}>
-  <section class="wrap hero">
-    <div class="copy">
-      <p class="label">For your Mac's menu bar</p>
-      <h1>Turn off a screen. <span class="soft">Its windows stay.</span></h1>
-      <p class="lead">
-        Curtain draws a curtain over any screen in half a second. Nothing is rearranged, nothing
-        flashes on your other screen, and every window stays right where you left it.
-        <kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd> turns off every screen but the one you're working on.
-      </p>
-      <div class="get">
-        <div class="brew">
-          <code id="brew">{brew}</code>
-          <button class="btn sm" type="button" data-copy="brew" data-umami-event="copy-brew" aria-describedby="copied">Copy</button>
+  <!-- The hero's menu is the largest thing on a phone's first screen: fetch it with the font, not after the page's HTML. -->
+  <link slot="head" rel="preload" as="image" imagesrcset="/menu/off-light-640.webp 640w, /menu/off-light.webp 744w" imagesizes="(max-width: 1000px) min(86vw, 380px), 400px" media="(prefers-color-scheme: light)" fetchpriority="high" />
+  <link slot="head" rel="preload" as="image" imagesrcset="/menu/off-dark-640.webp 640w, /menu/off-dark.webp 744w" imagesizes="(max-width: 1000px) min(86vw, 380px), 400px" media="(prefers-color-scheme: dark)" fetchpriority="high" />
+  <!-- The opening: the page's own curtain, drawn back on every load and reload (hard or not).
+       Skipped going Back, coming from another page of this site, and with Reduce Motion. -->
+  <script is:inline>
+    (() => {
+      const nav = performance.getEntriesByType('navigation')[0]?.type;
+      let fromHere = false; try { fromHere = new URL(document.referrer).origin === location.origin; } catch {}
+      const skip = nav === 'back_forward' || (nav !== 'reload' && fromHere) || matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (skip) document.documentElement.classList.add('drawn');
+    })();
+  </script>
+  <div class="stage-drapes" aria-hidden="true"><span class="sd l"></span><span class="sd r"></span><span class="sd-name">Curtain</span></div>
+
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <p class="kick">For every screen on your Mac</p>
+      <h1>Turn a screen off.<br /><em>Its windows stay.</em></h1>
+      <p class="lead">Curtain lives in your menu bar. Any screen goes dark in half a second, with every window right where you left it. And <span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd></span> darkens every screen but the one you’re working on.</p>
+      <div class="cta">
+        <Brew />
+        <a class="src" href="#install">Or build from source <span aria-hidden="true">→</span></a>
+      </div>
+      <ul class="facts">
+        <li>Free, all of it</li><li>Open source, MIT</li><li>Sends nothing</li><li>{needs.replace(" Ventura or newer", "+")}</li>
+      </ul>
+    </div>
+    <div class="hero-art" aria-hidden="false">
+      <div class="halo" aria-hidden="true"></div>
+      <Menu name="off" class="hero-menu" eager small sizes="(max-width: 1000px) min(86vw, 380px), 400px" alt="Curtain's menu with the L27h-4A turned off: drapes closed over its screen on the desk map and across its row, with a Turn on button and the line “Off. Its windows are still there, hidden.”" />
+      <Menu name="banner" class="hero-banner" width={343} height={44} eager alt="The Turn back on banner: “L27h-4A is off”, a Turn back on button and ⌃⌥C." />
+    </div>
+  </section>
+
+  <section class="wrap numbers" aria-label="Curtain in numbers">
+    <div><p class="n">0.5<span>s</span></p><p>from Turn off to dark</p></div>
+    <div><p class="n">0</p><p>windows moved when a screen goes dark</p></div>
+    <div><p class="n">1</p><p>shortcut for every screen but yours</p></div>
+    <div><p class="n">0</p><p>bytes sent anywhere, ever</p></div>
+  </section>
+
+  <section class="see wrap" id="see">
+    <header class="sec-h">
+      <p class="kick">See it</p>
+      <h2>A menu you understand <em>by looking.</em></h2>
+      <p class="lead">Every picture here is the real menu, drawn by Curtain itself. It matches your Mac: light by day, dusk at night.</p>
+    </header>
+    <div class="story">
+      <ol class="steps">
+        {steps.map((s, i) => (
+          <li class="step" data-i={i}>
+            <p class="num">{String(i + 1).padStart(2, "0")}</p>
+            <h3>{s.h}</h3>
+            <p>{s.p}</p>
+            <div class="inline-pic"><Menu name={s.pic} alt={s.alt} /></div>
+          </li>
+        ))}
+      </ol>
+      <div class="frame-wrap" aria-hidden="true">
+        <div class="frame">
+          <div class="halo"></div>
+          {steps.map((s, i) => <Menu name={s.pic} alt="" class={`slide${i === 0 ? " on" : ""}`} />)}
         </div>
-        <p class="small"><span id="copied" role="status"></span>Free and open source. {needs}. <a href={source.href}>{source.label}</a></p>
+        <div class="progress"><span class="count"><b>01</b> / {String(steps.length).padStart(2, "0")}</span><span class="bar"><i></i></span></div>
       </div>
     </div>
-    <div class="stage">
-      <Shot name="off" eager class="menu" alt="Curtain's menu with the L27h-4A monitor turned off: drapes are closed over its screen on the desk map and across its row, which has a Turn on button and says 'Off. Its windows are still there, hidden.' The MacBook stays on at 72%." />
-      <Shot name="banner" class="banner" alt="The banner after Turn off: 'L27h-4A is off', a Turn back on button and the ⌃⌥C keys." />
+  </section>
+
+  <section class="keys-sec" id="keys">
+    <div class="wrap keys-in">
+      <header class="sec-h light">
+        <p class="kick">⌃⌥C</p>
+        <h2>Every screen but yours. <em>One key.</em></h2>
+        <p class="lead">Press <span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd></span> anywhere on your Mac and every screen except the one you’re working on goes dark. Press it again and they all come back. Try it here, on your keyboard or below.</p>
+      </header>
+      <div class="desk" data-off="false">
+        <div class="screens">
+          <div class="mon side"><div class="scr"><span class="dl"></span><span class="dr"></span></div><div class="neck"></div><div class="foot"></div><p>Studio monitor</p></div>
+          <div class="mac"><div class="scr you"><span class="here">You’re here</span><span class="dl"></span><span class="dr"></span></div><div class="deck"></div><p>MacBook</p></div>
+          <div class="mon side"><div class="scr"><span class="dl"></span><span class="dr"></span></div><div class="neck"></div><div class="foot"></div><p>L27h-4A</p></div>
+        </div>
+        <div class="desk-ctl">
+          <button type="button" class="try" aria-pressed="false" data-umami-event="try-shortcut">
+            <span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd></span>
+            <span class="lbl">Turn other screens off</span>
+          </button>
+          <p class="said" aria-live="polite"></p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="wrap band" id="off" aria-labelledby="off-h">
-    <div class="prose">
-      <p class="label">Turn off</p>
-      <h2 id="off-h">Off, and back on, without losing your place.</h2>
-    </div>
-    <ul class="points">
-      <li><h3>Instant, and nothing moves</h3><p>Click <b>Turn off</b> and the screen fades to black, its backlight goes down where it can, and a cover stops stray clicks reaching it. Your windows stay put. <b>Turn on</b> brings it back exactly as it was.</p></li>
-      <li><h3><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd> from anywhere</h3><p>One shortcut turns off every screen but the one you're on, and turns them all back on. Good for a film, a call, or the late evening.</p></li>
-      <li><h3>Turn back on, right where you are</h3><p>After Turn off a small banner floats at the bottom of your screen for a few seconds, menu open or not. It never takes focus from the app you're in.</p></li>
-      <li><h3>Or Disconnect</h3><p>When you'd rather have the windows on your other screen, <b>Disconnect</b> a monitor: macOS treats it as unplugged and lets it sleep. <b>Reconnect</b> brings it back.</p></li>
-      <li><h3>Never left in the dark</h3><p>Curtain never switches off your last screen. Quit, log out or stop it in any way, and every screen comes back on at the brightness it had.</p></li>
-    </ul>
-  </section>
-
-  <section class="wrap split" id="map" aria-labelledby="map-h">
-    <Shot name="preview" class="menu" alt="Curtain's menu with the pointer on the L27h-4A's Turn off button: on the desk map its drapes are half closed, and the line under the map reads 'Turns L27h-4A black at once. Its windows stay on it.'" />
-    <div class="prose">
-      <p class="label">The desk map</p>
-      <h2 id="map-h">See your desk before you click.</h2>
-      <p>With two screens or more, the menu opens on a map of your desk: every screen drawn where it really sits and as bright as it really is, with drapes closed over the ones that are off.</p>
-      <p>Point at a button and the map shows what it will do, halfway, with one line saying it. Only on the map, never on a real screen.</p>
+  <section class="wrap detail-sec">
+    <header class="sec-h">
+      <p class="kick">The small things</p>
+      <h2>Free, all of it. <em>Done properly.</em></h2>
+      <p class="lead">No pro tier, no trial, no daily limit. Use it at home or at work, on as many Macs as you like.</p>
+    </header>
+    <div class="details">
+      {details.map((d) => (
+        <article class="dcard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={d.icon} /></svg>
+          <h3>{d.h}</h3>
+          <p>{d.p}</p>
+        </article>
+      ))}
     </div>
   </section>
 
-  <section class="wrap split flip" id="brightness" aria-labelledby="bright-h">
-    <Shot name="on" class="menu" alt="Curtain's menu with both screens on: the MacBook at 72% and the L27h-4A at 45%, each with a brightness slider, then switches for Follow the Mac, Brightness keys and Open at login." />
-    <div class="prose">
-      <p class="label">Brightness</p>
-      <h2 id="bright-h">How much light each screen lets in.</h2>
-      <p><b>A slider for every screen.</b> Monitors get their real backlight over DDC. One that ignores DDC is dimmed in software instead; Curtain notices by itself and says so.</p>
-      <p><b>Brightness keys for monitors.</b> F1 and F2 change the screen under the pointer, with the Mac's own brightness indicator.</p>
-      <p><b>Follow the Mac.</b> Your monitors follow your MacBook's brightness as it changes.</p>
+  <section class="wrap">
+    <div class="private">
+      <div class="pv-h">
+        <p class="kick">Privacy</p>
+        <h2>Sends <em>nothing.</em></h2>
+        <p class="lead">Curtain has no network code at all. There is nothing to sign up for, and nothing it could send.</p>
+        <a class="ghost" href="/privacy">Read the privacy page <span aria-hidden="true">→</span></a>
+      </div>
+      <ul class="pv-list">
+        <li><b>No accounts, no analytics</b><span>Not in the app, not in the background, not once.</span></li>
+        <li><b>Four switches, kept on your Mac</b><span>Follow the Mac, Brightness keys, which screen you disconnected, and whether it asked for a permission. That’s all it remembers.</span></li>
+        <li><b>One permission, only if you want it</b><span>Accessibility, so the brightness keys reach Curtain before macOS. Everything else works without it.</span></li>
+        <li><b>Open to read</b><span>Every line is on GitHub, under the MIT licence.</span></li>
+      </ul>
     </div>
   </section>
 
-  <section class="wrap band" aria-labelledby="free-h">
-    <div class="prose">
-      <p class="label">Free, all of it</p>
-      <h2 id="free-h">Small, free, and it sends nothing.</h2>
-      <p>Everything in Curtain is free, for any use, work included. MIT licensed, the code is <a href={repo}>on GitHub</a>. No account, no analytics, no network: Curtain talks to your screens and nothing else. <a href="/privacy">Privacy</a>.</p>
-    </div>
-  </section>
-
-  <section class="wrap install" id="install" aria-labelledby="install-h">
-    <div class="prose">
-      <p class="label">Install</p>
-      <h2 id="install-h">Paste one line in Terminal.</h2>
-    </div>
-    <div class="brew">
-      <code id="brew2">{brew}</code>
-      <button class="btn sm" type="button" data-copy="brew2" data-umami-event="copy-brew" aria-describedby="copied2">Copy</button>
-    </div>
-    <p class="small"><span id="copied2" role="status"></span>{needs}. No Homebrew yet? Get it from <a href="https://brew.sh">brew.sh</a> first.</p>
-    <div class="prose steps">
-      <p>Homebrew builds Curtain on your Mac and puts <b>Curtain.app</b> in Applications. It needs Apple's command line tools (<code>xcode-select --install</code>), not Xcode. <code>brew upgrade</code> keeps it current.</p>
-      <p>Open <b>Curtain</b> from Spotlight and click the curtain in your menu bar. The brightness keys ask for one permission, Accessibility; everything else works without it.</p>
-      <p><b>Why no download button?</b> Curtain isn't notarized by Apple yet, so macOS would block a downloaded copy. Homebrew builds it on your Mac instead, signed with your Mac's own certificate. Rather build it yourself? <a href={source.href}>{source.label}</a>.</p>
-      <p>Hardware brightness over DDC needs Apple silicon; on Intel Macs Curtain dims monitors in software. Turning screens off works on both.</p>
-    </div>
+  <section class="wrap install" id="install">
+    <header class="sec-h">
+      <p class="kick">Install</p>
+      <h2>In your menu bar <em>in a minute.</em></h2>
+      <p class="lead">Needs {needs}. Hardware brightness needs Apple silicon; on Intel Macs Curtain dims monitors in software, and turning screens off works on both.</p>
+    </header>
+    <ol class="how">
+      <li>
+        <p class="num">01</p>
+        <h3>Paste this in Terminal</h3>
+        <Brew />
+        <p>No Homebrew yet? Get it from <a href="https://brew.sh">brew.sh</a>. Homebrew builds Curtain on your Mac, so it needs Apple’s command line tools (<code>xcode-select --install</code>, no Xcode).</p>
+      </li>
+      <li>
+        <p class="num">02</p>
+        <h3>Open Curtain</h3>
+        <p>From Spotlight or /Applications. It has no Dock icon: look for the curtain in your menu bar and click it. Switch on <b>Open at login</b> to have it every day.</p>
+      </li>
+      <li>
+        <p class="num">03</p>
+        <h3>Brightness keys, if you like</h3>
+        <p>F1 and F2 need <b>Accessibility</b>. The menu shows a link while it’s missing: System Settings › Privacy &amp; Security › Accessibility, then switch on Curtain.</p>
+      </li>
+    </ol>
+    <details class="source">
+      <summary>Build from source</summary>
+      <pre><code>git clone {repo}.git
+cd curtain
+make app      # builds build/app.noindex/Curtain.app
+make run      # builds it and opens it</code></pre>
+      <p>With Apple’s command line tools installed. The first build makes a local signing certificate, so the Accessibility permission survives rebuilds. More in the <a href={repo}>README</a>.</p>
+    </details>
+    <p class="ver">Latest: <a href={`/changelog#v${latest.version}`}>Curtain {latest.version}</a>, <time datetime={latest.iso}>{latest.date}</time>. Upgrade with <code>brew upgrade</code>.</p>
   </section>
 </Base>
 
 <script is:inline>
-  // Copy the install line. Without the clipboard (old browsers, http), the line stays selectable.
-  for (const b of document.querySelectorAll('[data-copy]')) {
-    b.addEventListener('click', async () => {
-      const status = document.getElementById(b.getAttribute('aria-describedby'));
-      try {
-        await navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent);
-        b.textContent = 'Copied'; status.textContent = 'Copied to the clipboard. ';
-        setTimeout(() => { b.textContent = 'Copy'; status.textContent = ''; }, 2000);
-      } catch { getSelection().selectAllChildren(document.getElementById(b.dataset.copy)); }
+  // The story: the step in the middle of the window picks the picture in the frame.
+  (() => {
+    const steps = [...document.querySelectorAll('.step')], slides = [...document.querySelectorAll('.frame .slide')];
+    const count = document.querySelector('.progress b'), bar = document.querySelector('.progress i');
+    const show = (i) => {
+      slides.forEach((s, j) => s.classList.toggle('on', j === i));
+      steps.forEach((s, j) => s.classList.toggle('on', j === i));
+      count.textContent = String(i + 1).padStart(2, '0'); bar.style.transform = `scaleX(${(i + 1) / steps.length})`;
+    };
+    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && show(+e.target.dataset.i)), { rootMargin: '-45% 0px -45% 0px' });
+    steps.forEach((s) => io.observe(s)); show(0);
+  })();
+
+  // ⌃⌥C on the page: the drapes close over every screen but yours, and open again.
+  (() => {
+    const desk = document.querySelector('.desk'), btn = desk.querySelector('.try'), lbl = btn.querySelector('.lbl'), said = desk.querySelector('.said');
+    const set = (off) => {
+      desk.dataset.off = off; btn.setAttribute('aria-pressed', off);
+      lbl.textContent = off ? 'Turn them back on' : 'Turn other screens off';
+      said.textContent = off ? '2 screens are off. Their windows are still there.' : 'Every screen is on.';
+    };
+    btn.addEventListener('click', () => set(desk.dataset.off !== 'true'));
+    addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.altKey && !e.metaKey && e.code === 'KeyC') { e.preventDefault(); set(desk.dataset.off !== 'true'); desk.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
     });
-  }
+  })();
 </script>
 
-<style>
-  .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(32px, 5vw, 72px); align-items: center; padding-top: clamp(32px, 6vw, 72px); }
-  .copy { display: grid; gap: 22px; min-width: 0; }
-  .copy > * { min-width: 0; }
-  .soft { color: var(--acc-text); }
-  .get { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 6px; max-width: 34rem; }
-  .small { font-size: 14px; color: var(--t2); }
-  .small a { color: var(--text); text-underline-offset: .2em; text-decoration-color: rgb(var(--acc-rgb) / .7); }
-  .stage { position: relative; justify-self: center; padding-bottom: 28px; }
-  .menu img { width: 372px; border-radius: 22px; box-shadow: 0 30px 70px -30px var(--shadow), 0 0 0 1px var(--line); }
-  .stage .banner { position: absolute; left: 50%; bottom: 0; translate: -50% 0; }
-  .stage .banner img { width: 343px; max-width: none; border-radius: 22px; box-shadow: 0 18px 40px -14px var(--shadow); }
-  @media (prefers-reduced-motion: no-preference) {
-    .stage .banner { animation: rise .5s var(--ease) .6s both; }
-    @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+<style is:global>
+  /* the opening drapes */
+  .stage-drapes{position:fixed;inset:0;z-index:90;pointer-events:none;display:grid;place-items:center;overflow:hidden}
+  .stage-drapes .sd{position:absolute;top:0;bottom:0;width:50.5%;
+    background:linear-gradient(90deg,rgb(0 0 0 / .0),rgb(0 0 0 / .12)),repeating-linear-gradient(90deg,var(--drape-a) 0 14px,var(--drape-b) 22px,var(--drape-a) 30px);
+    animation:part 1.15s var(--drape) .35s forwards}
+  .stage-drapes .l{left:0;box-shadow:12px 0 30px rgb(0 0 0 / .18)}
+  .stage-drapes .r{right:0;--to:100%;box-shadow:-12px 0 30px rgb(0 0 0 / .18)}
+  .stage-drapes .l{--to:-100%}
+  .stage-drapes .sd-name{position:relative;font:italic 400 clamp(54px,9vw,120px)/1 var(--disp);color:var(--text);animation:fade .5s ease .2s forwards}
+  @keyframes part{to{transform:translateX(var(--to))}}
+  @keyframes fade{to{opacity:0;transform:scale(.97)}}
+  .drawn .stage-drapes{display:none}
+
+  .hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:clamp(32px,5vw,80px);align-items:center;min-height:calc(100svh - 68px);padding-block:clamp(40px,6vw,72px)}
+  .hero-copy{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;justify-items:start}
+  .hero h1{font-size:clamp(46px,5.4vw,80px)}
+  .hero-copy .lead{max-width:34rem}
+  .cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;margin-top:6px}
+  .src{font:600 14.5px/1 var(--sans);color:var(--t2);text-decoration:none}.src:hover{color:var(--text)}
+  .facts{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;font-size:13.5px;color:var(--t3)}
+  .facts li{display:inline-flex;align-items:center;gap:8px}
+  .facts li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px rgb(var(--acc-rgb) / .18)}
+  .hero-art{position:relative;justify-self:center;width:min(100%,400px)}
+  .halo{position:absolute;inset:-12% -22%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,var(--glow),transparent 100%)}
+  .hero-menu img{width:100%;border-radius:22px;box-shadow:var(--shadow-lg)}
+  .hero-banner{position:absolute;left:-20%;bottom:-5%;width:86%}
+  .hero-banner img{width:100%;border-radius:999px;box-shadow:var(--shadow-lg)}
+  @media (prefers-reduced-motion:no-preference){
+    .hero-menu{animation:float 8s ease-in-out infinite}
+    .hero-banner{animation:rise .6s var(--ease) 1.5s both}
+    .drawn .hero-banner{animation-delay:.6s}
+    @keyframes float{50%{transform:translateY(-8px)}}
+    @keyframes rise{from{opacity:0;transform:translateY(12px)}}
   }
 
-  .band, .split, .install { margin-top: clamp(80px, 10vw, 136px); }
-  .points { list-style: none; margin: 36px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
-  .points li { padding: 22px 22px 24px; border-radius: 20px; background: var(--surf); border: 1px solid var(--line); box-shadow: 0 2px 6px -2px var(--shadow); display: grid; gap: 8px; align-content: start; }
-  .points p { color: var(--t2); font-size: 16px; }
-  .points b { color: var(--text); font-weight: 600; }
+  .numbers{display:grid;grid-template-columns:repeat(4,1fr);border-block:1px solid var(--line);margin-bottom:clamp(80px,10vw,140px)}
+  .numbers>div{padding:28px clamp(12px,2vw,28px);display:grid;gap:6px;color:var(--t2);font-size:14.5px;line-height:1.45}
+  .numbers>div+div{border-left:1px solid var(--line)}
+  .numbers .n{font:400 clamp(44px,5vw,64px)/1 var(--disp);color:var(--text);letter-spacing:-.02em}
+  .numbers .n span{font-style:italic;color:var(--acc);font-size:.6em;margin-left:2px}
 
-  .split { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
-  .split.flip > picture { order: 2; }
+  .sec-h{display:grid;gap:16px;max-width:44rem;margin-bottom:clamp(40px,5vw,64px)}
 
-  .install { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 44rem; }
-  .install .brew { margin-top: 10px; }
-  .steps { margin-top: 14px; }
+  /* the story */
+  .story{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);gap:clamp(32px,6vw,96px)}
+  .steps{list-style:none;margin:0;padding:0}
+  .step{min-height:78vh;display:grid;align-content:center;gap:12px;padding-left:28px;border-left:1px solid var(--line);opacity:.38;transition:opacity .4s,border-color .4s}
+  .step.on{opacity:1;border-color:var(--acc)}
+  .step .num{font:italic 400 20px/1 var(--disp);color:var(--acc)}
+  .step h3{font:400 clamp(30px,3vw,40px)/1.08 var(--disp);letter-spacing:-.015em}
+  .step p:not(.num){color:var(--t2);max-width:26rem}
+  .inline-pic{display:none}
+  .frame-wrap{position:sticky;top:max(90px,calc(50vh - 330px));align-self:start;display:grid;gap:18px;justify-items:center}
+  .frame{position:relative;width:min(100%,380px);aspect-ratio:372/578}
+  .frame .slide{position:absolute;inset:0;opacity:0;transform:translateY(10px) scale(.985);transition:opacity .5s var(--ease),transform .6s var(--ease)}
+  .frame .slide.on{opacity:1;transform:none}
+  .frame .slide img{width:100%;border-radius:22px;box-shadow:var(--shadow-lg)}
+  .progress{display:flex;align-items:center;gap:14px;width:min(100%,380px);font-size:13px;color:var(--t3)}
+  .progress b{font:italic 400 18px/1 var(--disp);color:var(--text)}
+  .progress .bar{flex:1;height:2px;background:var(--line2);border-radius:2px;overflow:hidden}
+  .progress .bar i{display:block;height:100%;background:var(--acc);transform-origin:left;transform:scaleX(.16);transition:transform .5s var(--ease)}
 
-  @media (max-width: 860px) {
-    .hero, .split { grid-template-columns: minmax(0, 1fr); }
-    .split.flip > picture { order: 0; }
-    .split > picture { justify-self: center; }
+  /* ⌃⌥C: a twilight stage in both looks */
+  .keys-sec{margin-block:clamp(80px,10vw,140px)}
+  .keys-in{position:relative}
+  .keys-in::before{content:"";position:absolute;inset:0 calc(var(--gut) - 0px);z-index:-1;border-radius:clamp(24px,3vw,40px);
+    background:radial-gradient(60% 70% at 85% 0%,rgb(232 185 143 / .16),transparent 70%),radial-gradient(50% 60% at 0% 100%,rgb(93 111 166 / .3),transparent 70%),#1C2030;
+    box-shadow:inset 0 0 0 1px rgb(255 255 255 / .06),inset 0 1px 0 rgb(255 255 255 / .1)}
+  .keys-in>*{padding-inline:clamp(24px,5vw,72px)}
+  .keys-in .sec-h{padding-top:clamp(48px,6vw,88px);margin-bottom:clamp(28px,4vw,48px)}
+  .sec-h.light{color:#E9EAF0}.sec-h.light .lead{color:#A9AEC2}.sec-h.light .kick,.sec-h.light em{color:#F0C9A6}
+  .sec-h.light .keys kbd{color:#E9EAF0;background:linear-gradient(180deg,#2E3448,#262B3C);border-color:rgb(255 255 255 / .14);box-shadow:0 1.5px 0 rgb(255 255 255 / .1)}
+  .desk{padding-bottom:clamp(48px,6vw,80px)}
+  .screens{display:grid;grid-template-columns:1fr .78fr 1fr;align-items:end;gap:clamp(12px,3vw,40px);max-width:920px;margin-inline:auto}
+  .screens p{margin-top:12px;text-align:center;font-size:13px;color:#A9AEC2}
+  .scr{position:relative;overflow:hidden;aspect-ratio:16/10;border-radius:10px;border:clamp(4px,.6vw,7px) solid #0E1017;background:linear-gradient(160deg,#C9A48A 0%,#8A6F86 45%,#3A3D5A 100%);
+    box-shadow:0 0 0 1px rgb(255 255 255 / .06),0 30px 60px -20px rgb(232 185 143 / .35);transition:box-shadow .72s var(--drape),filter .72s var(--drape)}
+  .mac .scr{border-radius:8px 8px 2px 2px}
+  .neck{width:12%;height:clamp(14px,2vw,24px);margin-inline:auto;background:linear-gradient(90deg,#3A3F52,#535A70,#3A3F52)}
+  .foot{width:36%;height:5px;margin-inline:auto;border-radius:3px 3px 1px 1px;background:#535A70}
+  .deck{height:clamp(7px,1vw,10px);margin-inline:-7%;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#6A7088,#40455A)}
+  .scr .dl,.scr .dr{position:absolute;top:0;bottom:0;width:51%;transition:transform .72s var(--drape);
+    background:linear-gradient(90deg,rgb(0 0 0 / .05),rgb(0 0 0 / .25)),repeating-linear-gradient(90deg,#3C4463 0 5px,#2A3049 8px,#3C4463 11px)}
+  .scr .dl{left:0;transform:translateX(-101%)}
+  .scr .dr{right:0;transform:translateX(101%);background:linear-gradient(270deg,rgb(0 0 0 / .05),rgb(0 0 0 / .25)),repeating-linear-gradient(90deg,#3C4463 0 5px,#2A3049 8px,#3C4463 11px)}
+  .desk[data-off=true] .side .scr{box-shadow:0 0 0 1px rgb(255 255 255 / .06);filter:saturate(.8)}
+  .desk[data-off=true] .side .dl,.desk[data-off=true] .side .dr{transform:none}
+  .here{position:absolute;left:50%;top:50%;translate:-50% -50%;padding:5px 10px;border-radius:999px;font:600 11.5px/1 var(--sans);color:#24293A;background:rgb(255 255 255 / .85);box-shadow:0 4px 14px rgb(0 0 0 / .2);white-space:nowrap}
+  .desk-ctl{display:grid;justify-items:center;gap:14px;margin-top:clamp(28px,4vw,44px)}
+  .try{display:inline-flex;align-items:center;gap:14px;padding:10px 20px 10px 12px;border-radius:999px;cursor:pointer;font:650 15px/1 var(--sans);color:#24293A;background:#E8B98F;border:0;
+    box-shadow:0 10px 34px -8px rgb(232 185 143 / .7);transition:transform .2s var(--ease),background .2s}
+  .try:hover{background:#F0C9A6;transform:translateY(-1px)}
+  .try .keys kbd{color:#24293A;background:rgb(255 255 255 / .55);border-color:rgb(36 41 58 / .2);box-shadow:0 1.5px 0 rgb(36 41 58 / .2)}
+  .said{min-height:1.4em;font-size:14px;color:#A9AEC2}
+
+  /* the small things */
+  .detail-sec{margin-bottom:clamp(80px,10vw,140px)}
+  .details{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .dcard{display:grid;align-content:start;gap:10px;padding:28px;border-radius:22px;background:linear-gradient(180deg,var(--surf),color-mix(in srgb,var(--surf) 70%,var(--bg)));border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .3s var(--ease),border-color .3s}
+  .dcard:hover{transform:translateY(-3px);border-color:rgb(var(--acc-rgb) / .35)}
+  .dcard svg{width:38px;height:38px;padding:8px;margin-bottom:6px;border-radius:50%;color:var(--acc);background:rgb(var(--acc-rgb) / .12)}
+  .dcard p{color:var(--t2);font-size:15.5px;line-height:1.6}
+
+  /* privacy */
+  .private{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(32px,6vw,96px);padding:clamp(40px,6vw,80px);border-radius:clamp(24px,3vw,40px);background:var(--surf);border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:clamp(80px,10vw,140px)}
+  .pv-h{display:grid;gap:18px;align-content:start;justify-items:start}
+  .pv-h h2{font-size:clamp(48px,6vw,80px)}
+  .pv-list{list-style:none;margin:0;padding:0;display:grid}
+  .pv-list li{display:grid;gap:4px;padding:20px 0;border-top:1px solid var(--line)}
+  .pv-list li:first-child{border-top:0;padding-top:0}
+  .pv-list b{font-weight:650}.pv-list span{color:var(--t2);font-size:15.5px}
+
+  /* install */
+  .how{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px}
+  .how li{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:14px;padding:28px;border-radius:22px;background:var(--surf);border:1px solid var(--line);box-shadow:var(--shadow);min-width:0}
+  .how .num{font:italic 400 20px/1 var(--disp);color:var(--acc)}
+  .how p:not(.num){color:var(--t2);font-size:15.5px}
+  .how a,.source a,.ver a{color:var(--text);text-decoration-color:rgb(var(--acc-rgb) / .6);text-underline-offset:.2em}
+  .how .brew{width:100%}
+  .source{margin-top:16px;padding:20px 28px;border-radius:22px;border:1px solid var(--line);background:color-mix(in srgb,var(--surf) 50%,transparent)}
+  .source summary{cursor:pointer;font-weight:650}
+  .source pre{margin:16px 0;padding:18px 20px;border-radius:14px;background:var(--term);color:var(--term-fg);overflow:auto;font-size:14px;line-height:1.7}
+  .source p{color:var(--t2);font-size:15.5px}
+  .ver{margin-top:28px;font-size:14.5px;color:var(--t3)}
+
+  @media (max-width:1000px){
+    .hero{grid-template-columns:minmax(0,1fr);min-height:0}
+    .hero-copy>*,.cta{max-width:100%}.cta{width:100%}
+    .hero-art{width:min(86%,380px);margin-top:12px}
+    .numbers{grid-template-columns:1fr 1fr}.numbers>div:nth-child(3){border-left:0}.numbers>div:nth-child(n+3){border-top:1px solid var(--line)}
+    .story{grid-template-columns:minmax(0,1fr)}.frame-wrap{display:none}
+    .step{min-height:0;opacity:1;padding:0 0 56px;border:0}
+    .inline-pic{display:block;margin-top:16px;max-width:380px}.inline-pic img{border-radius:20px;box-shadow:var(--shadow-lg)}
+    .details{grid-template-columns:1fr 1fr}
+    .private{grid-template-columns:1fr}
+    .how{grid-template-columns:minmax(0,1fr)}
   }
-  @media (max-width: 420px) {
-    .menu img { width: 100%; }
-    .stage .banner img { width: min(343px, 92vw); }
+  @media (max-width:640px){
+    .details{grid-template-columns:1fr}
+    .hero-banner{left:-6%;width:92%}
+    .screens{grid-template-columns:1fr 1fr}.screens .side:first-child{display:none}
+    .try{padding:10px 16px 10px 10px;font-size:14px;gap:10px}
+    .keys-in::before{inset:0}
   }
 </style>

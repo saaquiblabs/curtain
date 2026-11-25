@@ -1,13 +1,42 @@
 ---
-// Footer, on every page: the links, the studio, and what the site counts.
-import { analytics, footer, repo, studio } from "../site";
+// Footer, on every page: the wordmark knocked out over a light that follows the pointer, three
+// columns of links, and what the site counts. Ported from D-Tox's site/src/components/Footer.astro;
+// the name is in Newsreader Italic, as on the menu.
+import { analytics, repo, studio } from "../site";
 
 const year = new Date().getFullYear();
 const here = Astro.url.pathname.replace(/\/$/, "") || "/";
-const links = [...footer, { label: "Report a problem", href: `${repo}/issues` }, { label: "MIT licence", href: `${repo}/blob/main/LICENSE` }];
+const columns: [string, { label: string; href: string }[]][] = [
+  ["Curtain", [{ label: "See it", href: "/#see" }, { label: "Install", href: "/#install" }, { label: "What’s new", href: "/changelog" }]],
+  ["Open source", [{ label: "GitHub", href: repo }, { label: "Report a problem", href: `${repo}/issues` }, { label: "Sponsor", href: "https://github.com/sponsors/saaquiblabs" }]],
+  ["Trust", [{ label: "Privacy", href: "/privacy" }, { label: "MIT licence", href: `${repo}/blob/main/LICENSE` }, studio]],
+];
 ---
 
-<footer class="sft"><div class="wrap in">
-  <nav aria-label="Footer"><ul>{links.map((l) => <li><a href={l.href} aria-current={l.href === here ? "page" : undefined}>{l.label}</a></li>)}</ul></nav>
-  <p class="legal"><a href={studio.href}><span class="s-mask"></span> A {studio.label} tool · © {year}</a>{analytics.websiteId && <span>Visits counted by our own Umami. No cookies.</span>}</p>
+<footer class="sft"><div class="wrap">
+  <div class="row">
+    <div class="wm" aria-hidden="true"><span class="base"></span><span class="lamp"></span>
+      <svg viewBox="0 0 1000 300"><defs><mask id="wmk"><rect x="-5000" y="-5000" width="20000" height="20000" fill="#fff" /><text x="0" y="0" font-family="Newsreader" font-style="italic" font-weight="400" font-size="320" letter-spacing="-6" fill="#000">Curtain</text></mask></defs><rect class="paint" x="-5000" y="-5000" width="20000" height="20000" mask="url(#wmk)" /></svg></div>
+    <div>
+      <nav class="links" aria-label="Footer">
+        {columns.map(([h, links]) => (
+          <div><p class="fh">{h}</p><ul>{links.map((l) => <li><a href={l.href} aria-current={l.href === here ? "page" : undefined}>{l.label}</a></li>)}</ul></div>
+        ))}
+      </nav>
+      <p class="legal"><a href={studio.href}><span class="s-mask"></span> A {studio.label} tool · MIT · © {year}</a><span>{analytics.websiteId ? "Visits counted by our own Umami. No cookies." : "No cookies. Nothing counted."}</span></p>
+    </div>
+  </div>
 </div></footer>
+<script is:inline>
+  // Fit the knock-out to the text once the font is in, then let the light follow the pointer.
+  (() => {
+    const wm = document.querySelector('.wm'), svg = wm.querySelector('svg'), text = svg.querySelector('text'), lamp = wm.querySelector('.lamp');
+    const home = () => { lamp.style.setProperty('--sx', wm.clientWidth * .52 + 'px'); lamp.style.setProperty('--sy', wm.clientHeight * .55 + 'px'); };
+    const fit = () => { if (!wm.clientWidth) return; const b = text.getBBox(); svg.setAttribute('viewBox', `${b.x - 4} ${b.y + b.height * .06} ${b.width + 8} ${b.height * .86}`); home(); };
+    document.fonts.ready.then(() => new ResizeObserver(fit).observe(wm));
+    let q = 0, x = 0, y = 0;
+    wm.addEventListener('pointermove', (e) => { const r = wm.getBoundingClientRect(); x = e.clientX - r.left; y = e.clientY - r.top; wm.classList.add('live');
+      if (!q) q = requestAnimationFrame(() => { q = 0; lamp.style.setProperty('--sx', x + 'px'); lamp.style.setProperty('--sy', y + 'px'); }); });
+    wm.addEventListener('pointerleave', () => { wm.classList.remove('live'); home(); });
+  })();
+</script>

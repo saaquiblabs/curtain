@@ -1,49 +1,164 @@
 ---
-// What's new: CHANGELOG.md itself, read at build time (src/changelog.mjs), so it can't drift from
-// the file. Layout from D-Tox's site/src/pages/changelog.astro.
+// What's new: CHANGELOG.md, read at build time (src/lib/changelog.ts), newest first. Laid out as
+// openship.io's changelog (openship apps/web/src/app/(site)/[locale]/(marketing)/changelog:
+// changelog-entries.tsx, changelog-controls.tsx, changelog.css; Apache-2.0), ported to Astro in
+// Linen & Dusk: three folded tiers (version → change → detail) on native <details>, the newest
+// version open, Expand all, and #v0.5.0 links that open what they name. A change's bold opening
+// is its headline; the rest is its detail. Headlines starting "Fix" count as fixes.
 import Base from "../layouts/Base.astro";
+import "../styles/page.css";
 import { pages } from "../seo";
 import { repo } from "../site";
-import { parseChangelog } from "../changelog.mjs";
-import md from "../../../CHANGELOG.md?raw";
+import { readChangelog } from "../changelog.mjs";
 
-const versions = parseChangelog(md, repo);
-const day = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const versions = readChangelog(repo).map((v) => {
+  const fixes = v.items.filter((it) => /^fix/i.test(it.lead.replace(/<[^>]+>/g, ""))).length;
+  return { ...v, fixes, features: v.items.length - fixes };
+});
+const month = (d: string) => { const [day, m] = d.split(" "); return `${m.slice(0, 3)} ${day}`; };
+const year = (d: string) => d.split(" ")[2];
+const chev = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 ---
 
 <Base {...pages["/changelog"]}>
-  <article class="wrap cl">
+  <article class="wrap page cl">
     <header class="head">
-      <p class="label">What’s new</p>
-      <h1>Every version, newest first.</h1>
-      <p class="lead">From <a href={`${repo}/blob/main/CHANGELOG.md`}>CHANGELOG.md</a>; the code behind each one is <a href={`${repo}/tags`}>on GitHub</a>. Update with <code>brew upgrade</code>.</p>
+      <p class="kick">What’s new</p>
+      <h1>Every version, <em>newest first.</em></h1>
+      <p class="lead">Upgrade with <code>brew upgrade</code>: it quits Curtain, swaps it and opens it again. The code behind each version is <a href={`${repo}/tags`}>on GitHub</a>.</p>
     </header>
 
-    <ol class="list">
-      {versions.map((v) => (
-        <li id={`v${v.version}`}>
-          <div class="meta">
-            <h2 class="v">{v.version}</h2>
-            <time datetime={v.date}>{day(v.date)}</time>
-          </div>
-          <div class="body prose">
-            {v.blocks.map((b) => b.type === "p" ? <p set:html={b.html} /> : <ul>{b.items.map((i) => <li set:html={i} />)}</ul>)}
-          </div>
-        </li>
+    <div class="cl-list">
+      <div class="cl-toolbar">
+        <span class="cl-toolbar-count">{versions.length} releases</span>
+        <button type="button" class="cl-btn" aria-pressed="false">Expand all</button>
+      </div>
+
+      {versions.map((v, i) => (
+        <article class="cl-entry" id={`v${v.version}`}>
+          <details class="cl-version" open={i === 0}>
+            <summary class="cl-version-sum">
+              <span class="cl-date"><span class="cl-date-top">{month(v.date)}</span><span class="cl-date-year">{year(v.date)}</span></span>
+              <span class="cl-version-head">
+                <span class="cl-chev v" set:html={chev} />
+                <span class="cl-version-num">{v.version}</span>
+                {i === 0 && <span class="cl-tag now">Latest</span>}
+                {v.features > 0 && <span class="cl-tag feat">{v.features === 1 ? "1 change" : `${v.features} changes`}</span>}
+                {v.fixes > 0 && <span class="cl-tag fix">{v.fixes === 1 ? "1 fix" : `${v.fixes} fixes`}</span>}
+                <button type="button" class="cl-share" data-id={`v${v.version}`} aria-label={`Copy a link to ${v.version}`}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 9a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.6.6M9 7a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.6-.6"/></svg>
+                  <span class="t">Copy link</span>
+                </button>
+              </span>
+            </summary>
+
+            <div class="cl-version-body">
+              {v.intro.map((p) => <p class="cl-lead" set:html={p} />)}
+              <ul class="cl-items">
+                {v.items.map((it) => it.lead && it.rest ? (
+                  <li class="cl-item">
+                    <details>
+                      <summary class="cl-item-sum"><span class="cl-chev i" set:html={chev} /><span class="cl-item-title" set:html={it.lead} /></summary>
+                      <p class="cl-item-detail" set:html={it.rest} />
+                    </details>
+                  </li>
+                ) : (
+                  <li class="cl-item flat"><span class="cl-dot" aria-hidden="true" /><span class="cl-item-title" set:html={it.lead || it.rest} /></li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        </article>
       ))}
-    </ol>
+    </div>
   </article>
 </Base>
 
+<script is:inline>
+  (() => {
+    // Expand or fold every tier at once (find-in-page can't see inside a closed <details>).
+    const btn = document.querySelector('.cl-btn');
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-pressed') !== 'true';
+      document.querySelectorAll('.cl-list details').forEach((d) => (d.open = open));
+      btn.setAttribute('aria-pressed', open); btn.textContent = open ? 'Collapse all' : 'Expand all';
+    });
+    // A #v0.4.0 link opens the version it names.
+    const openHash = () => {
+      const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (!el) return; el.querySelector('details').open = true; el.scrollIntoView({ block: 'start' });
+    };
+    openHash(); addEventListener('hashchange', openHash);
+    // Copy link, without folding the version it sits in.
+    document.querySelectorAll('.cl-share').forEach((b) => b.addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try { await navigator.clipboard.writeText(`${location.origin}/changelog#${b.dataset.id}`); } catch { return; }
+      const t = b.querySelector('.t'); t.textContent = 'Copied'; setTimeout(() => (t.textContent = 'Copy link'), 1600);
+    }));
+  })();
+</script>
+
 <style>
-  .list { list-style: none; margin: 0; padding: 0; display: grid; }
-  .list > li { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 32px; padding: 36px 0; border-top: 1px dashed var(--line2); }
-  .list > li:first-child { border-top: 0; padding-top: 0; }
-  .meta { display: grid; gap: 6px; align-content: start; font-size: 14px; color: var(--t2); }
-  .v { font-size: 36px; line-height: 1; margin: 0; }
-  .body { font-size: 16px; }
-  .body ul { margin: 0; padding-left: 1.1em; display: grid; gap: 10px; }
-  .body li::marker { color: var(--acc); }
-  .body code { overflow-wrap: anywhere; }
-  @media (max-width: 640px) { .list > li { grid-template-columns: 1fr; gap: 12px; } }
+  .cl-list { --gutter: 150px; --gap: 2rem; }
+  .cl-entry { scroll-margin-top: 96px; border-top: 1px solid var(--line); }
+  .cl-entry:first-of-type { border-top: 0; }
+
+  .cl-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 12px; }
+  .cl-toolbar-count { font: italic 400 19px/1 var(--disp); color: var(--t3); }
+  .cl-btn, .cl-share { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid var(--line2); background: transparent; padding: 6px 13px; font: 600 12.5px/1 var(--sans); color: var(--t2); cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
+  .cl-btn:hover, .cl-share:hover { color: var(--text); background: var(--surf); border-color: rgb(var(--acc-rgb) / .45); }
+  .cl-share svg { width: 13px; height: 13px; }
+
+  /* tier 1: version */
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  .cl-version-sum { display: grid; grid-template-columns: 1fr; gap: 8px; cursor: pointer; padding: 22px 16px; margin: 0 -16px; border-radius: 16px; transition: background .15s; }
+  .cl-version-sum:hover { background: color-mix(in srgb, var(--surf) 70%, transparent); }
+  .cl-date { display: flex; gap: 6px; align-items: baseline; font-size: 14px; }
+  .cl-date-top { font-weight: 650; color: var(--text); }
+  .cl-date-year { color: var(--t3); }
+  .cl-version-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .cl-version-num { font: italic 400 34px/1 var(--disp); letter-spacing: -.02em; color: var(--text); margin-right: 4px; }
+  .cl-tag { border-radius: 999px; padding: 4px 10px; font: 650 11px/1.2 var(--sans); letter-spacing: .04em; text-transform: uppercase; }
+  .cl-tag.now { background: var(--acc); color: var(--acc-ink); }
+  .cl-tag.feat { background: rgb(var(--acc-rgb) / .13); color: var(--acc); }
+  .cl-tag.fix { background: rgb(232 150 120 / .16); color: #B4573A; }
+  @media (prefers-color-scheme: dark) { .cl-tag.fix { color: #F0A58A; } }
+  .cl-share { margin-left: auto; opacity: 0; transition: opacity .2s, color .15s, background .15s, border-color .15s; }
+  .cl-version-sum:hover .cl-share, .cl-share:focus-visible { opacity: 1; }
+
+  .cl-chev { display: inline-grid; flex: none; color: var(--t3); transition: transform .2s var(--ease), color .15s; }
+  .cl-chev :global(svg) { width: 100%; height: 100%; }
+  .cl-chev.v { width: 18px; height: 18px; }
+  .cl-chev.i { width: 13px; height: 13px; margin-top: .35em; }
+  details[open] > summary .cl-chev { transform: rotate(90deg); color: var(--acc); }
+  summary:hover .cl-chev { color: var(--text); }
+
+  /* tier 2: changes */
+  .cl-version-body { padding-bottom: 28px; }
+  .cl-lead { font: 400 21px/1.45 var(--disp); color: var(--text); margin-bottom: 14px; max-width: 44rem; }
+  .cl-items { list-style: none; margin: 0; padding: 0; max-width: 46rem; border-radius: 18px; background: var(--surf); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 6px 14px; }
+  .cl-item + .cl-item { border-top: 1px solid var(--line); }
+  .cl-item-sum, .cl-item.flat { display: flex; align-items: flex-start; gap: 10px; padding: 12px 10px; margin: 0 -10px; border-radius: 10px; font-size: 15.5px; line-height: 1.55; }
+  .cl-item-sum { cursor: pointer; font-weight: 600; color: var(--text); transition: background .15s; }
+  .cl-item-sum:hover { background: color-mix(in srgb, var(--bg) 60%, transparent); }
+  .cl-item.flat { color: var(--t2); font-size: 15px; }
+  .cl-dot { flex: none; width: 5px; height: 5px; margin: .6em 4px 0; border-radius: 50%; background: var(--t3); }
+
+  /* tier 3: detail */
+  .cl-item-detail { padding: 0 0 16px calc(13px + 10px); font-size: 15px; line-height: 1.65; color: var(--t2); }
+  details[open] > .cl-version-body, details[open] > .cl-item-detail { animation: reveal .2s ease-out; }
+  @keyframes reveal { from { opacity: 0; transform: translateY(-3px); } }
+
+  .cl-list :global(a) { color: inherit; text-decoration-color: rgb(var(--acc-rgb) / .6); text-underline-offset: .2em; }
+  .cl-list :global(code) { padding: .1em .35em; border-radius: 5px; background: rgb(var(--acc-rgb) / .1); color: var(--text); font-size: .86em; }
+  .cl-list :global(strong) { font-weight: 650; color: var(--text); }
+
+  @media (min-width: 700px) {
+    .cl-version-sum { grid-template-columns: var(--gutter) 1fr; gap: var(--gap); align-items: center; }
+    .cl-date { display: block; }
+    .cl-date-top, .cl-date-year { display: block; }
+    .cl-version-body { padding-left: calc(var(--gutter) + var(--gap)); }
+  }
+  @media (hover: none) { .cl-share { opacity: 1; } }
 </style>

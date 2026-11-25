@@ -10,28 +10,26 @@ const repo = "https://github.com/saaquiblabs/curtain";
 test("each ## heading is a version with its date", () => {
   const md = "# Changelog\n\n## 0.5.0 — 2026-11-25\n\nIntro.\n\n## 0.4.2 — 2026-11-22\n\n- One.\n";
   const v = parseChangelog(md, repo);
-  assert.deepEqual(v.map((e) => [e.version, e.date]), [["0.5.0", "2026-11-25"], ["0.4.2", "2026-11-22"]]);
+  assert.deepEqual(v.map((e) => [e.version, e.iso, e.date]), [["0.5.0", "2026-11-25", "25 November 2026"], ["0.4.2", "2026-11-22", "22 November 2026"]]);
 });
 
-test("paragraphs and lists, with wrapped lines joined", () => {
+test("intro paragraphs and items, wrapped lines joined; a bold opening is the headline", () => {
   const md = [
     "## 0.2.0 — 2026-11-21",
     "",
     "Switching a screen off no longer",
     "blanks every screen.",
     "",
-    "- **Turn off** fades",
-    "  to black.",
-    "- Unplug.",
-    "",
-    "**Known issues**",
+    "- **Turn off fades** to",
+    "  black.",
+    "- Unplug, with no headline.",
     "",
   ].join("\n");
   const [e] = parseChangelog(md, repo);
-  assert.deepEqual(e.blocks, [
-    { type: "p", html: "Switching a screen off no longer blanks every screen." },
-    { type: "ul", items: ["<b>Turn off</b> fades to black.", "Unplug."] },
-    { type: "p", html: "<b>Known issues</b>" },
+  assert.deepEqual(e.intro, ["Switching a screen off no longer blanks every screen."]);
+  assert.deepEqual(e.items, [
+    { lead: "Turn off fades", rest: "to black." },
+    { lead: "", rest: "Unplug, with no headline." },
   ]);
 });
 
@@ -45,11 +43,10 @@ test("inline: escapes HTML, code stays literal, issue numbers link to GitHub", (
 test("the real CHANGELOG.md: every version, newest first, none empty", () => {
   const md = readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf8");
   const v = parseChangelog(md, repo);
-  const headings = md.match(/^## /gm).length;
-  assert.equal(v.length, headings);
+  assert.equal(v.length, md.match(/^## /gm).length);
   assert.equal(v.at(-1).version, "0.1.0");
   for (const e of v) {
-    assert.match(e.date, /^\d{4}-\d{2}-\d{2}$/, e.version);
-    assert.ok(e.blocks.length, e.version);
+    assert.match(e.iso, /^\d{4}-\d{2}-\d{2}$/, e.version);
+    assert.ok(e.items.length, e.version);
   }
 });

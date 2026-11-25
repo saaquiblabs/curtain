@@ -1,0 +1,22 @@
+---
+// The install line: brew in a small terminal, with a button that copies it.
+import { brew } from "../site";
+const [cmd, ...rest] = brew.split(" ");
+---
+
+<div class="brew">
+  <code><span class="p">$ </span><span class="c">{cmd}</span> {rest.join(" ")}</code>
+  <button type="button" data-copy={brew} data-umami-event="copy-brew" aria-label="Copy the install command">
+    <svg class="cp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>
+    <span class="cp">Copy</span><span class="ok">Copied</span>
+  </button>
+</div>
+<script is:inline>
+  document.querySelectorAll('.brew button:not([data-wired])').forEach((b) => {
+    b.dataset.wired = '1';
+    b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy); } catch { return; }
+      const box = b.closest('.brew'); box.classList.add('copied'); setTimeout(() => box.classList.remove('copied'), 1800);
+    });
+  });
+</script>
