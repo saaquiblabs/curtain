@@ -64,5 +64,8 @@ check(Wording.bannerSpoken(names: ["L27h-4A"], keys: "⌃⌥C"),
 
 check(Wording.bannerHint(keys: "⌃⌥C"), "Control Option C turns every screen back on too.", "the button's VoiceOver hint")
 
+check(Wording.bannerClose, "Close", "the × button's VoiceOver name")
+check(Wording.bannerCloseHint, "Escape closes it too. Drag the banner to move it.", "and its hint")
+
 print(failures == 0 ? "all passed" : "\(failures) failed")
 if failures > 0 { exit(1) }
