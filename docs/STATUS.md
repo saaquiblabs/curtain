@@ -119,6 +119,13 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   clears the preview so the real change takes over with its own motion. `Drapes` animate one value
   (`Gather`, an Animatable modifier): solid until fully open, so a preview leaving takes 0.2 s and a
   real Turn on 720 ms (the old fixed 0.71 s hide made previews linger, then cut; owner's desk test).
+- **Menu under the icon on Disconnect and Reconnect** (0.5.1, 2026-11-25, owner's desk test): the
+  menu keeps its distance from the right edge (`MenuRefuge.fromRight`/`underIcon`), where menu bar
+  icons sit on every screen, not a fraction across; it is placed again on
+  `didChangeScreenParameters` (and 0.4 s later), because a returning monitor first comes back at a
+  temporary place. Released: tag v0.5.1, cask 0.5.1, GitHub release.
+- **MacBook Disconnect** (#46, open): the "keyboard and trackpad go off" reason was never tested;
+  test it on the desk, then offer it with a safety net or correct the reason.
 - **Turn back on banner** (#27, 0.5.0): `Screens.turnOff(_:)` is the one way the row's
   Turn off and ⌃⌥C turn screens off; it calls `didTurnOff`, and `TurnBackOnBanner`
   (`Sources/Banner.swift`) shows a non-activating panel at the bottom centre of the screen under
