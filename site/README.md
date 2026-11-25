@@ -12,7 +12,8 @@ npx playwright install chromium   # once, for Lighthouse
 npm run dev                  # http://localhost:4321
 npm run typecheck            # astro check
 npm test                     # unit tests (node --test): the changelog reader, page vs README
-npm run verify               # the gate: tests, build, links, Lighthouse (~1 min)
+npm run verify               # the gate: tests, build, links, Lighthouse (~1 min); runs before each push
+npm run verify:deploy        # what the Openship deploy runs: the same minus Lighthouse
 npm run pictures             # refresh public/menu etc. from `make renders` (Mac only)
 npm run sync-brand           # refresh the Saaquib Labs mark (needs your access to saaquiblabs)
 ```
@@ -38,7 +39,9 @@ npm run sync-brand           # refresh the Saaquib Labs mark (needs your access 
 - **Analytics:** self-hosted Umami, cookieless. The tag is left out until `analytics.websiteId` in
   `src/site.ts` is set (step 1 below); Privacy then says so by itself. Lighthouse blocks it.
 - **Verify:** D-Tox's budgets: Lighthouse 100 in all four categories on phone and desktop for every
-  sitemap page, page JS < 50 KB, page < 400 KB, every link answers. Caller: the Openship build.
+  sitemap page, page JS < 50 KB, page < 400 KB, every link answers. Callers: the git pre-push hook
+  (`.githooks/pre-push`, installed by `npm ci`; full gate on pushes that touch the site) and the
+  Openship deploy (`verify:deploy`, no Lighthouse, about 2 minutes; as D-Tox's #55).
 - **Versions:** exact pins only (`.npmrc`). Astro 7.4.7, Node ≥ 22.12, npm 11.19.1.
 
 ## Deploy
@@ -74,15 +77,14 @@ Claude after each.
    | Framework | **Static site** |
    | Root directory | `site` |
    | Build image | `node:22` |
-   | Install command | `npm ci && npx playwright install --with-deps chromium` |
-   | Build command | `npm run verify` |
+   | Install command | `npm ci --omit=dev` (no Chrome or test tools) |
+   | Build command | `npm run verify:deploy` (tests, build, links; Lighthouse runs before each push) |
    | Output directory | `dist` |
    | Auto Deploy | off (deploy by hand after merges, like D-Tox) |
 
    → **Create project**. Then in the project's routing settings: **Hide .html extensions** on,
    **Trailing slash** off, **SPA fallback** off (a missing path gets `404.html` with status 404;
-   left on, every missing page answers 200). → **Deploy**. Wait for green (about 5–7 minutes:
-   Chromium, then the gate). A red build means the gate failed and the log says which page and
+   left on, every missing page answers 200). → **Deploy**. Wait for green (about 2 minutes). A red build means the gate failed and the log says which page and
    why. Tell Claude either way. If any field isn't where this says, stop and tell Claude: it can
    create the project from the CLI over SSH instead, as for D-Tox.
 4. **DNS, after step 3 is green.** Cloudflare (account `saaquiblabs`) → `saaquiblabs.com` → **DNS**

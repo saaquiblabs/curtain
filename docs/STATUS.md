@@ -181,7 +181,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - **Curtain's page, curtain.saaquiblabs.com (#42): built in `site/`, not live yet.** Astro, set up
   like D-Tox's; leads with Turn off, windows stay (owner, 2026-11-25), names no other app;
   Homebrew first, no download until notarized. Gate (`cd site && npm run verify`): Lighthouse 100
-  on every page, phone and desktop. Going live is six [HUMAN] steps in `site/README.md` (Umami
+  on every page, phone and desktop; it runs in the git pre-push hook (`.githooks/pre-push`) on pushes
+  touching `site/`, `CHANGELOG.md` or `README.md`. The Openship deploy runs `npm run verify:deploy`
+  (tests, build, links; no Lighthouse, Install `npm ci --omit=dev`): about 2 minutes, as D-Tox's #55. Going live is six [HUMAN] steps in `site/README.md` (Umami
   website, Openship project with root `site`, Cloudflare A record `curtain` grey cloud, domain,
   check). **Deploy** after each merge to `main`, by hand: `ssh najmush-oracle
   '~/.openship/bin/openship --local deploy --project <id> --branch main --env production
