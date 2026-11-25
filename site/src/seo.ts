@@ -1,5 +1,5 @@
-// Each page's title and description, so the head and the pages can't drift (shape from D-Tox's site).
-import { name, origin, promise } from "./site";
+// Each page's title and description, so the head and the pages can't drift.
+import { name, origin } from "./site";
 
 export interface PageMeta {
   /** Page name; the home page has none. The <title> reads `Title — Curtain`. */
@@ -9,11 +9,11 @@ export interface PageMeta {
 
 export const pages = {
   "/": {
-    description: `${promise} Curtain switches any screen off in half a second and back on, sets every monitor's brightness, and lives in your Mac's menu bar. Free, open source, sends nothing anywhere.`,
+    description: `${name} sits in your Mac's menu bar. Switch any screen off in half a second with its windows where they are, set every screen's real brightness, and press ⌃⌥C to darken every screen but yours. Free, open source, sends nothing.`,
   },
   "/privacy": {
     title: "Privacy",
-    description: `${name} collects nothing and sends nothing anywhere. Its settings stay on your Mac. What this site counts, and how.`,
+    description: `${name} collects nothing and sends nothing anywhere: it has no network code at all. What it keeps on your Mac, and what this site counts.`,
   },
   "/changelog": {
     title: "What’s new",

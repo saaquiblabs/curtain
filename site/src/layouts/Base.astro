@@ -1,11 +1,11 @@
 ---
 // Every page's frame: head, skip link, header, main, footer. Ported from D-Tox's
-// site/src/layouts/Base.astro; adapted: Curtain's icon, name and social picture, light and dark,
-// Umami only once its website ID exists (src/site.ts).
+// site/src/layouts/Base.astro; adapted: Curtain's icon, light and dark (the app follows macOS, so
+// the page follows the visitor's setting), Umami only once its website ID exists (src/site.ts).
 import "../styles/site.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { analytics, name } from "../site";
+import { analytics, name, promise } from "../site";
 import { urlOf, type PageMeta } from "../seo";
 
 interface Props extends PageMeta {
@@ -14,7 +14,7 @@ interface Props extends PageMeta {
 }
 
 const { title, description, noindex = false } = Astro.props;
-const fullTitle = title ? `${title} — ${name}` : `${name}, for your Mac's screens`;
+const fullTitle = title ? `${title} — ${name}` : `${name}: ${promise}`;
 const canonical = noindex ? null : urlOf(Astro.url.pathname.replace(/\/$/, "") || "/");
 ---
 
@@ -37,18 +37,17 @@ const canonical = noindex ? null : urlOf(Astro.url.pathname.replace(/\/$/, "") |
     <meta property="og:image" content={urlOf("/og.png")} />
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="640" />
-    <meta property="og:image:alt" content="Curtain: how much light each screen lets in. Its menu by day and by night." />
+    <meta property="og:image:alt" content="Curtain's menu by day and at night, with one screen turned off behind drapes." />
     <meta name="twitter:card" content="summary_large_image" />
-    {/* Visit counts: self-hosted Umami, no cookies (the Privacy page and footer say so). */}
     {analytics.websiteId && (
       <script is:inline defer src={analytics.src} data-website-id={analytics.websiteId} data-domains={analytics.domains}></script>
     )}
     <link rel="preload" href="/fonts/Manrope-normal-400-700.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/Newsreader-italic-400.woff2" as="font" type="font/woff2" crossorigin />
+    <slot name="head" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1D2130" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#191C27" media="(prefers-color-scheme: dark)" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>

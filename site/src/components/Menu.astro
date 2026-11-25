@@ -1,0 +1,15 @@
+---
+// A picture of the real menu from `make renders` (site/scripts/menu-pictures.sh), light by day and
+// dark at night, as the visitor's Mac is set.
+interface Props { name: string; alt: string; width?: number; height?: number; eager?: boolean; class?: string;
+  /** Also a 640 px copy (`<name>-<look>-640.webp`), picked by phones from `sizes`. */
+  small?: boolean; sizes?: string }
+const { name, alt, width = 372, height = 578, eager = false, class: cls, small = false, sizes } = Astro.props;
+const set = (look: string) => small ? `/menu/${name}-${look}-640.webp 640w, /menu/${name}-${look}.webp ${width * 2}w` : `/menu/${name}-${look}.webp`;
+---
+
+<picture class={cls}>
+  <source srcset={set("dark")} sizes={small ? sizes : undefined} media="(prefers-color-scheme: dark)" />
+  <img src={`/menu/${name}-light.webp`} srcset={small ? set("light") : undefined} sizes={small ? sizes : undefined} alt={alt} width={width} height={height}
+    loading={eager ? "eager" : "lazy"} fetchpriority={eager ? "high" : undefined} decoding="async" />
+</picture>

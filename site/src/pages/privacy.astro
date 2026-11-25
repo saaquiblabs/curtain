@@ -1,42 +1,44 @@
 ---
-// Privacy: shape from D-Tox's site/src/pages/privacy.astro. Keep it true to what the app stores
-// (UserDefaults keys in Sources/) and change it in the same PR as anything that changes that.
+// Privacy: D-Tox's privacy page (the short version, then a table), told for Curtain. Keep it true to
+// what Sources/ stores and does, and change it in the same PR as anything that changes that. The app
+// has no network code; what it keeps are four keys in its own defaults (com.saaquiblabs.curtain).
 import Base from "../layouts/Base.astro";
+import "../styles/page.css";
 import { pages } from "../seo";
 import { analytics, email, mailto, name, repo } from "../site";
 
 const updated = { iso: "2026-11-25", text: "25 November 2026" };
 const app: [string, string][] = [
   ["What it collects", "Nothing."],
-  ["What it sends", "Nothing. It makes no network requests at all."],
-  ["What it stores", "Its settings on your Mac (macOS's own preferences for the app): each screen's brightness, which screens are off, which monitors ignore DDC, and your switches (Follow the Mac, Brightness keys)."],
-  ["What it can reach", "Your screens: their brightness, colours and on or off. With the Accessibility permission, which only the brightness keys need, it also sees key presses, to catch F1 and F2 before macOS does. It keeps none of them."],
+  ["What it sends", "Nothing. Curtain has no network code: it never connects to anything."],
+  ["What it stores", "Four things: whether Follow the Mac and Brightness keys are on, which monitors you disconnected (so they stay that way through sleep and come back if Curtain stops), and whether it has asked for Accessibility. Open at login is kept by macOS itself."],
+  ["Where", "In Curtain's own settings on your Mac (com.saaquiblabs.curtain). Nothing leaves it."],
+  ["What it talks to", "Your displays: brightness over the monitor's own cable (DDC), and macOS's display settings to turn screens off and on."],
+  ["Permissions", "Accessibility, only if you switch on Brightness keys, so F1 and F2 reach Curtain before macOS. It reads no other keys and keeps nothing it sees."],
   ["Tracking, ads, analytics", "None."],
   ["Third parties", "None."],
 ];
 ---
 
 <Base {...pages["/privacy"]}>
-  <article class="wrap pv">
+  <article class="wrap page pv">
     <header class="head">
-      <p class="label">Privacy</p>
-      <h1>{name} sends nothing anywhere.</h1>
+      <p class="kick">Privacy</p>
+      <h1>{name} <em>sends nothing</em><br />anywhere.</h1>
       <p class="lead">Last updated <time datetime={updated.iso}>{updated.text}</time>.</p>
     </header>
 
     <section class="prose" aria-labelledby="short">
       <h2 id="short">The short version</h2>
-      <p>The app collects nothing and sends nothing. It keeps its settings on your Mac. That's all it stores.</p>
+      <p>The app collects nothing and sends nothing. It keeps four small settings on your Mac. That’s all.</p>
     </section>
 
     <section class="prose" aria-labelledby="app">
       <h2 id="app">The app</h2>
       <div class="card"><table>
-        <tbody>
-          {app.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}
-        </tbody>
+        <tbody>{app.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody>
       </table></div>
-      <p>Uninstall it and clear what's left with <code>defaults delete com.saaquiblabs.curtain</code>. The code is open: <a href={repo}>read it on GitHub</a>.</p>
+      <p>To clear everything it keeps: <code>defaults delete com.saaquiblabs.curtain</code>, and remove it from Accessibility in System Settings. The code is open: <a href={repo}>read it on GitHub</a>.</p>
     </section>
 
     <section class="prose" aria-labelledby="site">
@@ -50,22 +52,21 @@ const app: [string, string][] = [
 
     <section class="prose" aria-labelledby="contact">
       <h2 id="contact">Questions</h2>
-      <p>Write to <a href={mailto}>{email}</a> or <a href={`${repo}/issues`}>open an issue on GitHub</a>. When this policy changes, the date at the top changes too.</p>
+      <p>Write to <a href={mailto}>{email}</a> or <a href={`${repo}/issues`}>open an issue on GitHub</a>. When this page changes, the date at the top changes too.</p>
     </section>
   </article>
 </Base>
 
 <style>
-  .pv { display: grid; gap: clamp(40px, 5vw, 64px); }
-  .card { border-radius: 20px; background: var(--surf); border: 1px solid var(--line); padding: 6px 24px; }
   table { border-collapse: collapse; width: 100%; }
-  th, td { text-align: left; vertical-align: top; padding: 16px 0; border-bottom: 1px dashed var(--line2); }
+  th, td { text-align: left; vertical-align: top; padding: 18px 0; border-bottom: 1px solid var(--line); }
   tr:last-child th, tr:last-child td { border-bottom: 0; }
-  th { font-weight: 600; color: var(--text); width: 34%; padding-right: 24px; }
+  th { font-weight: 650; color: var(--text); width: 32%; padding-right: 24px; }
+  td { color: var(--t2); }
   @media (max-width: 560px) {
     th, td { display: block; width: auto; padding: 0; border: 0; }
     td { margin-top: 4px; }
-    tr { display: block; padding: 14px 0; border-bottom: 1px dashed var(--line2); }
+    tr { display: block; padding: 14px 0; border-bottom: 1px solid var(--line); }
     tr:last-child { border-bottom: 0; }
   }
 </style>
