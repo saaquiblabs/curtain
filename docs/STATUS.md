@@ -11,14 +11,13 @@ owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable)
   done). Curtain's page merged to `main` (#49) and deploys in ~2 min without Lighthouse (#50).
 - **Open issues:** #41 (umbrella, Step 6, Curtain on the web), #42 (the page: going live, then the
   value copy), #46 (Disconnect for the MacBook's own screen; parked under #41, cap lifted once).
-- **Waiting on the owner (nothing more Claude can do until then):** in Openship, `site/README.md`
-  going-live step 3 (create the project: root `site`, Install `npm ci --omit=dev`, Build
-  `npm run verify:deploy`, Output `dist`, routing as the README says) and step 5 (domain
-  `curtain.saaquiblabs.com` and its certificate). DNS (step 4) is already done: the name resolves
-  to 144.24.124.152. Umami (step 1) is optional. Claude can't use Openship's admin credential over
-  SSH from here (the permission system blocks it): the owner clicks, or allows it.
-- **Next chat:** `/implement #42`. Check it answers live (step 6 of the README), put the project id
-  in the deploy command below, then the value-proposition copy (see #42's comments): why install
+- **Live (2026-11-25, later):** curtain.saaquiblabs.com answers over HTTPS. Claude made the
+  Openship project (`proj__6YbpR8AwDxISx8g`, D-Tox's settings) and the domain over SSH with the
+  owner's permission; the first deploy ran before the domain existed, so a second deploy made the
+  route. Checked from outside: `/` 200, `/privacy` 200, `/privacy/` 308 → `/privacy`, `/nope`
+  404, `/changelog` shows 0.5.1. Umami (step 1) still optional. #42 was auto-closed by #49's merge
+  and reopened: the value copy is still to do.
+- **Next chat:** `/implement #42`: the value-proposition copy (see #42's comments): why install
   it (one screen without closing the lid or pulling a cable; darkness on demand with ⌃⌥C; monitor
   brightness from the Mac), and Turn off vs Disconnect (Turn off: windows stay, monitor backlight to
   its lowest, the Mac still draws it; Disconnect: windows move, monitor sleeps, the Mac stops
@@ -200,17 +199,18 @@ owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable)
 - Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
 - Memory ~90 MB (SwiftUI); idle CPU not measured.
 - Not on saaquiblabs.com's listing yet. Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
-- **Curtain's page, curtain.saaquiblabs.com (#42): merged to `main` (#49), not live yet** (Openship
-  steps 3 and 5 left; see Handoff). Astro, set up like D-Tox's, pages from the owner's look on
+- **Curtain's page, curtain.saaquiblabs.com (#42): live since 2026-11-25** (Openship project
+  `proj__6YbpR8AwDxISx8g` and its domain made by Claude over SSH with the owner's permission;
+  Umami still optional). Astro, set up like D-Tox's, pages from the owner's look on
   2026-11-25 (the app's fonts, Linen & Dusk, drapes on load, six real renders, the ⌃⌥C desk,
   `/changelog` folded as openship.io's); leads with Turn off, windows stay (owner, 2026-11-25), names no other app;
   Homebrew first, no download until notarized. Gate (`cd site && npm run verify`): Lighthouse 100
   on every page, phone and desktop; it runs in the git pre-push hook (`.githooks/pre-push`) on pushes
   touching `site/`, `CHANGELOG.md` or `README.md`. The Openship deploy runs `npm run verify:deploy`
   (tests, build, links; no Lighthouse, Install `npm ci --omit=dev`): about 2 minutes, as D-Tox's #55. Going live: the [HUMAN] steps in `site/README.md`
-  (DNS done; Openship project and domain left; Umami optional). **Deploy** after each merge to `main`, by hand: `ssh najmush-oracle
-  '~/.openship/bin/openship --local deploy --project <id> --branch main --env production
-  --watch'` (put the project id here once it exists). After a UI change: `make renders`, then
+  (all done but Umami, which is optional). **Deploy** after each merge to `main`, by hand: `ssh najmush-oracle
+  '~/.openship/bin/openship --local deploy --project proj__6YbpR8AwDxISx8g --branch main --env production
+  --watch'` (domain `dom_3ahHEPds2A_XA9Dj`, certificate to 2027-02-23). After a UI change: `make renders`, then
   `cd site && npm run pictures`, commit. `/changelog` is CHANGELOG.md, so a version bump needs a
   deploy to show.
 
