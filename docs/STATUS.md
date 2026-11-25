@@ -109,18 +109,23 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   stayed when macOS shifts the origin (not yet watched on a real unplug). The rows' curtain is the
   same two-sided drapes; drapes take 720 ms, the one motion over 250 ms. Tile ↔ row lighting goes
   through `LitScreen`.
-- **Hover results** (#26, built for 0.5.0; owner put the line under the map): `LitScreen.result`
+- **Hover results** (#26, 0.5.0; owner put the line under the map): `LitScreen.result`
   holds the control under the pointer (row pills, slider via `onContinuousHover`, Quit);
   `Sources/TilePreview.swift` says what its tile shows (halfway: drapes 0.5, presence 0.5, or the
   glow at the pointer's brightness; Quit reaches every tile), `HoverLine` says it under the map
   (above the row with one screen). Tooltips are gone; the lines are VoiceOver hints. A click
-  clears the preview so the real change takes over with its own motion.
-- **Turn back on banner** (#27, built for 0.5.0): `Screens.turnOff(_:)` is the one way the row's
+  clears the preview so the real change takes over with its own motion. `Drapes` animate one value
+  (`Gather`, an Animatable modifier): solid until fully open, so a preview leaving takes 0.2 s and a
+  real Turn on 720 ms (the old fixed 0.71 s hide made previews linger, then cut; owner's desk test).
+- **Turn back on banner** (#27, 0.5.0): `Screens.turnOff(_:)` is the one way the row's
   Turn off and ⌃⌥C turn screens off; it calls `didTurnOff`, and `TurnBackOnBanner`
   (`Sources/Banner.swift`) shows a non-activating panel at the bottom centre of the screen under
   the pointer. Where, what it names and when it goes is `Sources/TurnBackOn.swift` (tested): 6 s,
   held while the pointer is on it and 2 s after it leaves, gone at once when its screens are back
   on. Never key, so the menu stays open; its view takes the first click (`acceptsFirstMouse`).
+  Esc (global + local keyDown monitors, only while it shows; global needs Accessibility) or its ×
+  closes it; it can be dragged and stays where dropped (`shownOn` follows it). Owner, 2026-11-25:
+  no duration setting, 6 s stays.
 
 ## Learned the hard way (keep)
 - The owner's Lenovo answers DDC reads but ignores every write (brightness, contrast); likely
@@ -170,12 +175,12 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 2. ~~**Own identity**~~ done in 0.3.0; owner signed off on #1 (2026-11-22). Was: a page with 3 visual directions (ideas: Velvet & Brass, Linen & Dusk,
    Midnight Theatre; curtain types people buy most: sheer = dimmed, blackout = off), the real
    menu shown in each; the owner picks.
-3. **A menu you understand by looking**: a map of the screens laid out like the real desk,
+3. ~~**A menu you understand by looking**~~ done in 0.5.0 (2026-11-25, umbrella #20 closed): a map of the screens laid out like the real desk,
    each tile glowing with its brightness and a curtain sliding over it when off; verbs on every
    button; hover shows the result; "Turn back on" banner after turning off. Planned with the
    owner on 2026-11-22 as umbrella #20: panel-height fix (#21, 0.3.1), Unplug fade test (#22, done:
    owner picked a short 0.15 s + 0.15 s fade over today's 2 s one), comparison page (#23, done: owner picked bezelled monitors with drapes from both sides, the same drapes on the rows, drapes 720 ms as the one exception to the 250 ms rule; page linked on #23), desk map (#24, 0.4.0, built), Disconnect as its own
-   button (#25, built for 0.5.0), hover results (#26, built for 0.5.0), Turn back on banner (#27, built for 0.5.0). Decisions are on #20.
+   button (#25, 0.5.0), hover results (#26, 0.5.0), Turn back on banner (#27, 0.5.0). Decisions are on #20.
    #25–#27 ship together as 0.5.0 (owner, 2026-11-22, noted on #20).
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.
