@@ -56,5 +56,30 @@ const canonical = noindex ? null : urlOf(Astro.url.pathname.replace(/\/$/, "") |
       <slot />
     </main>
     <Footer />
+    <script is:inline>
+      // No #… in the address bar (owner, 2026-11-25). A link to a place on this page scrolls there
+      // and moves focus, without one; a #… or ?v=… that arrives is used by the page, then dropped.
+      (() => {
+        const land = () => {
+          const el = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+          if (el) el.scrollIntoView({ block: 'start' });
+          if (location.hash || location.search) history.replaceState(history.state, '', location.pathname);
+        };
+        document.readyState === 'loading' ? addEventListener('DOMContentLoaded', land) : land();
+        addEventListener('hashchange', () => setTimeout(land)); // after the page's own listeners
+        document.addEventListener('click', (e) => {
+          const a = e.target.closest('a[href*="#"]');
+          if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          const u = new URL(a.href);
+          if (u.origin !== location.origin || u.pathname !== location.pathname) return;
+          const el = document.getElementById(decodeURIComponent(u.hash.slice(1)));
+          if (!el) return;
+          e.preventDefault();
+          el.scrollIntoView({ block: 'start' });
+          if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+          el.focus({ preventScroll: true });
+        });
+      })();
+    </script>
   </body>
 </html>

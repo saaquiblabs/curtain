@@ -37,3 +37,10 @@ test("the page explains Turn off against Disconnect, with Lenovo's published fig
   assert.match(page, /0\.5 W/, "Lenovo's sleep figure");
   assert.match(page, /psref\.lenovo\.com/, "the source is linked");
 });
+
+test("links into the changelog use ?v=, not #v (no #… in URLs, owner 2026-11-25)", () => {
+  for (const p of ["pages/index.astro", "pages/changelog.astro"]) {
+    assert.doesNotMatch(read(`../src/${p}`), /changelog#/, `${p} builds a /changelog#… URL`);
+  }
+  assert.match(read("../src/layouts/Base.astro"), /history\.replaceState/, "the layout drops #… on arrival");
+});
