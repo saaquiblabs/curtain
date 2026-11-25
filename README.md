@@ -12,6 +12,9 @@
 brightness slider, plus a curtain to switch any of them off. Free, open source, sends nothing
 anywhere. A Saaquib Labs tool. MIT.
 
+<sub>A few of these are paid extras in other display apps; here they're all included.
+<a href="#free-all-of-it">See which</a>.</sub>
+
 <p align="center">
   <img src="docs/screenshots/on-light.png" width="372" alt="Curtain's menu by day: the Curtain wordmark and '2 screens on'; a map of the desk with the L27h-4A monitor on the left and the MacBook to its right, each drawn as a small screen as bright as the real one; a row for the MacBook at 72% and one for the L27h-4A at 45%, each with a Turn off button and a brightness slider; then switches for Follow the Mac, Brightness keys and Open at login, and the ⌃⌥C shortcut beside Quit.">
   <img src="docs/screenshots/off-dark.png" width="372" alt="Curtain's menu at night, with the L27h-4A turned off: drapes are closed over its screen on the desk map and across its row with a glowing Turn on button and the line 'Off. Its windows are still there, hidden.' The header says '1 of 2 off'.">
