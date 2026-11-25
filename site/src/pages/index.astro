@@ -28,6 +28,30 @@ const steps = [
     p: "Quit, log out or stop Curtain any way at all, and every screen comes back on at the brightness it had. It never lets you switch off your last screen." },
 ];
 
+// Why install it (#42's value copy, 2026-11-25): three everyday reasons, no other apps named.
+const reasons = [
+  { h: "One screen, nothing unplugged", p: "Just the monitor, or just the MacBook, for a while. No closing the lid, no pulling the cable, no reaching behind the monitor for its button.", icon: "M3 5h12v9H3zM7 18h4M9 14v4M17 9h4v6h-4z" },
+  { h: "Dark when you want it", p: "A film, a late night, an hour of focus: ⌃⌥C turns every other screen dark so the one in front of you is all there is. Press it again and they’re back.", icon: "M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" },
+  { h: "Monitor brightness from the Mac", p: "A slider or F1 and F2 set your monitor’s own backlight, so you never hunt for its buttons. Follow the Mac makes it keep pace with your MacBook.", icon: "M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" },
+];
+
+// Turn off or Disconnect: the same questions, answered for each (Sources/Screens.swift, top).
+// Watts: Lenovo's published figures for the L27h-4A until Tools/measure-power.sh has a clean run.
+const ways = [
+  { name: "Turn off", for: "For a break, a call, a dark room.", rows: [
+    ["Windows", "Stay exactly where they are, hidden."],
+    ["The monitor", "Stays awake, black, with its backlight turned right down where it allows."],
+    ["Your Mac", "Still draws to it, so nothing on any screen moves."],
+    ["Coming back", "Instant: the banner, the menu or ⌃⌥C."],
+  ] },
+  { name: "Disconnect", for: "For the rest of the day, or just the MacBook.", rows: [
+    ["Windows", "Move to your other screen, as if you’d pulled the cable."],
+    ["The monitor", "Sleeps, and draws next to nothing."],
+    ["Your Mac", "Stops drawing to it. Every screen blinks once while macOS rearranges them."],
+    ["Coming back", "Reconnect in the menu wakes it, even after sleep or unlock."],
+  ] },
+];
+
 const details = [
   { h: "Turn back on, right where you are", p: "After Turn off, a small banner floats on the screen you’re on for a few seconds, even with the menu closed. It never takes focus from the app you’re in.", icon: "M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4" },
   { h: "Brightness keys for monitors", p: "F1 and F2 change the screen under your pointer, with the Mac’s own brightness indicator.", icon: "M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" },
@@ -81,6 +105,22 @@ const details = [
     <div><p class="n">0</p><p>bytes sent anywhere, ever</p></div>
   </section>
 
+  <section class="wrap why-sec" id="why">
+    <header class="sec-h">
+      <p class="kick">Why Curtain</p>
+      <h2>The screens you want, <em>and only those.</em></h2>
+    </header>
+    <div class="details why">
+      {reasons.map((d) => (
+        <article class="dcard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={d.icon} /></svg>
+          <h3>{d.h}</h3>
+          <p>{d.p}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
   <section class="see wrap" id="see">
     <header class="sec-h">
       <p class="kick">See it</p>
@@ -130,6 +170,26 @@ const details = [
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="wrap which-sec" id="which">
+    <header class="sec-h">
+      <p class="kick">Two ways to switch off</p>
+      <h2>Turn off or Disconnect? <em>It depends how long.</em></h2>
+      <p class="lead">Turn off is quick and keeps everything in place. Disconnect is as good as unplugging, for when you’re done with a monitor for a while. Every monitor row offers both; the MacBook offers Turn off.</p>
+    </header>
+    <div class="ways">
+      {ways.map((w) => (
+        <article class="way">
+          <h3>{w.name}</h3>
+          <p class="for">{w.for}</p>
+          <dl>
+            {w.rows.map(([k, v]) => (<div><dt>{k}</dt><dd>{v}</dd></div>))}
+          </dl>
+        </article>
+      ))}
+    </div>
+    <p class="watts">What sleep saves, on the monitor on our desk: Lenovo lists the L27h-4A at 21.7 W in typical use and under 0.5 W asleep (<a href="https://psref.lenovo.com/Product/LenovoMonitors/Lenovo_L27h_4A">Lenovo’s product sheet</a>). Turned off, it sits between the two: awake, with its backlight down. Our own measurements will follow.</p>
   </section>
 
   <section class="wrap detail-sec">
@@ -327,6 +387,18 @@ make run      # builds it and opens it</code></pre>
   .try .keys kbd{color:#24293A;background:rgb(255 255 255 / .55);border-color:rgb(36 41 58 / .2);box-shadow:0 1.5px 0 rgb(36 41 58 / .2)}
   .said{min-height:1.4em;font-size:14px;color:#A9AEC2}
 
+  /* why, and Turn off or Disconnect */
+  .why-sec,.which-sec{margin-bottom:clamp(80px,10vw,140px)}
+  .ways{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .way{display:grid;align-content:start;gap:6px;padding:clamp(24px,3vw,36px);border-radius:22px;background:var(--surf);border:1px solid var(--line);box-shadow:var(--shadow)}
+  .way h3{font:400 clamp(30px,3vw,40px)/1.08 var(--disp);letter-spacing:-.015em}
+  .way .for{color:var(--acc);font:italic 400 18px/1.4 var(--disp);margin-bottom:12px}
+  .way dl{margin:0;display:grid}
+  .way dl>div{display:grid;grid-template-columns:8.5rem minmax(0,1fr);gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+  .way dt{font-weight:650}.way dd{margin:0;color:var(--t2);font-size:15.5px}
+  .watts{margin-top:24px;max-width:44rem;font-size:14.5px;color:var(--t3)}
+  .watts a{color:var(--text);text-decoration-color:rgb(var(--acc-rgb) / .6);text-underline-offset:.2em}
+
   /* the small things */
   .detail-sec{margin-bottom:clamp(80px,10vw,140px)}
   .details{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -365,12 +437,14 @@ make run      # builds it and opens it</code></pre>
     .story{grid-template-columns:minmax(0,1fr)}.frame-wrap{display:none}
     .step{min-height:0;opacity:1;padding:0 0 56px;border:0}
     .inline-pic{display:block;margin-top:16px;max-width:380px}.inline-pic img{border-radius:20px;box-shadow:var(--shadow-lg)}
-    .details{grid-template-columns:1fr 1fr}
+    .details{grid-template-columns:1fr 1fr}.details.why{grid-template-columns:minmax(0,1fr)}
+    .ways{grid-template-columns:minmax(0,1fr)}
     .private{grid-template-columns:1fr}
     .how{grid-template-columns:minmax(0,1fr)}
   }
   @media (max-width:640px){
     .details{grid-template-columns:1fr}
+    .way dl>div{grid-template-columns:minmax(0,1fr);gap:4px}
     .hero-banner{left:-6%;width:92%}
     .screens{grid-template-columns:1fr 1fr}.screens .side:first-child{display:none}
     .try{padding:10px 16px 10px 10px;font-size:14px;gap:10px}
