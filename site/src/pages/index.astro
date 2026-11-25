@@ -1,0 +1,149 @@
+---
+// The home page (#42). Leads with Turn off, windows stay (owner's pick, 2026-11-25); names no other
+// app. Every claim here is in the README: change both together.
+import Base from "../layouts/Base.astro";
+import Shot from "../components/Shot.astro";
+import { pages } from "../seo";
+import { brew, needs, repo, source } from "../site";
+---
+
+<Base {...pages["/"]}>
+  <section class="wrap hero">
+    <div class="copy">
+      <p class="label">For your Mac's menu bar</p>
+      <h1>Turn off a screen. <span class="soft">Its windows stay.</span></h1>
+      <p class="lead">
+        Curtain draws a curtain over any screen in half a second. Nothing is rearranged, nothing
+        flashes on your other screen, and every window stays right where you left it.
+        <kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd> turns off every screen but the one you're working on.
+      </p>
+      <div class="get">
+        <div class="brew">
+          <code id="brew">{brew}</code>
+          <button class="btn sm" type="button" data-copy="brew" data-umami-event="copy-brew" aria-describedby="copied">Copy</button>
+        </div>
+        <p class="small"><span id="copied" role="status"></span>Free and open source. {needs}. <a href={source.href}>{source.label}</a></p>
+      </div>
+    </div>
+    <div class="stage">
+      <Shot name="off" eager class="menu" alt="Curtain's menu with the L27h-4A monitor turned off: drapes are closed over its screen on the desk map and across its row, which has a Turn on button and says 'Off. Its windows are still there, hidden.' The MacBook stays on at 72%." />
+      <Shot name="banner" class="banner" alt="The banner after Turn off: 'L27h-4A is off', a Turn back on button and the ⌃⌥C keys." />
+    </div>
+  </section>
+
+  <section class="wrap band" id="off" aria-labelledby="off-h">
+    <div class="prose">
+      <p class="label">Turn off</p>
+      <h2 id="off-h">Off, and back on, without losing your place.</h2>
+    </div>
+    <ul class="points">
+      <li><h3>Instant, and nothing moves</h3><p>Click <b>Turn off</b> and the screen fades to black, its backlight goes down where it can, and a cover stops stray clicks reaching it. Your windows stay put. <b>Turn on</b> brings it back exactly as it was.</p></li>
+      <li><h3><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd> from anywhere</h3><p>One shortcut turns off every screen but the one you're on, and turns them all back on. Good for a film, a call, or the late evening.</p></li>
+      <li><h3>Turn back on, right where you are</h3><p>After Turn off a small banner floats at the bottom of your screen for a few seconds, menu open or not. It never takes focus from the app you're in.</p></li>
+      <li><h3>Or Disconnect</h3><p>When you'd rather have the windows on your other screen, <b>Disconnect</b> a monitor: macOS treats it as unplugged and lets it sleep. <b>Reconnect</b> brings it back.</p></li>
+      <li><h3>Never left in the dark</h3><p>Curtain never switches off your last screen. Quit, log out or stop it in any way, and every screen comes back on at the brightness it had.</p></li>
+    </ul>
+  </section>
+
+  <section class="wrap split" id="map" aria-labelledby="map-h">
+    <Shot name="preview" class="menu" alt="Curtain's menu with the pointer on the L27h-4A's Turn off button: on the desk map its drapes are half closed, and the line under the map reads 'Turns L27h-4A black at once. Its windows stay on it.'" />
+    <div class="prose">
+      <p class="label">The desk map</p>
+      <h2 id="map-h">See your desk before you click.</h2>
+      <p>With two screens or more, the menu opens on a map of your desk: every screen drawn where it really sits and as bright as it really is, with drapes closed over the ones that are off.</p>
+      <p>Point at a button and the map shows what it will do, halfway, with one line saying it. Only on the map, never on a real screen.</p>
+    </div>
+  </section>
+
+  <section class="wrap split flip" id="brightness" aria-labelledby="bright-h">
+    <Shot name="on" class="menu" alt="Curtain's menu with both screens on: the MacBook at 72% and the L27h-4A at 45%, each with a brightness slider, then switches for Follow the Mac, Brightness keys and Open at login." />
+    <div class="prose">
+      <p class="label">Brightness</p>
+      <h2 id="bright-h">How much light each screen lets in.</h2>
+      <p><b>A slider for every screen.</b> Monitors get their real backlight over DDC. One that ignores DDC is dimmed in software instead; Curtain notices by itself and says so.</p>
+      <p><b>Brightness keys for monitors.</b> F1 and F2 change the screen under the pointer, with the Mac's own brightness indicator.</p>
+      <p><b>Follow the Mac.</b> Your monitors follow your MacBook's brightness as it changes.</p>
+    </div>
+  </section>
+
+  <section class="wrap band" aria-labelledby="free-h">
+    <div class="prose">
+      <p class="label">Free, all of it</p>
+      <h2 id="free-h">Small, free, and it sends nothing.</h2>
+      <p>Everything in Curtain is free, for any use, work included. MIT licensed, the code is <a href={repo}>on GitHub</a>. No account, no analytics, no network: Curtain talks to your screens and nothing else. <a href="/privacy">Privacy</a>.</p>
+    </div>
+  </section>
+
+  <section class="wrap install" id="install" aria-labelledby="install-h">
+    <div class="prose">
+      <p class="label">Install</p>
+      <h2 id="install-h">Paste one line in Terminal.</h2>
+    </div>
+    <div class="brew">
+      <code id="brew2">{brew}</code>
+      <button class="btn sm" type="button" data-copy="brew2" data-umami-event="copy-brew" aria-describedby="copied2">Copy</button>
+    </div>
+    <p class="small"><span id="copied2" role="status"></span>{needs}. No Homebrew yet? Get it from <a href="https://brew.sh">brew.sh</a> first.</p>
+    <div class="prose steps">
+      <p>Homebrew builds Curtain on your Mac and puts <b>Curtain.app</b> in Applications. It needs Apple's command line tools (<code>xcode-select --install</code>), not Xcode. <code>brew upgrade</code> keeps it current.</p>
+      <p>Open <b>Curtain</b> from Spotlight and click the curtain in your menu bar. The brightness keys ask for one permission, Accessibility; everything else works without it.</p>
+      <p><b>Why no download button?</b> Curtain isn't notarized by Apple yet, so macOS would block a downloaded copy. Homebrew builds it on your Mac instead, signed with your Mac's own certificate. Rather build it yourself? <a href={source.href}>{source.label}</a>.</p>
+      <p>Hardware brightness over DDC needs Apple silicon; on Intel Macs Curtain dims monitors in software. Turning screens off works on both.</p>
+    </div>
+  </section>
+</Base>
+
+<script is:inline>
+  // Copy the install line. Without the clipboard (old browsers, http), the line stays selectable.
+  for (const b of document.querySelectorAll('[data-copy]')) {
+    b.addEventListener('click', async () => {
+      const status = document.getElementById(b.getAttribute('aria-describedby'));
+      try {
+        await navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent);
+        b.textContent = 'Copied'; status.textContent = 'Copied to the clipboard. ';
+        setTimeout(() => { b.textContent = 'Copy'; status.textContent = ''; }, 2000);
+      } catch { getSelection().selectAllChildren(document.getElementById(b.dataset.copy)); }
+    });
+  }
+</script>
+
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(32px, 5vw, 72px); align-items: center; padding-top: clamp(32px, 6vw, 72px); }
+  .copy { display: grid; gap: 22px; min-width: 0; }
+  .copy > * { min-width: 0; }
+  .soft { color: var(--acc-text); }
+  .get { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 6px; max-width: 34rem; }
+  .small { font-size: 14px; color: var(--t2); }
+  .small a { color: var(--text); text-underline-offset: .2em; text-decoration-color: rgb(var(--acc-rgb) / .7); }
+  .stage { position: relative; justify-self: center; padding-bottom: 28px; }
+  .menu img { width: 372px; border-radius: 22px; box-shadow: 0 30px 70px -30px var(--shadow), 0 0 0 1px var(--line); }
+  .stage .banner { position: absolute; left: 50%; bottom: 0; translate: -50% 0; }
+  .stage .banner img { width: 343px; max-width: none; border-radius: 22px; box-shadow: 0 18px 40px -14px var(--shadow); }
+  @media (prefers-reduced-motion: no-preference) {
+    .stage .banner { animation: rise .5s var(--ease) .6s both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  }
+
+  .band, .split, .install { margin-top: clamp(80px, 10vw, 136px); }
+  .points { list-style: none; margin: 36px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .points li { padding: 22px 22px 24px; border-radius: 20px; background: var(--surf); border: 1px solid var(--line); box-shadow: 0 2px 6px -2px var(--shadow); display: grid; gap: 8px; align-content: start; }
+  .points p { color: var(--t2); font-size: 16px; }
+  .points b { color: var(--text); font-weight: 600; }
+
+  .split { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
+  .split.flip > picture { order: 2; }
+
+  .install { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 44rem; }
+  .install .brew { margin-top: 10px; }
+  .steps { margin-top: 14px; }
+
+  @media (max-width: 860px) {
+    .hero, .split { grid-template-columns: minmax(0, 1fr); }
+    .split.flip > picture { order: 0; }
+    .split > picture { justify-self: center; }
+  }
+  @media (max-width: 420px) {
+    .menu img { width: 100%; }
+    .stage .banner img { width: min(343px, 92vw); }
+  }
+</style>

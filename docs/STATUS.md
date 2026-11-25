@@ -177,7 +177,17 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   still to be confirmed by the owner. Follow the Mac, Open at login: built, never exercised.
 - Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
 - Memory ~90 MB (SwiftUI); idle CPU not measured.
-- No GitHub release page, not on saaquiblabs.com yet. Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
+- Not on saaquiblabs.com's listing yet. Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
+- **Curtain's page, curtain.saaquiblabs.com (#42): built in `site/`, not live yet.** Astro, set up
+  like D-Tox's; leads with Turn off, windows stay (owner, 2026-11-25), names no other app;
+  Homebrew first, no download until notarized. Gate (`cd site && npm run verify`): Lighthouse 100
+  on every page, phone and desktop. Going live is six [HUMAN] steps in `site/README.md` (Umami
+  website, Openship project with root `site`, Cloudflare A record `curtain` grey cloud, domain,
+  check). **Deploy** after each merge to `main`, by hand: `ssh najmush-oracle
+  '~/.openship/bin/openship --local deploy --project <id> --branch main --env production
+  --watch'` (put the project id here once it exists). After a UI change: `make renders`, then
+  `cd site && npm run pictures`, commit. `/changelog` is CHANGELOG.md, so a version bump needs a
+  deploy to show.
 
 ## Next (the plan agreed with the owner, one step per release)
 1. ~~No more jarring blackout~~ done in 0.2.0 / 0.2.1.
@@ -193,4 +203,5 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
    #25–#27 ship together as 0.5.0 (owner, 2026-11-22, noted on #20).
 4. App icon + menu bar icon in the chosen identity (app icon done in #13).
 5. Test and slim down: keys, Follow the Mac, Open at login; memory and idle CPU.
-6. Release: GitHub release, Homebrew (`saaquiblabs/tap`), listing on saaquiblabs.com.
+6. Release: GitHub release, Homebrew (`saaquiblabs/tap`), listing on saaquiblabs.com. Umbrella
+   #41: Curtain's own page (#42, built in `site/`, going live), then the wider listing.

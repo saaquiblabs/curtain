@@ -1,0 +1,7 @@
+Fonts served from /fonts/ (latin subsets, unmodified woff2 from Google Fonts), the same two the app
+uses (Resources/Fonts in the repo, with their full licences):
+
+Manrope: Copyright 2018 The Manrope Project Authors. SIL Open Font License 1.1.
+  https://github.com/googlefonts/manrope  ·  https://openfontlicense.org
+Newsreader: Copyright 2020 The Newsreader Project Authors. SIL Open Font License 1.1.
+  https://github.com/productiontype/Newsreader  ·  https://openfontlicense.org
