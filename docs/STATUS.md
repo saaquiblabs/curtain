@@ -9,22 +9,19 @@ owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable)
 - **Shipped today:** 0.5.0 (Disconnect, hover results, Turn back on banner) and 0.5.1 (Disconnect
   and Reconnect keep the menu under Curtain's icon: owner's desk test, PR #47; tag, cask, release
   done). Curtain's page merged to `main` (#49) and deploys in ~2 min without Lighthouse (#50).
-- **Open issues:** #41 (umbrella, Step 6, Curtain on the web), #42 (the page: going live, then the
-  value copy), #46 (Disconnect for the MacBook's own screen; parked under #41, cap lifted once).
+- **Open issues:** #41 (umbrella, Step 6, Curtain on the web), #46 (Disconnect for the MacBook's own screen; parked under #41, cap lifted once).
 - **Live (2026-11-25, later):** curtain.saaquiblabs.com answers over HTTPS. Claude made the
   Openship project (`proj__6YbpR8AwDxISx8g`, D-Tox's settings) and the domain over SSH with the
   owner's permission; the first deploy ran before the domain existed, so a second deploy made the
   route. Checked from outside: `/` 200, `/privacy` 200, `/privacy/` 308 → `/privacy`, `/nope`
   404, `/changelog` shows 0.5.1. Umami (step 1) still optional. #42 was auto-closed by #49's merge
   and reopened: the value copy is still to do.
-- **Next chat:** `/implement #42`: the value-proposition copy (see #42's comments): why install
-  it (one screen without closing the lid or pulling a cable; darkness on demand with ⌃⌥C; monitor
-  brightness from the Mac), and Turn off vs Disconnect (Turn off: windows stay, monitor backlight to
-  its lowest, the Mac still draws it; Disconnect: windows move, monitor sleeps, the Mac stops
-  drawing it). Numbers: only Lenovo's published ones (L27h-4A 21.7 W typical, under 0.5 W asleep,
-  psref.lenovo.com) until a clean run of `Tools/measure-power.sh` (3-minute alternating steps,
-  ~25 min, quiet Mac; the first 60 s run, `docs/power/pilot-*.csv`, was too noisy to publish).
-  Name no other apps on the page. After #42: `/implement #46`.
+- **#42 done (2026-11-25, PR #54, deployed):** the page now has Why Curtain and Turn off or
+  Disconnect (Lenovo's PSREF figures only: L27h-4A 21.7 W typical, under 0.5 W asleep; Turn off
+  given no number). Replace with our own once `Tools/measure-power.sh` has a clean 3-minute-step
+  run (~25 min, quiet Mac; `docs/power/pilot-*.csv` was too noisy). `site/tests/facts.test.mjs`
+  fails if a page names another app.
+- **Next chat:** `/implement #46` (Disconnect for the MacBook's own screen).
 
 ## The product, as agreed with the owner
 - Five features only: brightness per screen, turn a screen off, brightness keys for monitors,
