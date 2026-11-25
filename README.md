@@ -50,6 +50,25 @@ never on a real screen).
 Quitting, logging out or stopping Curtain in any way puts every screen back on, at the
 brightness it had.
 
+## Free, all of it
+
+A few things Curtain does are paid features in other display apps. That's fair: those apps do
+far more than Curtain, their makers earn a living from them, and if you need what they offer
+they're worth paying for. Curtain is small, and everything in it is free, for any use, work
+included.
+
+| In Curtain | Elsewhere (checked 25 November 2026) |
+|---|---|
+| **Disconnect** a monitor without unplugging it | Part of BetterDisplay Pro, $21.99 one-time ([free and Pro features](https://betterdisplay.pro/guide/licensing/free-and-pro-features/)) |
+| **Turn off** any screen, or every screen but yours with ⌃⌥C | Lunar's BlackOut, part of Lunar Pro, $23 lifetime ([Lunar Pro](https://lunar.fyi/pro)) |
+| **Follow the Mac**: monitors follow the MacBook's brightness | Lunar's Sync Mode, part of Lunar Pro ([Lunar](https://lunar.fyi/)); basic syncing is free in BetterDisplay |
+| **Brightness keys**, as often as you like | Free in Lunar for 100 adjustments a day ([Lunar Pro](https://lunar.fyi/pro)) |
+| Use at work | BetterDisplay's free features are for non-business use ([free and Pro features](https://betterdisplay.pro/guide/licensing/free-and-pro-features/)); Curtain is MIT |
+
+Curtain stands on free work too: its DDC code comes from
+[MonitorControl](https://github.com/MonitorControl/MonitorControl), free and open source (see
+[Credits](#credits)).
+
 | On | Dimmed in software | Off |
 |:-:|:-:|:-:|
 | <img src="docs/screenshots/on-light.png" width="250" alt="Both screens on, light."> | <img src="docs/screenshots/dimmed-light.png" width="250" alt="The L27h-4A at 40%, with the note 'Dimmed by Curtain until it quits', light."> | <img src="docs/screenshots/off-light.png" width="250" alt="The L27h-4A turned off, light."> |
@@ -128,8 +147,8 @@ Accessibility permission survives rebuilds. `Tools/check-signing.sh` checks that
 clicks, and turns its backlight down where it can. Nothing is rearranged, so nothing flashes.
 
 **Disconnect** calls `CGSConfigureDisplayEnabled`, an undocumented macOS function that tells macOS to
-treat a display as unplugged. Apps like BetterDisplay and Lunar sell the same feature as part of a
-paid plan. Because the function is undocumented, Curtain looks it up when it starts: if a future
+treat a display as unplugged. BetterDisplay sells the same feature as part of its Pro
+plan. Because the function is undocumented, Curtain looks it up when it starts: if a future
 macOS removes it, Disconnect stops working and the rest of the app keeps going.
 
 ## Credits
