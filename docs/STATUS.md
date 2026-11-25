@@ -1,9 +1,31 @@
-# Status — 2026-11-22
+# Status — 2026-11-25
 
-Curtain 0.3.0 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.3.0) and in Homebrew
-(`brew install saaquiblabs/tap/curtain`), and running on
-the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable). Read
-`CHANGELOG.md` for what each version did and `README.md` for the five features.
+Curtain 0.5.1 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.5.1, GitHub releases from
+0.5.0) and in Homebrew (`brew install saaquiblabs/tap/curtain`, cask 0.5.1), and running on the
+owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable). Read
+`CHANGELOG.md` for what each version did and `README.md` for the features.
+
+## Handoff (2026-11-25, evening): start here
+- **Shipped today:** 0.5.0 (Disconnect, hover results, Turn back on banner) and 0.5.1 (Disconnect
+  and Reconnect keep the menu under Curtain's icon: owner's desk test, PR #47; tag, cask, release
+  done). Curtain's page merged to `main` (#49) and deploys in ~2 min without Lighthouse (#50).
+- **Open issues:** #41 (umbrella, Step 6, Curtain on the web), #42 (the page: going live, then the
+  value copy), #46 (Disconnect for the MacBook's own screen; parked under #41, cap lifted once).
+- **Waiting on the owner (nothing more Claude can do until then):** in Openship, `site/README.md`
+  going-live step 3 (create the project: root `site`, Install `npm ci --omit=dev`, Build
+  `npm run verify:deploy`, Output `dist`, routing as the README says) and step 5 (domain
+  `curtain.saaquiblabs.com` and its certificate). DNS (step 4) is already done: the name resolves
+  to 144.24.124.152. Umami (step 1) is optional. Claude can't use Openship's admin credential over
+  SSH from here (the permission system blocks it): the owner clicks, or allows it.
+- **Next chat:** `/implement #42`. Check it answers live (step 6 of the README), put the project id
+  in the deploy command below, then the value-proposition copy (see #42's comments): why install
+  it (one screen without closing the lid or pulling a cable; darkness on demand with ⌃⌥C; monitor
+  brightness from the Mac), and Turn off vs Disconnect (Turn off: windows stay, monitor backlight to
+  its lowest, the Mac still draws it; Disconnect: windows move, monitor sleeps, the Mac stops
+  drawing it). Numbers: only Lenovo's published ones (L27h-4A 21.7 W typical, under 0.5 W asleep,
+  psref.lenovo.com) until a clean run of `Tools/measure-power.sh` (3-minute alternating steps,
+  ~25 min, quiet Mac; the first 60 s run, `docs/power/pilot-*.csv`, was too noisy to publish).
+  Name no other apps on the page. After #42: `/implement #46`.
 
 ## The product, as agreed with the owner
 - Five features only: brightness per screen, turn a screen off, brightness keys for monitors,
@@ -178,14 +200,15 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
 - Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
 - Memory ~90 MB (SwiftUI); idle CPU not measured.
 - Not on saaquiblabs.com's listing yet. Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
-- **Curtain's page, curtain.saaquiblabs.com (#42): built in `site/`, not live yet.** Astro, set up
-  like D-Tox's; leads with Turn off, windows stay (owner, 2026-11-25), names no other app;
+- **Curtain's page, curtain.saaquiblabs.com (#42): merged to `main` (#49), not live yet** (Openship
+  steps 3 and 5 left; see Handoff). Astro, set up like D-Tox's, pages from the owner's look on
+  2026-11-25 (the app's fonts, Linen & Dusk, drapes on load, six real renders, the ⌃⌥C desk,
+  `/changelog` folded as openship.io's); leads with Turn off, windows stay (owner, 2026-11-25), names no other app;
   Homebrew first, no download until notarized. Gate (`cd site && npm run verify`): Lighthouse 100
   on every page, phone and desktop; it runs in the git pre-push hook (`.githooks/pre-push`) on pushes
   touching `site/`, `CHANGELOG.md` or `README.md`. The Openship deploy runs `npm run verify:deploy`
-  (tests, build, links; no Lighthouse, Install `npm ci --omit=dev`): about 2 minutes, as D-Tox's #55. Going live is six [HUMAN] steps in `site/README.md` (Umami
-  website, Openship project with root `site`, Cloudflare A record `curtain` grey cloud, domain,
-  check). **Deploy** after each merge to `main`, by hand: `ssh najmush-oracle
+  (tests, build, links; no Lighthouse, Install `npm ci --omit=dev`): about 2 minutes, as D-Tox's #55. Going live: the [HUMAN] steps in `site/README.md`
+  (DNS done; Openship project and domain left; Umami optional). **Deploy** after each merge to `main`, by hand: `ssh najmush-oracle
   '~/.openship/bin/openship --local deploy --project <id> --branch main --env production
   --watch'` (put the project id here once it exists). After a UI change: `make renders`, then
   `cd site && npm run pictures`, commit. `/changelog` is CHANGELOG.md, so a version bump needs a
