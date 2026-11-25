@@ -77,7 +77,9 @@ the owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI ca
   and the cask runs `Tools/signing-identity.sh` as its own first step with that folder writable
   (inside `make`'s sandbox the write silently does nothing). Verified on a MacBook Pro, macOS 26.6:
   brew install from a local 0.4.2 tarball with the keychain off the list. Bumping a
-  version: new tag, then `version` and `sha256` in the cask. **From 0.4.1 `make app` builds
+  version: new tag, then `version` and `sha256` in the cask, then a GitHub release for the tag
+  (`gh release create vX.Y.Z --latest`, notes = brew lines + that CHANGELOG section; from 0.5.0,
+  earlier tags have none). **From 0.4.1 `make app` builds
   `build/app.noindex/Curtain.app`** (Spotlight skips `.noindex` folders, so only
   /Applications/Curtain.app shows): the cask's `app` line points there from 0.4.1.
 - **Apple screens' rows follow macOS's brightness reports** (#11):
