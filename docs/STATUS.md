@@ -195,7 +195,7 @@ owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable)
   still to be confirmed by the owner. Follow the Mac, Open at login: built, never exercised.
 - Intel Macs: software dimming only (MonitorControl's IntelDDC not ported).
 - Memory ~90 MB (SwiftUI); idle CPU not measured.
-- Not on saaquiblabs.com's listing yet. Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
+- On saaquiblabs.com/work, the org profile, the repo's website field and the Homebrew cask, all linking curtain.saaquiblabs.com (2026-11-26). Homebrew: `brew install saaquiblabs/tap/curtain` (#14).
 - **Curtain's page, curtain.saaquiblabs.com (#42): live since 2026-11-25** (Openship project
   `proj__6YbpR8AwDxISx8g` and its domain made by Claude over SSH with the owner's permission;
   Umami still optional). Astro, set up like D-Tox's, pages from the owner's look on
