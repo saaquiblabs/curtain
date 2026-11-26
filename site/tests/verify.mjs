@@ -169,17 +169,41 @@ if (!(await access(chromePath).then(() => true, () => false))) {
     if (r.switches !== 1) fail(`dragging the acorn 60 px down switched ${r.switches} times, want once`);
     r = await press("short tug", { hold: 80, dy: 10 });
     if (r.switches !== 0) fail(`a 10 px tug switched ${r.switches} times, want none`);
+    // Let go where the release never reaches the switch (owner, 2026-11-26: it stayed held, taut, up
+    // and to the left): it must still let go, and never be taken up above its box.
+    await page.evaluate(() => document.querySelector("[data-lamp]").addEventListener("pointerup", (e) => e.stopImmediatePropagation(), true));
+    {
+      const a = await acornAt();
+      await page.mouse.move(a.x, a.y);
+      await page.mouse.down();
+      await page.mouse.move(a.x - 90, a.y - 80, { steps: 12 });
+      const top = await page.evaluate(() => window.acornY());
+      if (top < 13) fail(`the acorn was taken up to ${top.toFixed(1)}, above the box`);
+      await page.mouse.up();
+      await page.waitForTimeout(400);
+      await settled();
+      await page.waitForTimeout(1500);
+      const t = await page.evaluate(() => document.querySelector("[data-lamp] .acorn").getAttribute("transform"));
+      const [, x, y] = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(t);
+      if (Math.abs(x - 24) > 0.5 || Math.abs(y - 67.5) > 1.5) fail(`after a release that missed the switch, the acorn is at ${x}, ${y}, not hanging at rest`);
+    }
+    await page.reload();
+    await page.mouse.move(5, 790);
+    await page.waitForFunction(() => document.querySelector("[data-lamp]").hasAttribute("data-live"));
+    await page.evaluate(() => (window.acornY = () => 0));
     // Space, from the keyboard: the same pull.
     await page.locator("[data-lamp]").focus();
-    await page.evaluate(() => (window.switches = 0));
+    await page.evaluate(() => { window.switches = 0; new MutationObserver(() => window.switches++).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); });
     await page.keyboard.press("Space");
     await page.waitForTimeout(400);
     await settled();
     if ((await page.evaluate(() => window.switches)) !== 1) fail("Space didn't switch exactly once");
-    // Six switches since night (four clicks, a drag, Space): night again. Kept across pages, on a light Mac.
+    // Whatever was chosen last is kept on the next page, on a light Mac, with no flash.
+    const chosen = (await look()).theme;
     await page.goto(base + "/changelog");
     s = await look();
-    if (s.theme !== "dark" || s.bg !== "rgb(25, 28, 39)" || s.night !== "true") fail(`night kept on /changelog; got ${JSON.stringify(s)}`);
+    const want = chosen === "dark" ? ["true", "rgb(25, 28, 39)"] : ["false", "rgb(250, 250, 247)"];
+    if (!chosen || s.theme !== chosen || s.night !== want[0] || s.bg !== want[1]) fail(`${chosen} kept on /changelog; got ${JSON.stringify(s)}`);
     await ctx.close();
     const dark = await browser.newContext({ colorScheme: "dark", viewport: { width: 1280, height: 800 } });
     await dark.addInitScript(() => localStorage.setItem("curtain-theme", "light"));
