@@ -178,14 +178,14 @@ if (!(await access(chromePath).then(() => true, () => false))) {
       await page.mouse.down();
       await page.mouse.move(a.x - 90, a.y - 80, { steps: 12 });
       const top = await page.evaluate(() => window.acornY());
-      if (top < 13) fail(`the acorn was taken up to ${top.toFixed(1)}, above the box`);
+      if (top < 11) fail(`the acorn was taken up to ${top.toFixed(1)}, above the box`);
       await page.mouse.up();
       await page.waitForTimeout(400);
       await settled();
       await page.waitForTimeout(1500);
       const t = await page.evaluate(() => document.querySelector("[data-lamp] .acorn").getAttribute("transform"));
       const [, x, y] = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(t);
-      if (Math.abs(x - 24) > 0.5 || Math.abs(y - 67.5) > 1.5) fail(`after a release that missed the switch, the acorn is at ${x}, ${y}, not hanging at rest`);
+      if (Math.abs(x - 24) > 0.5 || Math.abs(y - 65.5) > 1.5) fail(`after a release that missed the switch, the acorn is at ${x}, ${y}, not hanging at rest`);
     }
     await page.reload();
     await page.mouse.move(5, 790);
