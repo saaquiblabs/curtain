@@ -1,6 +1,6 @@
 // The pull switch under the header (#41). Pull its cord and the switch clicks at the bottom of the
-// pull; the drapes cross the page, close, and open on night or day, with the cord swinging in front
-// of them. The switch is drawn in the HTML at rest (src/components/Header.astro); its motion
+// pull; once the cord has sprung back, the drapes cross the page, close, and open on night or day.
+// The switch is drawn in the HTML at rest (src/components/Header.astro); its motion
 // (src/lamp/cord.mjs, a few KB) is fetched when the visitor first moves, scrolls, taps or types, so
 // a load alone fetches nothing and the page stays inside tests/verify.mjs's budgets. A click before
 // then still switches, without the motion.
@@ -22,7 +22,6 @@ function sweep(night: boolean, done: () => void) {
     done();
     return;
   }
-  const root = document.documentElement;
   const drapes = document.createElement("div");
   drapes.className = "sweep";
   drapes.setAttribute("aria-hidden", "true");
@@ -31,7 +30,6 @@ function sweep(night: boolean, done: () => void) {
   l.className = "l";
   r.className = "r";
   document.body.append(drapes);
-  root.classList.add("sweeping"); // the cord hangs in front of the drapes
   const ease = "cubic-bezier(.65,0,.35,1)"; // --drape, the app's drapes
   const move = (el: HTMLElement, from: string, to: string, ms: number) =>
     el.animate([{ transform: `translateX(${from})` }, { transform: `translateX(${to})` }], { duration: ms, easing: ease, fill: "forwards" }).finished;
@@ -44,14 +42,20 @@ function sweep(night: boolean, done: () => void) {
     .then(() => Promise.all([move(l, "0", "-100%", 720), move(r, "0", "100%", 720)]))
     .finally(() => {
       drapes.remove();
-      if (!document.querySelector(".sweep")) root.classList.remove("sweeping");
     });
 }
 
 if (button && theme) {
   const show = () => button.setAttribute("aria-checked", String(theme.dark));
   show();
-  const flip = () => sweep(!theme.dark, show);
+  // The drapes wait for the cord to be let go and spring back (~0.45 s after the click), so the pull
+  // is seen before they cover the page, switch included.
+  // Clicks that come faster than the drapes each flip from the last one asked for.
+  let asked: boolean | null = null;
+  const flip = () => {
+    const night = (asked = !(asked ?? theme.dark));
+    setTimeout(() => sweep(night, () => { show(); if (asked === night) asked = null; }), live ? 450 : 0);
+  };
 
   let live = false;
   let loading: Promise<void> | null = null;
