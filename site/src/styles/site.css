@@ -145,15 +145,18 @@ main{display:block;overflow-x:clip}
 .sweeping .pull{z-index:95}
 .pull .wrap{display:flex;justify-content:flex-end}
 .pull-in{position:relative;width:48px;height:120px;margin-right:calc(-.5 * var(--gut) - 20px)}
-.sw{all:unset;position:absolute;inset:0;-webkit-tap-highlight-color:transparent}
+@media (max-width:560px){.pull-in{margin-right:-12px}}
+.sw{all:unset;position:absolute;inset:0;touch-action:none;-webkit-tap-highlight-color:transparent}
 .sw svg{display:block;overflow:visible}
+.sw .box,.sw .acorn-hit,.sw .cord-hit{touch-action:none}
 .sw .box,.sw .acorn-hit{pointer-events:all;cursor:grab}
 .sw .cord-hit{fill:none;stroke:transparent;stroke-width:22;stroke-linecap:round;pointer-events:stroke;cursor:grab}
 .sw.held .box,.sw.held .cord-hit,.sw.held .acorn-hit{cursor:grabbing}
 .sw .acorn-hit{fill:transparent}
 .sw .b0{stop-color:var(--sw-box-a)}.sw .b1{stop-color:var(--sw-box-b)}
 .sw .box{stroke:var(--sw-line);stroke-width:.6}
-.sw .seam{fill:var(--sw-line)}
+.sw .lip{stroke:rgb(255 255 255 / .35);stroke-width:.6;stroke-linecap:round}
+.sw .hole{fill:var(--sw-line)}
 .sw .lamp{fill:var(--sw-lamp)}
 .sw .g0{stop-color:var(--sw-glow)}.sw .g1{stop-color:transparent}
 .sw .ferrule{fill:var(--sw-box-b);stroke:var(--sw-line);stroke-width:.5}
@@ -165,7 +168,7 @@ main{display:block;overflow-x:clip}
 .sw .a0{stop-color:var(--acorn-a)}.sw .a1{stop-color:var(--acorn-b)}.sw .a2{stop-color:var(--acorn-c)}
 .sw:focus-visible{outline:none}
 .sw:focus-visible .body{stroke:var(--acc);stroke-width:1.5;paint-order:stroke}
-.pull-cap{position:absolute;right:46px;top:1px;white-space:nowrap;font:italic 400 14px/1 var(--disp);color:var(--t3);pointer-events:none}
+.pull-cap{position:absolute;right:46px;top:0;white-space:nowrap;font:italic 400 14px/1 var(--disp);color:var(--t3);pointer-events:none}
 .pull-cap .d{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pull-cap .n{display:none}:root:not([data-theme=light]) .pull-cap .d{display:inline}}
 :root[data-theme=dark] .pull-cap .n{display:none}:root[data-theme=dark] .pull-cap .d{display:inline}

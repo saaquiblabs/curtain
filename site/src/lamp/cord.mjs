@@ -17,7 +17,7 @@
 // bottom of its travel are Curtain's. Everything here is in CSS px, in the switch's own SVG frame.
 
 export const GEOMETRY = Object.freeze({
-  anchor: { x: 24, y: 13 }, // where the cord leaves the box
+  anchor: { x: 24, y: 11 }, // where the cord leaves the box
   links: 10,
   link: 5.4, // so the cord hangs 54 px
   acorn: 17, // its length below the last link
@@ -287,7 +287,9 @@ export function attach(root, onSwitch) {
   // button down, the page hidden) lets go too, without a click.
   addEventListener("pointerup", (e) => { if (press && e.pointerId === press.id) letGo(true); }, true);
   addEventListener("pointercancel", (e) => { if (press && e.pointerId === press.id) letGo(false); }, true);
-  addEventListener("pointermove", (e) => { if (press && e.pointerId === press.id && e.buttons === 0) letGo(false); }, true);
+  // A mouse moving with no button down has been let go of; touch is left alone (mobile Safari has
+  // reported no button during a touch drag).
+  addEventListener("pointermove", (e) => { if (press && e.pointerId === press.id && e.pointerType === "mouse" && e.buttons === 0) letGo(false); }, true);
   addEventListener("blur", () => letGo(false));
   document.addEventListener("visibilitychange", () => { if (document.hidden) letGo(false); });
   root.addEventListener("lostpointercapture", () => setTimeout(() => letGo(false)));
