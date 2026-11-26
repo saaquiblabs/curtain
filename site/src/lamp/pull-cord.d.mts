@@ -1,5 +1,5 @@
 // Types for the one export the page uses (src/lamp/header.ts).
-export interface PullCordOptions { on?: boolean; warmth?: number; cord?: number; light?: number; label?: string }
+export interface PullCordOptions { on?: boolean; warmth?: number; cord?: number; light?: number; label?: string; cordOnly?: boolean }
 export class PullCord {
   constructor(host: HTMLElement, opts?: PullCordOptions);
   readonly root: HTMLElement;

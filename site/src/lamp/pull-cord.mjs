@@ -1,9 +1,11 @@
 /*! Pull-cord Bulb, from Tactile UI (https://github.com/cipriantitire/tactile-ui-free, pull-cord/,
  * commit 0774661). MIT License, Copyright (c) 2026 Ciprian Titire. Full licence: /lamp/LICENSE.txt. */
 /**
- * Ported to Curtain's page (#41, 2026-11-26) as the day/night switch in the header. Curtain's changes:
- * the dome shade and clear bulb only (the tube, the bare holder, the frosted bulb and their options
- * are gone), no sound, and no `target`/`finish` options: the lamp is made in the page's object
+ * Ported to Curtain's page (#41, 2026-11-26) as the day/night pull cord under the header. Curtain's
+ * changes: a `cordOnly` option (just the cord and its acorn, its top fixed: no lamp is drawn); any
+ * press and release on the cord switches once, and a pull always switches (the original dropped a
+ * press held 350 ms or moved 2 px); the dome shade and clear bulb only (the tube, the bare holder,
+ * the frosted bulb and their options are gone), no sound, and no `target`/`finish` options: the lamp is made in the page's object
  * tokens (`--tui-obj-*`, set per look in src/styles/site.css) and drawn again when <html
  * data-theme> or the visitor's light/dark setting changes. The page, not the lamp, decides what
  * lit means (src/lamp/header.ts). Everything else is the original.
@@ -1133,12 +1135,14 @@ const DEFAULTS = Object.freeze({
   cord: 1,
   light: 315,
   label: 'Light',
+  cordOnly: false,
 });
 
 function normalise(opts, previous) {
   const o = { ...DEFAULTS, ...previous, ...opts };
   o.on = o.on !== false;
   o.shade = 'dome';
+  o.cordOnly = o.cordOnly === true;
   o.warmth = clamp(Math.round(+o.warmth || 2700), 1900, 3400);
   o.cord = clamp(+o.cord || 1, 0.5, 1.6);
   o.light = ((+o.light || 0) % 360 + 360) % 360;
@@ -1324,6 +1328,13 @@ export class PullCord {
 
   // ---------------------------------------------------------------- build
 
+  /** The rig at rest. Curtain (#41): with `cordOnly` there is no lamp to sway, so the cord's top is fixed. */
+  #newRig() {
+    const r = makeRig({ style: this.o.shade, Ls: this.lay.Ls, Lp: this.lay.Lp });
+    if (this.o.cordOnly) r.I = Infinity;
+    return settleRig(r, 1.2);
+  }
+
   #build() {
     if (!this.root.isConnected) return;
     const rect = this.root.getBoundingClientRect();
@@ -1337,8 +1348,17 @@ export class PullCord {
     this.dpr = dpr;
     if (!same) {
       this.lay = layout(W, H, this.o.shade, this.o.cord);
+      if (this.o.cordOnly) {
+        // Curtain (#41): only the cord and its acorn, filling the box from the top: the cord
+        // leaves the box's top edge in the middle, with room below the acorn for a full pull.
+        const L = this.lay;
+        const st = STYLES[this.o.shade];
+        L.S = H / (L.Lp + ACORN.len + PULL_ROOM + 0.006);
+        L.axisX = W / 2 - st.anchor[0] * L.S;
+        L.pivotY = -(L.Ls + st.anchor[1]) * L.S;
+      }
       this.layKey = `${this.o.shade}|${this.o.cord}`;
-      this.rig = settleRig(makeRig({ style: this.o.shade, Ls: this.lay.Ls, Lp: this.lay.Lp }), 1.2);
+      this.rig = this.#newRig();
       this.cache.clear();
       this.pullRun = null;
       this.drag = null;
@@ -1387,7 +1407,7 @@ export class PullCord {
   /** Put the rig at rest (reduced motion: the lamp hangs still). */
   #rest() {
     if (!this.lay) return;
-    this.rig = settleRig(makeRig({ style: this.o.shade, Ls: this.lay.Ls, Lp: this.lay.Lp }), 1.2);
+    this.rig = this.#newRig();
     this.pullRun = null;
     this.drag = null;
     this.hand = null;
@@ -1550,7 +1570,8 @@ export class PullCord {
     const S = this.lay.S;
     const d = this.dpr;
     const st = STYLES[this.o.shade];
-    const glow = this.reduced ? (this.lit ? 1 : 0) : glowOf(this.T, this.o.warmth);
+    const co = this.o.cordOnly;
+    const glow = co ? 0 : this.reduced ? (this.lit ? 1 : 0) : glowOf(this.T, this.o.warmth);
     const theta = r.theta;
     const [topX, topY] = this.#px(Math.sin(theta) * r.Ls, Math.cos(theta) * r.Ls);
     const [pvX, pvY] = this.#px(0, 0);
@@ -1588,7 +1609,7 @@ export class PullCord {
       g.setTransform(ld, 0, 0, ld, 0, 0);
       g.globalAlpha = mat.shadow;
       const cs = sp.cupShadow;
-      g.drawImage(sp.cupShadow.c, pvX + ox - cs.ox, pvY + oy - cs.oy, cs.w, cs.h);
+      if (!co) g.drawImage(sp.cupShadow.c, pvX + ox - cs.ox, pvY + oy - cs.oy, cs.w, cs.h);
       const blur = WALL.blur * S;
       // A thin cord's shadow spreads over the blur: as wide as the blur, as dark as the cord is thick.
       // The same blur as the lamp's own shadow; a 3 mm cord under a soft room
@@ -1606,14 +1627,14 @@ export class PullCord {
       const cable = new Path2D();
       cable.moveTo(pvX + ox, pvY + oy);
       cable.lineTo(topX + ox, topY + oy);
-      soft(cable, 0.0055 * S);
+      if (!co) soft(cable, 0.0055 * S);
       soft(cordPath(ox, oy), 0.0034 * S * boost);
       g.globalAlpha = mat.shadow;
       g.save();
       g.translate(topX + ox, topY + oy);
       g.rotate(-theta);
       const ls = sp.lampShadow;
-      g.drawImage(ls.c, -ls.ox, -ls.oy, ls.w, ls.h);
+      if (!co) g.drawImage(ls.c, -ls.ox, -ls.oy, ls.w, ls.h);
       g.restore();
       g.save();
       g.translate(last[0] + ox, last[1] + oy);
@@ -1649,11 +1670,50 @@ export class PullCord {
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, this.cvLamp.width, this.cvLamp.height);
     g.setTransform(d, 0, 0, d, 0, 0);
+    if (!co) this.#drawLamp(g, sp, S, d, theta, topX, topY, pvX, pvY, glow, mat);
+
+    // ---- the pull cord and the acorn
+    g.setTransform(d, 0, 0, d, 0, 0);
+    const cw = Math.max(1.1, 0.0034 * S * boost);
+    const [bx, by] = this.#px(...lampPoint(r, 0, sp.bulbCentre));
+    this.#cable(g, pts, cw, mat, r.e * S, glow > 0.002 ? { x: bx, y: by, glow, rgb: sp.warmRgb } : null, cordPath());
+    g.save();
+    g.translate(last[0], last[1]);
+    g.rotate(-acornAng);
+    g.scale(boost, boost);
+    const af = sp.acornFrame;
+    g.drawImage(sp.acorn, -af.ox, -af.oy, af.w, af.h);
+    if (glow > 0.002) {
+      // The bulb's light on the side of the acorn that faces it.
+      const toB = Math.atan2(bx - last[0], by - last[1]) + acornAng;
+      const dist = Math.hypot(bx - last[0], by - last[1]) / S;
+      const a = 0.45 * glow * clamp(0.02 / (dist * dist + 0.004), 0, 1);
+      const hx = Math.sin(toB) * ACORN.r * 0.55 * S;
+      const hy = ACORN.len * 0.62 * S + Math.cos(toB) * ACORN.r * 0.3 * S;
+      g.globalCompositeOperation = 'lighter';
+      g.fillStyle = css(sp.warmRgb, a);
+      g.beginPath();
+      g.ellipse(hx, hy, ACORN.r * 0.28 * S, ACORN.len * 0.22 * S, 0, 0, Math.PI * 2);
+      g.fill();
+      g.globalCompositeOperation = 'source-over';
+    }
+    g.restore();
+
+    // The grip follows the acorn.
+    const gx = last[0] + Math.sin(acornAng) * ACORN.len * 0.45 * S * boost;
+    const gy = last[1] + Math.cos(acornAng) * ACORN.len * 0.45 * S * boost;
+    this.grip.style.transform = `translate(${gx.toFixed(1)}px, ${gy.toFixed(1)}px)`;
+    // The focus ring hugs the acorn; the grip around it stays 44 px.
+    const ring = clamp(ACORN.len * S * boost + 12, 24, 44);
+    if (ring !== this.ring) { this.ring = ring; this.grip.style.setProperty('--pc-ring', `${ring.toFixed(1)}px`); }
+  }
+
+  /** The lamp itself, its cable and its ceiling cup (not drawn with `cordOnly`). */
+  #drawLamp(g, sp, S, d, theta, topX, topY, pvX, pvY, glow, mat) {
     // The cable, pivot to lamp.
     this.#cable(g, [[pvX, pvY], [topX, topY]], 0.0055 * S, mat, 0);
     const cf = sp.cupFrame;
     g.drawImage(sp.cup, pvX - cf.ox, pvY - cf.oy, cf.w, cf.h);
-
     const f = sp.frame;
     const turn = () => { g.setTransform(d, 0, 0, d, 0, 0); g.translate(topX, topY); g.rotate(-theta); };
     const still = () => { g.setTransform(d, 0, 0, d, 0, 0); g.translate(topX, topY); };
@@ -1722,40 +1782,6 @@ export class PullCord {
       g.stroke(sp.lipPath);
     }
 
-    // ---- the pull cord and the acorn
-    g.setTransform(d, 0, 0, d, 0, 0);
-    const cw = Math.max(1.1, 0.0034 * S * boost);
-    const [bx, by] = this.#px(...lampPoint(r, 0, sp.bulbCentre));
-    this.#cable(g, pts, cw, mat, r.e * S, glow > 0.002 ? { x: bx, y: by, glow, rgb: sp.warmRgb } : null, cordPath());
-    g.save();
-    g.translate(last[0], last[1]);
-    g.rotate(-acornAng);
-    g.scale(boost, boost);
-    const af = sp.acornFrame;
-    g.drawImage(sp.acorn, -af.ox, -af.oy, af.w, af.h);
-    if (glow > 0.002) {
-      // The bulb's light on the side of the acorn that faces it.
-      const toB = Math.atan2(bx - last[0], by - last[1]) + acornAng;
-      const dist = Math.hypot(bx - last[0], by - last[1]) / S;
-      const a = 0.45 * glow * clamp(0.02 / (dist * dist + 0.004), 0, 1);
-      const hx = Math.sin(toB) * ACORN.r * 0.55 * S;
-      const hy = ACORN.len * 0.62 * S + Math.cos(toB) * ACORN.r * 0.3 * S;
-      g.globalCompositeOperation = 'lighter';
-      g.fillStyle = css(sp.warmRgb, a);
-      g.beginPath();
-      g.ellipse(hx, hy, ACORN.r * 0.28 * S, ACORN.len * 0.22 * S, 0, 0, Math.PI * 2);
-      g.fill();
-      g.globalCompositeOperation = 'source-over';
-    }
-    g.restore();
-
-    // The grip follows the acorn.
-    const gx = last[0] + Math.sin(acornAng) * ACORN.len * 0.45 * S * boost;
-    const gy = last[1] + Math.cos(acornAng) * ACORN.len * 0.45 * S * boost;
-    this.grip.style.transform = `translate(${gx.toFixed(1)}px, ${gy.toFixed(1)}px)`;
-    // The focus ring hugs the acorn; the grip around it stays 44 px.
-    const ring = clamp(ACORN.len * S * boost + 12, 24, 44);
-    if (ring !== this.ring) { this.ring = ring; this.grip.style.setProperty('--pc-ring', `${ring.toFixed(1)}px`); }
   }
 
   /** Did anything the shadow or the wall light shows move by a tenth of a pixel? */
