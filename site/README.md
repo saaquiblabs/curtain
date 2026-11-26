@@ -29,7 +29,7 @@ npm run sync-brand           # refresh the Saaquib Labs mark (needs your access 
   <version> — <date>`, paragraphs, `- ` lists, `**bold**`, `` `code` ``, `#n`); keep to them.
 - **Look:** Linen & Dusk, the app's (`Sources/Theme.swift`): light or dark from the visitor's
   setting, until they pull the switch under the header's right end (#41): it clicks at the bottom
-  of the pull; light spreads from its lamp for day and draws back into it for night, kept in `localStorage` until
+  of the pull and the page's colours change, rippling from its lamp, kept in `localStorage` until
   pulled again. `src/theme.mjs` applies it before the first paint (`<html data-theme>`, and the
   `media` of every `data-scheme` element); a new dark rule or picture must obey it too
   (`tests/theme.test.mjs` checks). The switch is SVG drawn at rest in `Header.astro`; its motion is
