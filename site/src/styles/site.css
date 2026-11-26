@@ -171,15 +171,11 @@ main{display:block;overflow-x:clip}
 .pull-cap .d{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pull-cap .n{display:none}:root:not([data-theme=light]) .pull-cap .d{display:inline}}
 :root[data-theme=dark] .pull-cap .n{display:none}:root[data-theme=dark] .pull-cap .d{display:inline}
-/* the light from the switch's lamp (src/lamp/header.ts): day's linen, warm at the lamp, with a soft
-   edge that grows over the page for day and draws back into the lamp for night. Fixed colours: it is
-   day's light whichever look is under it. */
-@property --lr{syntax:"<length>";inherits:false;initial-value:0px}
-.light{position:fixed;inset:0;z-index:60;pointer-events:none;
-  background:radial-gradient(circle at var(--lx) var(--ly),#FFF1D6 0,#FBF6EC 18%,#FAFAF7 45%);
-  -webkit-mask:radial-gradient(circle at var(--lx) var(--ly),#000 calc(var(--lr) * .55),transparent var(--lr));
-  mask:radial-gradient(circle at var(--lx) var(--ly),#000 calc(var(--lr) * .55),transparent var(--lr))}
-.glowing .pull{z-index:70}
+/* while the look changes (src/lamp/header.ts), every colour eases to the other look; each element's
+   delay, set from its distance to the switch's lamp, makes the change ripple from the lamp */
+.theming,.theming *,.theming *::before,.theming *::after{
+  transition-property:color,background-color,border-color,outline-color,fill,stroke,stop-color,box-shadow,text-decoration-color !important;
+  transition-duration:var(--theming,.38s) !important;transition-timing-function:ease !important}
 /* footer */
 .sft{position:relative;border-top:1px solid var(--line);padding-top:clamp(28px,4vh,44px);margin-top:clamp(72px,9vw,128px)}
 .sft a{color:inherit;text-decoration:none}
