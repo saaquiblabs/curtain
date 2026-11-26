@@ -1,6 +1,6 @@
 ---
 // Header, on every page: the app icon and wordmark, the page's sections, GitHub, Install, and the
-// pull cord below it for night or day (#41; src/lamp/header.ts, src/theme.mjs).
+// pull switch below it for night or day (#41; src/lamp/header.ts, src/theme.mjs).
 // Ported from D-Tox's site/src/components/Header.astro; styles in src/styles/site.css.
 import { name, repo } from "../site";
 
@@ -21,15 +21,33 @@ const sections = [
     <a class="btn sm" href="/#install" data-umami-event="install-header">Install</a>
   </div>
 </div></header>
-<!-- The pull cord (#41): hangs from the header's right end and scrolls away with the page, sliding
-     up under the header. Until the cord itself arrives (on the visitor's first move), a still of it
-     that switches too. -->
-<div class="pull"><div class="wrap"><div class="pull-in" data-lamp>
-  <button class="lamp-still" type="button" role="switch" aria-checked="true" aria-label="Lights">
-    <picture>
-      <source srcset="/lamp/night.webp" media="(prefers-color-scheme: dark)" data-scheme="dark" />
-      <img src="/lamp/day.webp" alt="" width="44" height="96" fetchpriority="low" decoding="async" />
-    </picture>
+<!-- The pull switch (#41): a ceiling pull switch under the header's right end, in the page margin.
+     Drawn here at rest; src/lamp/cord.mjs moves it once the visitor first moves, scrolls, taps or
+     types (src/lamp/header.ts). It scrolls away with the page, up under the header. -->
+<div class="pull"><div class="wrap"><div class="pull-in">
+  <span class="pull-cap" aria-hidden="true"><span class="n">Pull for night</span><span class="d">Pull for day</span></span>
+  <button class="sw" type="button" role="switch" aria-checked="false" aria-label="Night" data-lamp>
+    <svg viewBox="0 0 48 120" width="48" height="120" aria-hidden="true">
+      <defs>
+        <linearGradient id="sw-box" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="b0" /><stop offset="1" class="b1" /></linearGradient>
+        <linearGradient id="sw-acorn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" class="a0" /><stop offset=".38" class="a1" /><stop offset="1" class="a2" /></linearGradient>
+        <radialGradient id="sw-glow"><stop offset="0" class="g0" /><stop offset="1" class="g1" /></radialGradient>
+      </defs>
+      <g class="plunger"><rect class="ferrule" x="22.4" y="10" width="3.2" height="5" rx="1" /></g>
+      <rect class="box" x="12" y="-4" width="24" height="15" rx="3.5" fill="url(#sw-box)" />
+      <rect class="seam" x="12.5" y="8.2" width="23" height=".8" rx=".4" />
+      <circle class="glow" cx="24" cy="4" r="6" fill="url(#sw-glow)" />
+      <circle class="lamp" cx="24" cy="4" r="1.7" />
+      <path class="cord" data-cord d="M24 13L24 67" />
+      <path class="cord-tw" data-cord d="M24 13L24 67" />
+      <path class="cord-hit" data-cord d="M24 13L24 67" />
+      <g class="acorn" transform="translate(24 67)">
+        <path class="body" d="M-1.5 2.2C-1.9 6-4.6 8.6-4.6 12.4-4.6 15.9-2.5 18.4 0 18.4 2.5 18.4 4.6 15.9 4.6 12.4 4.6 8.6 1.9 6 1.5 2.2Z" fill="url(#sw-acorn)" />
+        <path class="shine" d="M-2.6 9.6C-3.2 11.4-3.1 13.6-2.2 15.2" />
+        <rect class="collar" x="-2.1" y="-.4" width="4.2" height="3" rx="1.2" />
+        <circle class="acorn-hit" cx="0" cy="9" r="16" />
+      </g>
+    </svg>
   </button>
 </div></div></div>
 <script>

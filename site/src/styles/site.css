@@ -25,8 +25,9 @@
   --term:#24293A;--term-fg:#E9EAF0;--term-dim:#A9AEC2;--term-acc:#E8B98F;
   --wall:linear-gradient(160deg,#9AA9D3 0%,#6E7FB4 45%,#3F4C7C 100%);
   --drape-a:#EEF1F8;--drape-b:#D2D9EA;
-  /* the pull cord (src/lamp): its colour (dusk by day, afterglow at night), the light on it, its shadow */
-  --tui-obj-frame:#6E7FB4;--tui-obj-edge:#C9D3EA;--tui-obj-shadow:.18;--tui-obj-glow:0;
+  /* the pull switch (#41): its box and lamp (lit by day), the cord, the acorn (dusk by day, afterglow at night) */
+  --sw-box-a:#FFFFFF;--sw-box-b:#E6E4DC;--sw-line:rgb(42 47 59 / .24);--sw-lamp:#FFB35C;--sw-glow:rgb(255 170 80 / .6);
+  --cord:#F4F1E8;--cord-edge:rgb(42 47 59 / .5);--acorn-a:#AEBBE0;--acorn-b:#5D6FA6;--acorn-c:#36416B;
   --disp:"Newsreader",ui-serif,Georgia,serif;--sans:"Manrope",ui-sans-serif,system-ui,-apple-system,sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
   --wrap:1200px;--gut:clamp(16px,4vw,40px);--ease:cubic-bezier(.22,.8,.24,1);--drape:cubic-bezier(.65,0,.35,1);
@@ -47,7 +48,8 @@
   --term:#11131B;--term-fg:#E9EAF0;--term-dim:#8A90A6;--term-acc:#E8B98F;
   --wall:linear-gradient(160deg,#C9A48A 0%,#8A6F86 45%,#3A3D5A 100%);
   --drape-a:#3C4463;--drape-b:#2A3049;
-  --tui-obj-frame:#C9A48A;--tui-obj-edge:#F0C9A6;--tui-obj-shadow:.3;--tui-obj-glow:0;
+  --sw-box-a:#343B52;--sw-box-b:#1E2230;--sw-line:rgb(255 255 255 / .16);--sw-lamp:#4A5068;--sw-glow:transparent;
+  --cord:#CFC8BC;--cord-edge:rgb(0 0 0 / .6);--acorn-a:#FBE3CC;--acorn-b:#E8B98F;--acorn-c:#8C6248;
 }}
 :root[data-theme=dark]{
   /* Twilight at night, afterglow for the accent */
@@ -63,7 +65,8 @@
   --term:#11131B;--term-fg:#E9EAF0;--term-dim:#8A90A6;--term-acc:#E8B98F;
   --wall:linear-gradient(160deg,#C9A48A 0%,#8A6F86 45%,#3A3D5A 100%);
   --drape-a:#3C4463;--drape-b:#2A3049;
-  --tui-obj-frame:#C9A48A;--tui-obj-edge:#F0C9A6;--tui-obj-shadow:.3;--tui-obj-glow:0;
+  --sw-box-a:#343B52;--sw-box-b:#1E2230;--sw-line:rgb(255 255 255 / .16);--sw-lamp:#4A5068;--sw-glow:transparent;
+  --cord:#CFC8BC;--cord-edge:rgb(0 0 0 / .6);--acorn-a:#FBE3CC;--acorn-b:#E8B98F;--acorn-c:#8C6248;
 }
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
@@ -134,35 +137,44 @@ main{display:block;overflow-x:clip}
 .hbar nav a{text-decoration:none;transition:color .2s}.hbar nav a:hover,.hbar nav a[aria-current=page]{color:var(--text)}
 .hbar .right{display:flex;gap:10px;justify-content:end;align-items:center}
 
-/* the pull cord (#41): pull it for night or day. It hangs from the header's right end into the band
-   above the content and scrolls with the page, under the header. Only a narrow column along the
-   cord takes a pointer, and the acorn's 44 px grip. The `.pc` rules are ported from Tactile UI's
-   pull-cord.css (MIT, Ciprian Titire; src/lamp/pull-cord.mjs). */
+/* the pull switch (#41): a ceiling pull switch hanging under the header's right end, in the page
+   margin, its cord and acorn below; pull it for night or day. It scrolls with the page, up under the
+   header, and stands in front of the drapes while they cross. Only the box, a wide band along the
+   cord and the acorn take a pointer. Drawn in src/components/Header.astro, moved by src/lamp/cord.mjs. */
 .pull{position:absolute;top:68px;left:0;right:0;z-index:40;pointer-events:none;overflow-x:clip}
+.sweeping .pull{z-index:95}
 .pull .wrap{display:flex;justify-content:flex-end}
-.pull-in{position:relative;width:44px;height:96px;margin-right:calc(-.5 * var(--gut) - 22px);--tui-focus:var(--acc)}
-.pc::before,.lamp-still::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:24px;margin-left:-12px;pointer-events:auto}
-.lamp-still{all:unset;position:absolute;inset:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.lamp-still img{width:100%;height:100%}
+.pull-in{position:relative;width:48px;height:120px;margin-right:calc(-.5 * var(--gut) - 20px)}
+.sw{all:unset;position:absolute;inset:0;-webkit-tap-highlight-color:transparent}
+.sw svg{display:block;overflow:visible}
+.sw .box,.sw .acorn-hit{pointer-events:all;cursor:grab}
+.sw .cord-hit{fill:none;stroke:transparent;stroke-width:22;stroke-linecap:round;pointer-events:stroke;cursor:grab}
+.sw.held .box,.sw.held .cord-hit,.sw.held .acorn-hit{cursor:grabbing}
+.sw .acorn-hit{fill:transparent}
+.sw .b0{stop-color:var(--sw-box-a)}.sw .b1{stop-color:var(--sw-box-b)}
+.sw .box{stroke:var(--sw-line);stroke-width:.6}
+.sw .seam{fill:var(--sw-line)}
+.sw .lamp{fill:var(--sw-lamp)}
+.sw .g0{stop-color:var(--sw-glow)}.sw .g1{stop-color:transparent}
+.sw .ferrule{fill:var(--sw-box-b);stroke:var(--sw-line);stroke-width:.5}
+.sw .cord{fill:none;stroke:var(--cord-edge);stroke-width:2.4;stroke-linecap:round}
+.sw .cord-tw{fill:none;stroke:var(--cord);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:1.6 .9}
+.sw .collar{fill:var(--acorn-c)}
+.sw .body{stroke:var(--acorn-c);stroke-width:.4}
+.sw .shine{fill:none;stroke:rgb(255 255 255 / .55);stroke-width:.9;stroke-linecap:round}
+.sw .a0{stop-color:var(--acorn-a)}.sw .a1{stop-color:var(--acorn-b)}.sw .a2{stop-color:var(--acorn-c)}
+.sw:focus-visible{outline:none}
+.sw:focus-visible .body{stroke:var(--acc);stroke-width:1.5;paint-order:stroke}
+.pull-cap{position:absolute;right:46px;top:1px;white-space:nowrap;font:italic 400 14px/1 var(--disp);color:var(--t3);pointer-events:none}
+.pull-cap .d{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pull-cap .n{display:none}:root:not([data-theme=light]) .pull-cap .d{display:inline}}
+:root[data-theme=dark] .pull-cap .n{display:none}:root[data-theme=dark] .pull-cap .d{display:inline}
 /* the drapes that cross the page when the cord is pulled: the opening drapes' cloth (index.astro) */
 .sweep{position:fixed;inset:0;z-index:90;pointer-events:none;overflow:hidden}
 .sweep span{position:absolute;top:0;bottom:0;width:50.5%;
   background:linear-gradient(90deg,rgb(0 0 0 / .0),rgb(0 0 0 / .12)),repeating-linear-gradient(90deg,var(--drape-a) 0 14px,var(--drape-b) 22px,var(--drape-a) 30px)}
 .sweep .l{left:0;box-shadow:12px 0 30px rgb(0 0 0 / .18)}
 .sweep .r{right:0;box-shadow:-12px 0 30px rgb(0 0 0 / .18)}
-.pc{position:absolute;inset:0;min-height:96px;touch-action:pan-y;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;user-select:none}
-.pc canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;max-width:none;max-height:none}
-/* the scallop of light on the wall: none here. On linen it can't be seen, at night the lamp is off,
-   and below the header it would lie on the page as a pale box. */
-.pc-light{display:none}
-.pc-glow{mix-blend-mode:screen}
-.pc-grip{position:absolute;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;touch-action:none;cursor:grab;pointer-events:auto}
-.pc.pc-held,.pc.pc-held .pc-grip{cursor:grabbing}
-.pc-grip::after{content:"";position:absolute;left:50%;top:50%;width:var(--pc-ring,36px);height:var(--pc-ring,36px);transform:translate(-50%,-50%);border-radius:50%}
-.pc:focus-visible{outline:none}
-.pc:focus-visible .pc-grip::after{outline:2px solid var(--tui-focus,currentColor);outline-offset:1px}
-@media (forced-colors:active){.pc:focus-visible .pc-grip::after{outline-color:Highlight}}
-
 /* footer */
 .sft{position:relative;border-top:1px solid var(--line);padding-top:clamp(28px,4vh,44px);margin-top:clamp(72px,9vw,128px)}
 .sft a{color:inherit;text-decoration:none}

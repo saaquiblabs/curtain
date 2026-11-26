@@ -37,7 +37,8 @@ Resources/Fonts and inside Curtain.app (Contents/Resources/Fonts):
   Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)
   Licence: Resources/Fonts/OFL-Newsreader.txt
 
-Curtain's page (site/) includes code ported from Pull-cord Bulb in Tactile UI
-(https://github.com/cipriantitire/tactile-ui-free, pull-cord/, commit 0774661):
-site/src/lamp/pull-cord.mjs and the lamp's styles in site/src/styles/site.css.
-Copyright (c) 2026 Ciprian Titire, MIT License; full text in site/public/lamp/LICENSE.txt.
+Curtain's page (site/) has a pull switch (site/src/lamp/cord.mjs) written after two MIT-licensed
+works: its rope after lamp-mode (https://github.com/rpbharadwaj99/lamp-mode, commit 04cd862,
+Copyright (c) 2026 Rohan Bharadwaj) and its drag after Kokonut UI's Pull Cord
+(https://github.com/kokonut-labs/kokonutui, components/kokonutui/pull-cord.tsx, commit 7e4bd77,
+Copyright (c) 2025 kokonutUI). Both licences in full: site/public/lamp/LICENSE.txt.

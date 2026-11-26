@@ -28,14 +28,14 @@ npm run sync-brand           # refresh the Saaquib Labs mark (needs your access 
   bump updates the page with the next deploy. It reads only the shapes the file uses (`##
   <version> — <date>`, paragraphs, `- ` lists, `**bold**`, `` `code` ``, `#n`); keep to them.
 - **Look:** Linen & Dusk, the app's (`Sources/Theme.swift`): light or dark from the visitor's
-  setting, until they pull the cord under the header's right end (#41): drapes cross the page and
-  open on night or day, kept in `localStorage` until pulled again. `src/theme.mjs` applies it before the first paint (`<html
-  data-theme>`, and the `media` of every `data-scheme` element); a new dark rule or picture must
-  obey it too (`tests/theme.test.mjs` checks). The cord is Tactile UI's Pull-cord Bulb without
-  its lamp (MIT, `src/lamp/pull-cord.mjs`, `public/lamp/LICENSE.txt`), fetched on the visitor's
-  first move so Lighthouse never counts it; until then a still of it (`npm run lamp-stills` after
-  changing the cord, its size or its `--tui-obj-*` tokens). One stylesheet, `src/styles/site.css`, inlined into each page. Fonts are the app's,
-  Manrope (variable) and Newsreader at 400, roman and italic, self-hosted latin subsets (OFL, `public/fonts/LICENSES.txt`).
+  setting, until they pull the switch under the header's right end (#41): it clicks at the bottom
+  of the pull, the drapes cross the page and open on night or day, kept in `localStorage` until
+  pulled again. `src/theme.mjs` applies it before the first paint (`<html data-theme>`, and the
+  `media` of every `data-scheme` element); a new dark rule or picture must obey it too
+  (`tests/theme.test.mjs` checks). The switch is SVG drawn at rest in `Header.astro`; its motion is
+  `src/lamp/cord.mjs` (5 KB, after lamp-mode and Kokonut UI, MIT, `public/lamp/LICENSE.txt`),
+  fetched on the visitor's first move so Lighthouse never counts it. How it must feel is in numbers
+  in `tests/cord.test.mjs`; research behind it in `../docs/research/pull-cord-switches.md`.
 - **Pictures:** `public/menu/*.webp` (light and dark, the renders' own names), `og.png` and the icons come from the app's
   renders and `docs/img`. Openship has no Swift, so they're committed; after a UI change run
   `make renders` at the root, then `npm run pictures`, look at them, commit.
