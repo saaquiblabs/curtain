@@ -141,6 +141,23 @@ if (!(await access(chromePath).then(() => true, () => false))) {
     await page.locator("[data-lamp] .pc").focus();
     await page.keyboard.press("Space");
     await page.waitForFunction(() => document.documentElement.dataset.theme === "dark", null, { timeout: 3000 }).catch(() => {});
+    // Every way a hand presses the cord switches exactly once: a tap, a firm click held still, one
+    // that drifts a few pixels (a trackpad's press does). Before this check, only the tap did.
+    await page.waitForTimeout(800);
+    await page.evaluate(() => { window.switches = 0; document.querySelector("[data-lamp] .pc").addEventListener("change", () => window.switches++); });
+    const grip = await page.locator("[data-lamp] .pc-grip").boundingBox();
+    const gx = grip.x + grip.width / 2, gy = grip.y + grip.height / 2;
+    for (const [how, hold, dx, dy] of [["tap", 60, 0, 0], ["held click", 400, 0, 0], ["drifting sideways", 150, 3, 0], ["drifting up", 150, 0, -3]]) {
+      await page.evaluate(() => (window.switches = 0));
+      await page.mouse.move(gx, gy);
+      await page.mouse.down();
+      await page.waitForTimeout(hold);
+      if (dx || dy) await page.mouse.move(gx + dx, gy + dy, { steps: 3 });
+      await page.mouse.up();
+      await page.waitForTimeout(1200);
+      const n = await page.evaluate(() => window.switches);
+      if (n !== 1) fail(`a ${how} on the acorn switched ${n} times, want once`);
+    }
     // Kept across a reload and other pages, whatever the Mac says, with no flash of day.
     await page.goto(base + "/changelog");
     s = await look();

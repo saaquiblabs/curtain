@@ -1314,6 +1314,7 @@ export class PullCord {
   }
 
   #toggle(user) {
+    if (this.drag) this.switched = true;
     this.lit = !this.lit;
     this.#aria();
     if (this.reduced) { this.T = this.lit ? this.o.warmth : FILAMENT.room; this.#draw(true); }
@@ -1425,6 +1426,7 @@ export class PullCord {
     if (e.button !== 0) return;
     const p = this.#local(e);
     this.downAt = { x: p.x, y: p.y, t: performance.now(), moved: false };
+    this.switched = false;
     if (this.reduced || !this.rig || this.pullRun) return;
     const j = this.#nearest(p, e.pointerType === 'touch' && e.target !== this.grip);
     if (!j) return;
@@ -1455,8 +1457,10 @@ export class PullCord {
       this.drag = null;
       this.hand = null;
       this.root.classList.remove('pc-held');
-      // A tug is not a click: a hand that moved the cord, or held it, has already done what it meant to.
-      if (this.downAt?.moved || performance.now() - (this.downAt?.t ?? 0) > 350) this.suppress = true;
+      // Curtain (#41): a press that pulled the switch itself has done its job; any other press and
+      // release is a click and pulls once. (The original dropped a press held over 350 ms or moved
+      // 2 px, so a firm trackpad click on the cord did nothing while a light tap switched.)
+      if (this.switched) this.suppress = true;
       this.#wake(true);
     }
   }
@@ -1489,10 +1493,18 @@ export class PullCord {
       const k = clamp(el / 0.17, 0, 1);
       const depth = PULL_DEPTH * k * k * (3 - 2 * k);
       hand = { node: r.N, x: run.x, y: run.y + depth };
-      if (el > 0.26) { this.pullRun = null; hand = null; }
+      if (el > 0.26) {
+        this.pullRun = null;
+        hand = null;
+        // Curtain (#41): a pull always switches. A cord left raised by a press starts the pull too
+        // high to reach the switch; then the switch clicks here, at the end of the pull.
+        if (!run.switched) this.#toggle(true);
+      }
     }
     for (const ev of stepRig(r, dt, hand)) {
-      if (ev === 'click') this.#toggle(true);
+      if (ev !== 'click') continue;
+      if (this.pullRun) this.pullRun.switched = true;
+      this.#toggle(true);
     }
     const want = this.lit ? this.o.warmth : FILAMENT.room;
     this.T = stepFilament(this.T, this.lit, dt, this.o.warmth);
