@@ -139,7 +139,7 @@ main{display:block;overflow-x:clip}
 
 /* the pull switch (#41): a ceiling pull switch hanging under the header's right end, in the page
    margin, its cord and acorn below; pull it for night or day. It scrolls with the page, up under the
-   header; the drapes cover it like the rest of the page. Only the box, a wide band along the
+   header. Only the box, a wide band along the
    cord and the acorn take a pointer. Drawn in src/components/Header.astro, moved by src/lamp/cord.mjs. */
 .pull{position:absolute;top:68px;left:0;right:0;z-index:40;pointer-events:none;overflow-x:clip}
 .pull .wrap{display:flex;justify-content:flex-end}
@@ -167,16 +167,13 @@ main{display:block;overflow-x:clip}
 .sw .a0{stop-color:var(--acorn-a)}.sw .a1{stop-color:var(--acorn-b)}.sw .a2{stop-color:var(--acorn-c)}
 .sw:focus-visible{outline:none}
 .sw:focus-visible .body{stroke:var(--acc);stroke-width:1.5;paint-order:stroke}
-.pull-cap{position:absolute;right:46px;top:0;white-space:nowrap;font:italic 400 14px/1 var(--disp);color:var(--t3);pointer-events:none}
+.pull-cap{position:absolute;right:46px;top:3px;white-space:nowrap;font:italic 400 14px/1 var(--disp);color:var(--t3);pointer-events:none}
 .pull-cap .d{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pull-cap .n{display:none}:root:not([data-theme=light]) .pull-cap .d{display:inline}}
 :root[data-theme=dark] .pull-cap .n{display:none}:root[data-theme=dark] .pull-cap .d{display:inline}
-/* the drapes that cross the page when the cord is pulled: the opening drapes' cloth (index.astro) */
-.sweep{position:fixed;inset:0;z-index:90;pointer-events:none;overflow:hidden}
-.sweep span{position:absolute;top:0;bottom:0;width:50.5%;
-  background:linear-gradient(90deg,rgb(0 0 0 / .0),rgb(0 0 0 / .12)),repeating-linear-gradient(90deg,var(--drape-a) 0 14px,var(--drape-b) 22px,var(--drape-a) 30px)}
-.sweep .l{left:0;box-shadow:12px 0 30px rgb(0 0 0 / .18)}
-.sweep .r{right:0;box-shadow:-12px 0 30px rgb(0 0 0 / .18)}
+/* night or day spreads from the switch (src/lamp/header.ts): the new look is revealed by a growing
+   circle over the old, so neither fades */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 /* footer */
 .sft{position:relative;border-top:1px solid var(--line);padding-top:clamp(28px,4vh,44px);margin-top:clamp(72px,9vw,128px)}
 .sft a{color:inherit;text-decoration:none}
