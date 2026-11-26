@@ -121,13 +121,14 @@ main{display:block;overflow-x:clip}
 .sft .legal{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:clamp(20px,3vh,32px) 0 0;padding-bottom:clamp(16px,3vh,28px);font-size:12.5px;color:var(--t3)}
 .sft .legal a:hover{color:var(--text)}
 .s-mask{display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:url(/brand/symbol-flat.svg) center/contain no-repeat;mask:url(/brand/symbol-flat.svg) center/contain no-repeat;vertical-align:-2px}
-/* the name, knocked out of the page's own colour over a light that follows the pointer */
-.wm{position:relative;overflow:hidden;align-self:end;margin-bottom:clamp(12px,2.5vh,24px);cursor:default}
-.wm .base{position:absolute;inset:0;background:linear-gradient(180deg,rgb(var(--acc-rgb) / .22),rgb(var(--acc-rgb) / .06))}
-.wm .lamp{position:absolute;left:0;top:0;width:360px;height:360px;margin:-180px 0 0 -180px;border-radius:50%;background:radial-gradient(closest-side,rgb(var(--acc-rgb) / .95),rgb(var(--acc-rgb) / .35) 45%,transparent);transform:translate(var(--sx,50%),var(--sy,60%));will-change:transform;transition:transform .5s var(--ease)}
+/* the name, lit from inside by a light that follows the pointer. Only the letters are painted (the
+   text masks the light), so the page's weave runs on around them with no box of flat colour. */
+.wm{position:relative;align-self:end;margin-bottom:clamp(12px,2.5vh,24px);cursor:default}
+.wm svg{display:block;width:100%;height:auto;max-width:none}
+.wm .b0{stop-color:rgb(var(--acc-rgb) / .22)}.wm .b1{stop-color:rgb(var(--acc-rgb) / .06)}
+.wm .l0{stop-color:rgb(var(--acc-rgb) / .95)}.wm .l1{stop-color:rgb(var(--acc-rgb) / .35)}.wm .l2{stop-color:rgb(var(--acc-rgb) / 0)}
+.wm .lamp{will-change:transform;transition:transform .5s var(--ease)}
 .wm.live .lamp{transition:transform .12s linear}
-.wm svg{position:relative;display:block;width:100%;height:auto;max-width:none}
-.wm svg rect.paint{fill:var(--bg)}
 
 @media (max-width:1000px){
   .hbar nav,.hbar .ghost{display:none}.hbar .in{grid-template-columns:1fr auto}
