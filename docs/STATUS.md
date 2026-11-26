@@ -1,9 +1,18 @@
-# Status — 2026-11-25
+# Status — 2026-11-26
 
 Curtain 0.5.1 is on GitHub (saaquiblabs/curtain, public, tags v0.1.0 → v0.5.1, GitHub releases from
 0.5.0) and in Homebrew (`brew install saaquiblabs/tap/curtain`, cask 0.5.1), and running on the
 owner's Mac (M2 MacBook Air, macOS 27.2, Lenovo L27h-4A over a USB-C/HDMI cable). Read
 `CHANGELOG.md` for what each version did and `README.md` for the features.
+
+## Handoff (2026-11-26, night): start here
+- **Live today:** Curtain's page has a day/night pull switch under the header's right end (#41,
+  PR #59, deployed and checked from outside). Our own code (`site/src/lamp/cord.mjs`, 5 KB, after
+  lamp-mode and Kokonut UI, MIT): a ceiling pull switch that clicks at the bottom of the pull; the
+  page's colours ripple from its lamp with a warm ring riding the change (~0.75 s). The choice is
+  kept until pulled again (`site/src/theme.mjs`). Research: `docs/research/pull-cord-switches.md`.
+  Owner's rounds of review are on #41.
+- **Next:** `/implement #46` (Disconnect for the MacBook's own screen).
 
 ## Handoff (2026-11-25, evening): start here
 - **Shipped today:** 0.5.0 (Disconnect, hover results, Turn back on banner) and 0.5.1 (Disconnect
