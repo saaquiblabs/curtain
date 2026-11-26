@@ -1,5 +1,5 @@
 ---
-// Footer, on every page: the wordmark knocked out over a light that follows the pointer, three
+// Footer, on every page: the wordmark lit from inside by a light that follows the pointer, three
 // columns of links, and what the site counts. Ported from D-Tox's site/src/components/Footer.astro;
 // the name is in Newsreader Italic, as on the menu.
 import { analytics, repo, studio } from "../site";
@@ -15,8 +15,12 @@ const columns: [string, { label: string; href: string }[]][] = [
 
 <footer class="sft"><div class="wrap">
   <div class="row">
-    <div class="wm" aria-hidden="true"><span class="base"></span><span class="lamp"></span>
-      <svg viewBox="0 0 1000 300"><defs><mask id="wmk"><rect x="-5000" y="-5000" width="20000" height="20000" fill="#fff" /><text x="0" y="0" font-family="Newsreader" font-style="italic" font-weight="400" font-size="320" letter-spacing="-6" fill="#000">Curtain</text></mask></defs><rect class="paint" x="-5000" y="-5000" width="20000" height="20000" mask="url(#wmk)" /></svg></div>
+    <div class="wm" aria-hidden="true">
+      <svg viewBox="0 0 1000 300"><defs>
+        <mask id="wmk" maskUnits="userSpaceOnUse" x="-5000" y="-5000" width="20000" height="20000"><text x="0" y="0" font-family="Newsreader" font-style="italic" font-weight="400" font-size="320" letter-spacing="-6" fill="#fff">Curtain</text></mask>
+        <linearGradient id="wmb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="b0" /><stop offset="1" class="b1" /></linearGradient>
+        <radialGradient id="wml"><stop offset="0" class="l0" /><stop offset=".45" class="l1" /><stop offset="1" class="l2" /></radialGradient>
+      </defs><g mask="url(#wmk)"><rect class="base" x="0" y="0" width="1000" height="300" fill="url(#wmb)" /><circle class="lamp" r="200" fill="url(#wml)" /></g></svg></div>
     <div>
       <nav class="links" aria-label="Footer">
         {columns.map(([h, links]) => (
@@ -30,17 +34,24 @@ const columns: [string, { label: string; href: string }[]][] = [
 <script is:inline>
   // Fit the knock-out to the text once the font is in, then let the light follow the pointer.
   (() => {
-    const wm = document.querySelector('.wm'), svg = wm.querySelector('svg'), text = svg.querySelector('text'), lamp = wm.querySelector('.lamp');
-    const home = () => { lamp.style.setProperty('--sx', wm.clientWidth * .52 + 'px'); lamp.style.setProperty('--sy', wm.clientHeight * .55 + 'px'); };
+    // Only the letters are painted (the text masks the light), so the page's weave shows around them.
+    const wm = document.querySelector('.wm'), svg = wm.querySelector('svg'), base = svg.querySelector('.base'), lamp = svg.querySelector('.lamp');
+    let vb = { x: 0, y: 0, w: 1000, h: 300 };
+    const at = (x, y) => lamp.style.transform = `translate(${x}px,${y}px)`; // px are viewBox units inside an SVG
+    const home = () => at(vb.x + vb.w * .52, vb.y + vb.h * .55);
     // Fit to the letters' ink, measured on a canvas in the same face: getBBox gives the font's line
     // box, which in Newsreader Italic is shorter than the C and the i's dot and narrower than the n.
     const ink = () => { const c = document.createElement('canvas').getContext('2d'); c.font = 'italic 400 320px Newsreader'; c.letterSpacing = '-6px'; const m = c.measureText('Curtain');
       return { l: -m.actualBoundingBoxLeft, r: m.actualBoundingBoxRight, t: -m.actualBoundingBoxAscent, b: m.actualBoundingBoxDescent }; };
-    const fit = () => { if (!wm.clientWidth) return; const k = ink(), p = 8; svg.setAttribute('viewBox', `${k.l - p} ${k.t - p} ${k.r - k.l + 2 * p} ${k.b - k.t + 2 * p}`); home(); };
+    const fit = () => { if (!wm.clientWidth) return; const k = ink(), p = 8;
+      vb = { x: k.l - p, y: k.t - p, w: k.r - k.l + 2 * p, h: k.b - k.t + 2 * p };
+      svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+      for (const [a, v] of Object.entries({ x: vb.x, y: vb.y, width: vb.w, height: vb.h })) base.setAttribute(a, v);
+      lamp.setAttribute('r', vb.w / 3); home(); };
     document.fonts.load('italic 400 320px Newsreader').then(() => new ResizeObserver(fit).observe(wm));
-    let q = 0, x = 0, y = 0;
-    wm.addEventListener('pointermove', (e) => { const r = wm.getBoundingClientRect(); x = e.clientX - r.left; y = e.clientY - r.top; wm.classList.add('live');
-      if (!q) q = requestAnimationFrame(() => { q = 0; lamp.style.setProperty('--sx', x + 'px'); lamp.style.setProperty('--sy', y + 'px'); }); });
+    let q = 0, pt = null;
+    wm.addEventListener('pointermove', (e) => { pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); wm.classList.add('live');
+      if (!q) q = requestAnimationFrame(() => { q = 0; at(pt.x, pt.y); }); });
     wm.addEventListener('pointerleave', () => { wm.classList.remove('live'); home(); });
   })();
 </script>
