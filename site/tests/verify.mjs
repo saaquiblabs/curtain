@@ -121,7 +121,8 @@ if (!(await access(chromePath).then(() => true, () => false))) {
       night: document.querySelector("[data-lamp]")?.getAttribute("aria-checked"),
       live: document.querySelector("[data-lamp]")?.hasAttribute("data-live"),
     }));
-    const settled = () => page.waitForFunction(() => !document.querySelector(".sweep"), null, { timeout: 4000 }).catch(() => {});
+    // The swoosh: a View Transition, done when the document has none running.
+    const settled = () => page.waitForFunction(() => !document.documentElement.matches(":active-view-transition"), null, { timeout: 4000 }).catch(() => {});
     await page.goto(base + "/");
     let s = await look();
     if (s.theme !== null || s.night !== "false" || s.live) fail(`on load (Mac light): want day, nothing chosen, no motion fetched; got ${JSON.stringify(s)}`);
@@ -143,17 +144,17 @@ if (!(await access(chromePath).then(() => true, () => false))) {
       const b = await page.locator("[data-lamp] .acorn .body").boundingBox();
       return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
     };
-    // A press, how a hand or a trackpad makes it, then the pull and the drapes run their course.
+    // A press, how a hand or a trackpad makes it, then the pull and the swoosh run their course.
     const press = async (how, { hold = 60, dx = 0, dy = 0 } = {}) => {
       const a = await acornAt();
       await page.evaluate(() => { window.switches = 0; window.lowest = 0; window.highest = 0;
-        const rest = window.acornY(); const f = () => { const y = window.acornY() - rest; window.lowest = Math.max(window.lowest, y); window.highest = Math.min(window.highest, y); if (document.querySelector(".sweep") || performance.now() - t0 < 1500) requestAnimationFrame(f); }; const t0 = performance.now(); f(); });
+        const rest = window.acornY(); const f = () => { const y = window.acornY() - rest; window.lowest = Math.max(window.lowest, y); window.highest = Math.min(window.highest, y); if (performance.now() - t0 < 1500) requestAnimationFrame(f); }; const t0 = performance.now(); f(); });
       await page.mouse.move(a.x, a.y);
       await page.mouse.down();
       await page.waitForTimeout(hold);
       if (dx || dy) await page.mouse.move(a.x + dx, a.y + dy, { steps: Math.max(3, Math.round(Math.abs(dy) / 3)) });
       await page.mouse.up();
-      await page.waitForTimeout(800); // the pull, then the drapes start
+      await page.waitForTimeout(800); // the pull, and the swoosh at its click
       await settled();
       await page.waitForTimeout(1200);
       return page.evaluate(() => ({ switches: window.switches, down: window.lowest, up: -window.highest }));
@@ -195,7 +196,7 @@ if (!(await access(chromePath).then(() => true, () => false))) {
     await page.locator("[data-lamp]").focus();
     await page.evaluate(() => { window.switches = 0; new MutationObserver(() => window.switches++).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); });
     await page.keyboard.press("Space");
-    await page.waitForTimeout(800); // the pull, then the drapes start
+    await page.waitForTimeout(800); // the pull, and the swoosh at its click
     await settled();
     if ((await page.evaluate(() => window.switches)) !== 1) fail("Space didn't switch exactly once");
     // Whatever was chosen last is kept on the next page, on a light Mac, with no flash.
