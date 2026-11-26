@@ -105,7 +105,7 @@ if (!(await access(chromePath).then(() => true, () => false))) {
   process.exit(1);
 }
 
-// --- Day or night (#41): the lamp in the header switches the page, and the choice is kept. ---
+// --- Day or night (#41): the pull cord under the header switches the page, and the choice is kept. ---
 {
   const browser = await pw.chromium.launch({ executablePath: chromePath });
   const fail = (what) => problems.push(`lamp: ${what}`);
@@ -127,10 +127,13 @@ if (!(await access(chromePath).then(() => true, () => false))) {
     // Before the lamp arrives, the still switches too (a bare click: no move or focus to fetch the lamp first).
     await page.evaluate(() => document.querySelector(".lamp-still").click());
     await page.waitForFunction(() => document.querySelector("[data-lamp] .pc"));
+    // The drapes close, the page switches behind them, they open again.
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "dark", null, { timeout: 3000 }).catch(() => {});
+    await page.waitForFunction(() => !document.querySelector(".sweep"), null, { timeout: 3000 }).catch(() => {});
     s = await look();
     if (s.theme !== "dark" || s.bg !== "rgb(25, 28, 39)" || !s.hero.includes("-dark") || s.checked !== "false" || !s.live)
       fail(`still pressed: want night with the live lamp; got ${JSON.stringify(s)}`);
-    // The live lamp: a click in the header pulls the cord; the switch clicks a moment later.
+    // The live cord: a click on it pulls; the switch clicks a moment later, then the drapes sweep.
     const box = await page.locator("[data-lamp]").boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + 40);
     await page.waitForFunction(() => document.documentElement.dataset.theme === "light", null, { timeout: 3000 }).catch(() => {});
@@ -154,7 +157,7 @@ if (!(await access(chromePath).then(() => true, () => false))) {
       await page.waitForTimeout(hold);
       if (dx || dy) await page.mouse.move(gx + dx, gy + dy, { steps: 3 });
       await page.mouse.up();
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1800); // the pull, then the drapes' sweep
       const n = await page.evaluate(() => window.switches);
       if (n !== 1) fail(`a ${how} on the acorn switched ${n} times, want once`);
     }

@@ -1,7 +1,7 @@
-// The lamp's stills (#41): public/lamp/day.webp (lit, on linen) and night.webp (off, on twilight),
-// drawn by the lamp's own code (src/lamp/pull-cord.mjs) at rest, at the header's size and 2×, so the
-// still and the live lamp that replaces it match. Run after changing the lamp, its size in
-// src/styles/site.css (.lamp-in) or its tokens (--tui-obj-*): `npm run lamp-stills`, look, commit.
+// The pull cord's stills (#41): public/lamp/day.webp and night.webp, drawn by the cord's own code
+// (src/lamp/pull-cord.mjs, `cordOnly`) at rest, at its size and 2×, so the still and the live cord
+// that replaces it match. Run after changing the cord, its options here and in src/lamp/header.ts,
+// its size in src/styles/site.css (.pull-in) or its tokens (--tui-obj-*): `npm run lamp-stills`.
 //
 // The page draws the lamp's light and glow with `screen`; on a still there is no page underneath,
 // so the glow is screened onto the lamp here and the wall light (invisible on linen) is left out.
@@ -14,11 +14,11 @@ import { fileURLToPath } from "node:url";
 const site = fileURLToPath(new URL("..", import.meta.url));
 const types = { ".html": "text/html", ".css": "text/css", ".mjs": "text/javascript", ".woff2": "font/woff2" };
 const page = `<!doctype html><html data-theme="THEME"><head><link rel="stylesheet" href="/src/styles/site.css"></head>
-<body style="margin:0;background:transparent"><div class="lamp-in" data-lamp style="left:0;top:0"></div>
+<body style="margin:0;background:transparent"><div class="pull-in" data-lamp></div>
 <script type="module">
   import { PullCord } from "/src/lamp/pull-cord.mjs";
   const host = document.querySelector("[data-lamp]");
-  const lamp = new PullCord(host, { on: ON, label: "Lights", warmth: 2600 });
+  const lamp = new PullCord(host, { on: ON, label: "Lights", cordOnly: true, cord: 0.5, light: 0 });
   await new Promise((r) => setTimeout(r, 600));
   const [shadow, , body, glow] = lamp.root.querySelectorAll("canvas");
   const out = document.createElement("canvas");
