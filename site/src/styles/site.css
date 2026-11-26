@@ -139,10 +139,9 @@ main{display:block;overflow-x:clip}
 
 /* the pull switch (#41): a ceiling pull switch hanging under the header's right end, in the page
    margin, its cord and acorn below; pull it for night or day. It scrolls with the page, up under the
-   header, and stands in front of the drapes while they cross. Only the box, a wide band along the
+   header; the drapes cover it like the rest of the page. Only the box, a wide band along the
    cord and the acorn take a pointer. Drawn in src/components/Header.astro, moved by src/lamp/cord.mjs. */
 .pull{position:absolute;top:68px;left:0;right:0;z-index:40;pointer-events:none;overflow-x:clip}
-.sweeping .pull{z-index:95}
 .pull .wrap{display:flex;justify-content:flex-end}
 .pull-in{position:relative;width:48px;height:120px;margin-right:calc(-.5 * var(--gut) - 20px)}
 @media (max-width:560px){.pull-in{margin-right:-12px}}

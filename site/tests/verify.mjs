@@ -153,7 +153,7 @@ if (!(await access(chromePath).then(() => true, () => false))) {
       await page.waitForTimeout(hold);
       if (dx || dy) await page.mouse.move(a.x + dx, a.y + dy, { steps: Math.max(3, Math.round(Math.abs(dy) / 3)) });
       await page.mouse.up();
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(800); // the pull, then the drapes start
       await settled();
       await page.waitForTimeout(1200);
       return page.evaluate(() => ({ switches: window.switches, down: window.lowest, up: -window.highest }));
@@ -195,7 +195,7 @@ if (!(await access(chromePath).then(() => true, () => false))) {
     await page.locator("[data-lamp]").focus();
     await page.evaluate(() => { window.switches = 0; new MutationObserver(() => window.switches++).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); });
     await page.keyboard.press("Space");
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(800); // the pull, then the drapes start
     await settled();
     if ((await page.evaluate(() => window.switches)) !== 1) fail("Space didn't switch exactly once");
     // Whatever was chosen last is kept on the next page, on a light Mac, with no flash.
