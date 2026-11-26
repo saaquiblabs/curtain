@@ -16,7 +16,8 @@
     "sync-brand": "node scripts/sync-brand.mjs",
     "verify": "npm test && npm run build && node tests/verify.mjs",
     "verify:deploy": "npm test && npm run build && node tests/verify.mjs --links",
-    "prepare": "git -C .. config core.hooksPath .githooks 2>/dev/null || true"
+    "prepare": "git -C .. config core.hooksPath .githooks 2>/dev/null || true",
+    "lamp-stills": "node scripts/lamp-stills.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.4",

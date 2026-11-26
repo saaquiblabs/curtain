@@ -13,6 +13,8 @@ export default defineConfig({
   // Styles go inline in each page (they are small), so no stylesheet blocks the first paint.
   build: { format: "directory", inlineStylesheets: "always" },
   cacheDir: "./.turbo/cache/astro",
+  // Keep /*! … */ licence comments in the bundles: the header lamp is MIT code (src/lamp, #41).
+  vite: { build: { rolldownOptions: { output: { comments: { legal: true } } } } },
   // Every page except the 404 page.
   integrations: [sitemap({ filter: (url) => !/\/404\/?$/.test(url) })],
 });

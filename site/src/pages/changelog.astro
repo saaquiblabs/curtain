@@ -125,7 +125,8 @@ const chev = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M
   .cl-tag.now { background: var(--acc); color: var(--acc-ink); }
   .cl-tag.feat { background: rgb(var(--acc-rgb) / .13); color: var(--acc); }
   .cl-tag.fix { background: rgb(232 150 120 / .16); color: #B4573A; }
-  @media (prefers-color-scheme: dark) { .cl-tag.fix { color: #F0A58A; } }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme=light]) .cl-tag.fix { color: #F0A58A; } }
+  :root[data-theme=dark] .cl-tag.fix { color: #F0A58A; }
   .cl-share { margin-left: auto; opacity: 0; transition: opacity .2s, color .15s, background .15s, border-color .15s; }
   .cl-version-sum:hover .cl-share, .cl-share:focus-visible { opacity: 1; }
 
