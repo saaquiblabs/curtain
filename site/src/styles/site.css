@@ -171,6 +171,12 @@ main{display:block;overflow-x:clip}
 .pull-cap .d{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pull-cap .n{display:none}:root:not([data-theme=light]) .pull-cap .d{display:inline}}
 :root[data-theme=dark] .pull-cap .n{display:none}:root[data-theme=dark] .pull-cap .d{display:inline}
+/* the genie that rides the change (src/lamp/header.ts): a soft warm ring of light, screened onto the
+   page so it only ever adds a little light, never covers */
+@property --gr{syntax:"<length>";inherits:false;initial-value:0px}
+.genie{position:fixed;inset:0;z-index:60;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle at var(--gx) var(--gy),transparent calc(var(--gr) - 110px),rgb(255 205 145 / .2) calc(var(--gr) - 40px),rgb(255 225 185 / .28) calc(var(--gr) - 12px),transparent var(--gr))}
+.sw .glint{opacity:0;transform-box:fill-box;transform-origin:center;pointer-events:none}
 /* while the look changes (src/lamp/header.ts), every colour eases to the other look; each element's
    delay, set from its distance to the switch's lamp, makes the change ripple from the lamp */
 .theming,.theming *,.theming *::before,.theming *::after{
