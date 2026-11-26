@@ -57,8 +57,9 @@ export function makeSwitch() {
 /** Where the hand may hold link `i`: within the cord's length plus the plunger's travel, then a firm give. */
 function reach(s, i, x, y) {
   const { anchor, link } = GEOMETRY;
+  // A hand can't take the cord up into the ceiling: it stays below the box.
   const dx = x - anchor.x;
-  const dy = y - anchor.y;
+  const dy = Math.max(y, anchor.y + 4) - anchor.y;
   const dist = Math.hypot(dx, dy) || 1e-6;
   const len = i * link;
   const free = len + SWITCH.travel;
@@ -187,7 +188,9 @@ export function acornOf(s) {
 /** The cord as a smooth SVG path. */
 export function cordPath(s) {
   const n = GEOMETRY.links;
-  let d = `M${s.xs[0].toFixed(2)} ${s.ys[0].toFixed(2)}`;
+  const { anchor } = GEOMETRY;
+  // From the hole in the box: what the plunger pulls out comes out of the box.
+  let d = `M${anchor.x} ${anchor.y}L${s.xs[0].toFixed(2)} ${s.ys[0].toFixed(2)}`;
   for (let i = 1; i < n; i += 1) {
     d += `Q${s.xs[i].toFixed(2)} ${s.ys[i].toFixed(2)} ${((s.xs[i] + s.xs[i + 1]) / 2).toFixed(2)} ${((s.ys[i] + s.ys[i + 1]) / 2).toFixed(2)}`;
   }
@@ -265,8 +268,9 @@ export function attach(root, onSwitch) {
     hold(s, press.i, p.x + press.dx, p.y + press.dy);
     wake();
   });
-  const up = (e) => {
-    if (!press || e.pointerId !== press.id) return;
+  /** The hand lets go. `click`: a real release, which may be a click; otherwise the press was lost. */
+  const letGo = (click) => {
+    if (!press) return;
     const { moved } = press;
     const switched = !s.armed; // the plunger went past the click during this press
     press = null;
@@ -274,11 +278,19 @@ export function attach(root, onSwitch) {
     release(s, sway());
     // A click (a press that hardly moved and didn't pull the switch) is a whole pull. A real tug that
     // stopped short of the click just springs back, as a real cord does.
-    if (!switched && moved < 8) { s.armed = true; pull(); }
+    if (click && !switched && moved < 8) { s.armed = true; pull(); }
     wake();
   };
-  root.addEventListener("pointerup", up);
-  root.addEventListener("pointercancel", up);
+  // The release is heard on the whole window, not only on the switch: in a real browser it doesn't
+  // always reach the switch (owner, 2026-11-26: the cord stayed held, taut, after letting go). And a
+  // press that went missing any other way (focus lost, capture lost, the pointer moving with no
+  // button down, the page hidden) lets go too, without a click.
+  addEventListener("pointerup", (e) => { if (press && e.pointerId === press.id) letGo(true); }, true);
+  addEventListener("pointercancel", (e) => { if (press && e.pointerId === press.id) letGo(false); }, true);
+  addEventListener("pointermove", (e) => { if (press && e.pointerId === press.id && e.buttons === 0) letGo(false); }, true);
+  addEventListener("blur", () => letGo(false));
+  document.addEventListener("visibilitychange", () => { if (document.hidden) letGo(false); });
+  root.addEventListener("lostpointercapture", () => setTimeout(() => letGo(false)));
   // Keyboard and assistive tech: Space and Enter on the button arrive as a click with no pointer.
   root.addEventListener("click", (e) => { if (e.detail === 0) pull(); });
   draw();
