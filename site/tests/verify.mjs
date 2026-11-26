@@ -99,12 +99,64 @@ const { default: desktop } = await import("lighthouse/core/config/desktop-config
 const { launch } = await import("chrome-launcher");
 const { default: pw } = await import("playwright");
 
-// --- Lighthouse, phone and desktop, every page. ---
 const chromePath = process.env.CHROME_PATH ?? pw.chromium.executablePath();
 if (!(await access(chromePath).then(() => true, () => false))) {
   console.error(`verify: no Chrome at ${chromePath}. Run \`npx playwright install chromium\` or set CHROME_PATH.`);
   process.exit(1);
 }
+
+// --- Day or night (#41): the lamp in the header switches the page, and the choice is kept. ---
+{
+  const browser = await pw.chromium.launch({ executablePath: chromePath });
+  const fail = (what) => problems.push(`lamp: ${what}`);
+  try {
+    const ctx = await browser.newContext({ colorScheme: "light", viewport: { width: 1280, height: 800 } });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    const look = () => page.evaluate(() => ({
+      theme: document.documentElement.dataset.theme ?? null,
+      bg: getComputedStyle(document.body).backgroundColor,
+      hero: document.querySelector("main picture img")?.currentSrc ?? "",
+      checked: document.querySelector("[data-lamp] [role=switch]")?.getAttribute("aria-checked"),
+      live: !!document.querySelector("[data-lamp] .pc"),
+    }));
+    await page.goto(base + "/");
+    let s = await look();
+    if (s.theme !== null || s.checked !== "true" || s.live) fail(`on load (Mac light): want day, the still, nothing chosen; got ${JSON.stringify(s)}`);
+    // Before the lamp arrives, the still switches too (a bare click: no move or focus to fetch the lamp first).
+    await page.evaluate(() => document.querySelector(".lamp-still").click());
+    await page.waitForFunction(() => document.querySelector("[data-lamp] .pc"));
+    s = await look();
+    if (s.theme !== "dark" || s.bg !== "rgb(25, 28, 39)" || !s.hero.includes("-dark") || s.checked !== "false" || !s.live)
+      fail(`still pressed: want night with the live lamp; got ${JSON.stringify(s)}`);
+    // The live lamp: a click in the header pulls the cord; the switch clicks a moment later.
+    const box = await page.locator("[data-lamp]").boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + 40);
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "light", null, { timeout: 3000 }).catch(() => {});
+    s = await look();
+    if (s.theme !== "light" || !s.hero.includes("-light") || s.checked !== "true") fail(`lamp pulled: want day; got ${JSON.stringify(s)}`);
+    // And Space, from the keyboard, once the cord is back (a pull mid-pull is ignored, as by a hand).
+    await page.waitForTimeout(600);
+    await page.locator("[data-lamp] .pc").focus();
+    await page.keyboard.press("Space");
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "dark", null, { timeout: 3000 }).catch(() => {});
+    // Kept across a reload and other pages, whatever the Mac says, with no flash of day.
+    await page.goto(base + "/changelog");
+    s = await look();
+    if (s.theme !== "dark" || s.bg !== "rgb(25, 28, 39)" || s.checked !== "false") fail(`night kept on /changelog; got ${JSON.stringify(s)}`);
+    await page.goto(base + "/");
+    s = await look();
+    if (!s.hero.includes("-dark")) fail(`night kept on /: hero picture ${s.hero}`);
+    if (errors.length) fail(`page errors: ${errors.join("; ")}`);
+    await ctx.close();
+  } finally {
+    await browser.close();
+  }
+  console.log("verify: lamp checked (still, pull, kept across pages)");
+}
+
+// --- Lighthouse, phone and desktop, every page. ---
 // --disable-dev-shm-usage: the Openship build runs in Docker, whose /dev/shm is 64 MB; Chrome
 // crashed every page there (TARGET_CRASHED) until it wrote to /tmp instead (#48).
 const chrome = await launch({

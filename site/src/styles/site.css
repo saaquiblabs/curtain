@@ -1,5 +1,6 @@
 /* Curtain's page: the shared look. Tokens are the app's Linen & Dusk (Sources/Theme.swift): frosted
-   linen with dusk blue by day, twilight with afterglow at night, following the visitor's Mac.
+   linen with dusk blue by day, twilight with afterglow at night, following the visitor's Mac until
+   they pull the lamp in the header (#41).
    Type is the app's (Sources/Fonts.swift): Manrope for everything you read, Newsreader for the
    wordmark and headlines, italic for the accent. Self-hosted latin subsets, /fonts/LICENSES.txt.
    Structure (header, footer knock-out, buttons) ported from D-Tox's site/src/styles/site.css. */
@@ -24,11 +25,15 @@
   --term:#24293A;--term-fg:#E9EAF0;--term-dim:#A9AEC2;--term-acc:#E8B98F;
   --wall:linear-gradient(160deg,#9AA9D3 0%,#6E7FB4 45%,#3F4C7C 100%);
   --drape-a:#EEF1F8;--drape-b:#D2D9EA;
+  /* the lamp in the header (src/lamp): its metal, the light on its edge, its shadow */
+  --tui-obj-frame:#C3C7D0;--tui-obj-edge:#F6F5F0;--tui-obj-shadow:.3;--tui-obj-glow:0;
   --disp:"Newsreader",ui-serif,Georgia,serif;--sans:"Manrope",ui-sans-serif,system-ui,-apple-system,sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
   --wrap:1200px;--gut:clamp(16px,4vw,40px);--ease:cubic-bezier(.22,.8,.24,1);--drape:cubic-bezier(.65,0,.35,1);
 }
-@media (prefers-color-scheme:dark){:root{
+/* Night: the visitor's Mac is dark and they haven't chosen day, or they pulled the lamp for night
+   (src/theme.mjs sets data-theme). The two blocks are the same tokens; change both together. */
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
   /* Twilight at night, afterglow for the accent */
   --bg:#191C27;--bg2:#1E2230;--surf:#24293A;--surf2:#2A3043;
   --line:rgb(255 255 255 / .07);--line2:rgb(255 255 255 / .13);
@@ -42,7 +47,26 @@
   --term:#11131B;--term-fg:#E9EAF0;--term-dim:#8A90A6;--term-acc:#E8B98F;
   --wall:linear-gradient(160deg,#C9A48A 0%,#8A6F86 45%,#3A3D5A 100%);
   --drape-a:#3C4463;--drape-b:#2A3049;
+  --tui-obj-frame:#454C68;--tui-obj-edge:#B5BACB;--tui-obj-shadow:.42;--tui-obj-glow:.6;
 }}
+:root[data-theme=dark]{
+  /* Twilight at night, afterglow for the accent */
+  --bg:#191C27;--bg2:#1E2230;--surf:#24293A;--surf2:#2A3043;
+  --line:rgb(255 255 255 / .07);--line2:rgb(255 255 255 / .13);
+  --text:#E9EAF0;--t2:#A9AEC2;--t3:#8A90A6;
+  --acc:#E8B98F;--acc-rgb:232 185 143;--acc-deep:#F0C9A6;--acc-ink:#24293A;--sheer:#3A3550;
+  --em:#F0C9A6;
+  --thread:rgb(255 255 255 / .011);
+  --glow:rgb(232 185 143 / .16);
+  --shadow:0 1px 2px rgb(0 0 0 / .3),0 20px 50px -20px rgb(0 0 0 / .6);
+  --shadow-lg:0 2px 4px rgb(0 0 0 / .3),0 40px 90px -30px rgb(0 0 0 / .8);
+  --term:#11131B;--term-fg:#E9EAF0;--term-dim:#8A90A6;--term-acc:#E8B98F;
+  --wall:linear-gradient(160deg,#C9A48A 0%,#8A6F86 45%,#3A3D5A 100%);
+  --drape-a:#3C4463;--drape-b:#2A3049;
+  --tui-obj-frame:#454C68;--tui-obj-edge:#B5BACB;--tui-obj-shadow:.42;--tui-obj-glow:.6;
+}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
 
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:88px;scroll-behavior:smooth}
@@ -109,6 +133,28 @@ main{display:block;overflow-x:clip}
 .hbar nav{display:flex;gap:30px;font:500 14.5px/1 var(--sans);color:var(--t2)}
 .hbar nav a{text-decoration:none;transition:color .2s}.hbar nav a:hover,.hbar nav a[aria-current=page]{color:var(--text)}
 .hbar .right{display:flex;gap:10px;justify-content:end;align-items:center}
+
+/* the lamp, rightmost in the header (#41): pull it for night or day. It hangs from the top of the
+   window: the shade sits in the header, the cord and acorn hang below it. Below the header only the
+   acorn takes a pointer, so the page under the cord stays clickable. The `.pc` rules are ported from
+   Tactile UI's pull-cord.css (MIT, Ciprian Titire; src/lamp/pull-cord.mjs). */
+.lamp{position:relative;flex:none;width:52px;height:68px;margin-left:4px}
+.lamp-in{position:absolute;left:0;top:0;width:52px;height:112px;pointer-events:none;--tui-focus:var(--acc)}
+.pc::before,.lamp-still::before{content:"";position:absolute;inset:0 0 auto;height:68px;pointer-events:auto}
+.lamp-still{all:unset;position:absolute;inset:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lamp-still img{width:100%;height:100%}
+.pc{position:absolute;inset:0;min-height:96px;touch-action:pan-y;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;user-select:none}
+.pc canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;max-width:none;max-height:none}
+/* the scallop of light on the wall: none here. On linen it can't be seen, at night the lamp is off,
+   and below the header it would lie on the page as a pale box. */
+.pc-light{display:none}
+.pc-glow{mix-blend-mode:screen}
+.pc-grip{position:absolute;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;touch-action:none;cursor:grab;pointer-events:auto}
+.pc.pc-held,.pc.pc-held .pc-grip{cursor:grabbing}
+.pc-grip::after{content:"";position:absolute;left:50%;top:50%;width:var(--pc-ring,36px);height:var(--pc-ring,36px);transform:translate(-50%,-50%);border-radius:50%}
+.pc:focus-visible{outline:none}
+.pc:focus-visible .pc-grip::after{outline:2px solid var(--tui-focus,currentColor);outline-offset:1px}
+@media (forced-colors:active){.pc:focus-visible .pc-grip::after{outline-color:Highlight}}
 
 /* footer */
 .sft{position:relative;border-top:1px solid var(--line);padding-top:clamp(28px,4vh,44px);margin-top:clamp(72px,9vw,128px)}

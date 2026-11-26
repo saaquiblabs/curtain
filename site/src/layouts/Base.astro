@@ -1,12 +1,13 @@
 ---
 // Every page's frame: head, skip link, header, main, footer. Ported from D-Tox's
-// site/src/layouts/Base.astro; adapted: Curtain's icon, light and dark (the app follows macOS, so
-// the page follows the visitor's setting), Umami only once its website ID exists (src/site.ts).
+// site/src/layouts/Base.astro; adapted: Curtain's icon, light and dark (the visitor's setting until
+// they pull the lamp in the header, src/theme.mjs), Umami only once its website ID exists (src/site.ts).
 import "../styles/site.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { analytics, name, promise } from "../site";
 import { urlOf, type PageMeta } from "../seo";
+import { bootScript } from "../theme.mjs";
 
 interface Props extends PageMeta {
   /** The 404 page: not indexed, no canonical address. */
@@ -24,6 +25,7 @@ const canonical = noindex ? null : urlOf(Astro.url.pathname.replace(/\/$/, "") |
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
+    <script is:inline set:html={bootScript}></script>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {canonical ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}
@@ -46,8 +48,8 @@ const canonical = noindex ? null : urlOf(Astro.url.pathname.replace(/\/$/, "") |
     <slot name="head" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#191C27" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" data-scheme="light" />
+    <meta name="theme-color" content="#191C27" media="(prefers-color-scheme: dark)" data-scheme="dark" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>

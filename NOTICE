@@ -36,3 +36,8 @@ Resources/Fonts and inside Curtain.app (Contents/Resources/Fonts):
 - Newsreader Italic (Resources/Fonts/Newsreader-Italic.ttf, variable weight and optical size)
   Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)
   Licence: Resources/Fonts/OFL-Newsreader.txt
+
+Curtain's page (site/) includes code ported from Pull-cord Bulb in Tactile UI
+(https://github.com/cipriantitire/tactile-ui-free, pull-cord/, commit 0774661):
+site/src/lamp/pull-cord.mjs and the lamp's styles in site/src/styles/site.css.
+Copyright (c) 2026 Ciprian Titire, MIT License; full text in site/public/lamp/LICENSE.txt.

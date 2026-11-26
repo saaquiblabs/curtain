@@ -64,8 +64,8 @@ const details = [
 
 <Base {...pages["/"]}>
   <!-- The hero's menu is the largest thing on a phone's first screen: fetch it with the font, not after the page's HTML. -->
-  <link slot="head" rel="preload" as="image" imagesrcset="/menu/off-light-640.webp 640w, /menu/off-light.webp 744w" imagesizes="(max-width: 1000px) min(86vw, 380px), 400px" media="(prefers-color-scheme: light)" fetchpriority="high" />
-  <link slot="head" rel="preload" as="image" imagesrcset="/menu/off-dark-640.webp 640w, /menu/off-dark.webp 744w" imagesizes="(max-width: 1000px) min(86vw, 380px), 400px" media="(prefers-color-scheme: dark)" fetchpriority="high" />
+  <link slot="head" rel="preload" as="image" imagesrcset="/menu/off-light-640.webp 640w, /menu/off-light.webp 744w" imagesizes="(max-width: 1000px) min(86vw, 380px), 400px" media="(prefers-color-scheme: light)" data-scheme="light" fetchpriority="high" />
+  <link slot="head" rel="preload" as="image" imagesrcset="/menu/off-dark-640.webp 640w, /menu/off-dark.webp 744w" imagesizes="(max-width: 1000px) min(86vw, 380px), 400px" media="(prefers-color-scheme: dark)" data-scheme="dark" fetchpriority="high" />
   <!-- The opening: the page's own curtain, drawn back on every load and reload (hard or not).
        Skipped going Back, coming from another page of this site, and with Reduce Motion. -->
   <script is:inline>
